@@ -1316,15 +1316,15 @@
             "b387dc3b8e3ba31b",
             "8ab2f8087937a815",
             "b765932bf69d2d0f",
-            "f4d537707d9939d9",
-            "43776b0069d03adc",
             "2da97027bd0d7c7a",
             "5c21ea28c38aab09",
-            "aa52e72d797f94fa",
             "c700ab4f34ddb410",
             "4b898ccf9f8a0eaa",
             "996035da1afdd16a",
             "909f0bae520fb673",
+            "d3ea6c903a99d251",
+            "2eba0d1cd9992f8b",
+            "d398667e86b896fc",
             "d91e33e6c6d8d28c"
         ],
         "x": 14,
@@ -25157,7 +25157,7 @@
         "z": "ea807342102b869e",
         "g": "9f1e98d4426d35e3",
         "name": "send to worker",
-        "func": "let w = global.get('worker');\nlet worker = new w.Worker('./workers/w-geo.js');\nlet [ident, tracking] = msg.tracking;\n\nworker.on('message', (result) => {\n    worker.terminate();\n    let { area, tracking } = result.data;\n    node.send({\n        payload: {\n            ident,\n            area,\n            tracking\n        }\n    });\n});\nworker.on('error', (err) => {\n    worker.terminate();\n    msg.error = err;\n    node.send(msg);\n})\n\n// Send a message to the worker thread\nworker.postMessage({\n    func: 'checkLocationsInMultiPloygon',\n    payload: {\n        locations: tracking,\n        multiPolygon: msg.geoDivision\n    }\n});\nreturn null;",
+        "func": "let w = global.get('worker');\nlet worker = new w.Worker('./workers/w-geo.js');\nlet [ident, tracking] = msg.tracking;\n\nworker.on('message', (result) => {\n    worker.terminate();\n    let { area, tracking } = result.data;\n    if (Array.isArray(tracking) && tracking.length > 0) {\n        node.send({\n            payload: {\n                date: msg.date,\n                ident,\n                area,\n                tracking,\n            }\n        });\n    }\n});\nworker.on('error', (err) => {\n    worker.terminate();\n    msg.error = err;\n    node.send(msg);\n})\n\n// Send a message to the worker thread\nworker.postMessage({\n    func: 'checkLocationsInMultiPloygon',\n    payload: {\n        locations: tracking,\n        multiPolygon: msg.geoDivision\n    }\n});\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -25168,7 +25168,7 @@
         "y": 1940,
         "wires": [
             [
-                "43776b0069d03adc"
+                "55ed1342d1fd4d9c"
             ]
         ],
         "icon": "font-awesome/fa-qrcode"
@@ -25187,7 +25187,7 @@
         "y": 2000,
         "wires": [
             [
-                "61a97b32b17dbf53"
+                "d398667e86b896fc"
             ]
         ]
     },
@@ -25237,7 +25237,7 @@
         "z": "ea807342102b869e",
         "g": "9f1e98d4426d35e3",
         "name": "get longlat & delayLoop",
-        "func": "const redisTS = global.get('redisTS');\nconst couchdb = global.get('couchdb');\n\ncouchdb.view('smart-libs', 'refs', 'by-topic', {\n    keys: ['wt-devices', 'wt-party-ident']\n}).then(res => {\n    let devices = res.data.rows[0].value.data;\n    let party = res.data.rows[1].value.data;\n    let identities = devices.map(x => {\n        return {\n            device: x.szDeviceID,\n            imei: x.szPhysicalNo1,\n            nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n        }\n    });\n    let start = new Date(msg.date).setHours(0, 0, 0, 0);\n    let end = new Date(msg.date).setHours(23, 59, 59, 999);\n    let commands = [\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=longitude'],\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=latitude'],\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=event'],\n    ];\n    redisTS.commands(commands).then(res => {\n        let long = res.data[0].map(x => [x[0].split(':')[1], x[2]]);\n        let mapLong = new Map(long.map(([device, series]) => [device, series]));\n        let event = res.data[2].map(x => [x[0].split(':')[1], x[2]]);\n        let mapEvent = new Map(event.map(([device, series]) => [device, series]));\n        let lat = res.data[1].map(x => [x[0].split(':')[1], x[2]]);\n        let mapPerDevice = lat.map(([device, latitude]) => {\n            const longitude = mapLong.get(device);\n            const trackEvent = mapEvent.get(device);\n            return [device, [longitude, latitude, trackEvent] ];\n        });\n        let rs = mapPerDevice.map(mPerDevice => {\n            let ident = identities.find(p => p.device == mPerDevice[0]);\n            let { device, imei, nik } = ident;\n            let dLong = mPerDevice[1][0];\n            let mapDeviceLong = new Map(dLong.map(([timestamp, longitude]) => [timestamp, longitude]));\n            let dEvent = mPerDevice[1][2];\n            let mapDeviceEvent = new Map(dEvent.map(([timestamp, event]) => [timestamp, event]));\n            let dLat = mPerDevice[1][1];\n            let mapResult = dLat.map(([timestamp, latitude]) => {\n                const longitude = mapDeviceLong.get(timestamp);\n                const e = mapDeviceEvent.get(timestamp);\n                return [timestamp, [longitude, latitude], e]\n            });\n            return [[nik, device, imei], mapResult];\n        });\n        // msg.payload = rs;\n        // node.send(msg);\n        /**rata rata perdevice makan waktu 3m jika point convert to tree circle */\n        let index = 0;\n        function delayLoop() {\n            if (index < rs.length) {\n                msg.tracking = rs[index];\n                index++;\n                node.send(msg);\n                setTimeout(delayLoop, 30 * 1000)\n            }\n        }\n        delayLoop();\n    });\n});\n\nreturn null;",
+        "func": "const redisTS = global.get('redisTS');\nconst couchdb = global.get('couchdb');\n\ncouchdb.view('smart-libs', 'refs', 'by-topic', {\n    keys: ['wt-devices', 'wt-party-ident']\n}).then(res => {\n    let devices = res.data.rows[0].value.data;\n    let party = res.data.rows[1].value.data;\n    let identities = devices.map(x => {\n        return {\n            device: x.szDeviceID,\n            imei: x.szPhysicalNo1,\n            nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n        }\n    });\n    let start = new Date(msg.date).setHours(0, 0, 0, 0);\n    let end = new Date(msg.date).setHours(23, 59, 59, 999);\n    let commands = [\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=longitude'],\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=latitude'],\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=event'],\n    ];\n    redisTS.commands(commands).then(res => {\n        let long = res.data[0].map(x => [x[0].split(':')[1], x[2]]);\n        let mapLong = new Map(long.map(([device, series]) => [device, series]));\n        let event = res.data[2].map(x => [x[0].split(':')[1], x[2]]);\n        let mapEvent = new Map(event.map(([device, series]) => [device, series]));\n        let lat = res.data[1].map(x => [x[0].split(':')[1], x[2]]);\n        let mapPerDevice = lat.map(([device, latitude]) => {\n            const longitude = mapLong.get(device);\n            const trackEvent = mapEvent.get(device);\n            return [device, [longitude, latitude, trackEvent]];\n        });\n        let rs = mapPerDevice.map(mPerDevice => {\n            let ident = identities.find(p => p.device == mPerDevice[0]);\n            let { device, imei, nik } = ident;\n            let dLong = mPerDevice[1][0];\n            let mapDeviceLong = new Map(dLong.map(([timestamp, longitude]) => [timestamp, longitude]));\n            let dEvent = mPerDevice[1][2];\n            let mapDeviceEvent = new Map(dEvent.map(([timestamp, event]) => [timestamp, event]));\n            let dLat = mPerDevice[1][1];\n            let mapResult = dLat.map(([timestamp, latitude]) => {\n                const longitude = mapDeviceLong.get(timestamp);\n                const e = mapDeviceEvent.get(timestamp);\n                return [timestamp, [longitude, latitude], e]\n            });\n            return [[nik, device, imei], mapResult];\n        });\n        rs.forEach(x => {\n            msg.tracking = x;\n            node.send(msg);\n        })\n        /**rata rata perdevice makan waktu 3m jika point convert to tree circle */\n        // let index = 0;\n        // function delayLoop() {\n        //     if (index < rs.length) {\n        //         msg.tracking = rs[index];\n        //         index++;\n        //         node.send(msg);\n        //         setTimeout(delayLoop, 60 * 1000)\n        //     }\n        // }\n        // delayLoop();\n    });\n});\n\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -25248,7 +25248,7 @@
         "y": 1860,
         "wires": [
             [
-                "8f24af074f1a443c"
+                "d3ea6c903a99d251"
             ]
         ]
     },
@@ -25320,7 +25320,7 @@
         "z": "ea807342102b869e",
         "g": "9f1e98d4426d35e3",
         "name": "send to worker",
-        "func": "let w = global.get('worker');\nlet worker = new w.Worker('./workers/w-geo.js');\nlet { ident, tracking } = msg.payload;\n\nworker.on('message', (result) => {\n    worker.terminate();\n    let { area, tracking } = result.data;\n    setTimeout(function () {\n        node.send({\n            payload: {\n                ident,\n                area,\n                tracking\n            }\n        });\n    }, 100);\n});\nworker.on('error', (err) => {\n    worker.terminate();\n    msg.error = err;\n    node.send(msg);\n})\n\n// Send a message to the worker thread\nworker.postMessage({\n    func: 'checkLocationsInPloygon',\n    payload: {\n        locations: tracking,\n        geojson: msg.geoBlock\n    }\n});\nreturn null;",
+        "func": "let w = global.get('worker');\nlet worker = new w.Worker('./workers/w-geo.js');\nlet { date, ident, tracking } = msg.payload;\n\nworker.on('message', (result) => {\n    worker.terminate();\n    let { area, tracking } = result.data;\n    if (Array.isArray(tracking) && tracking.length > 0) {\n        node.send({\n            payload: {\n                date,\n                ident,\n                area,\n                tracking\n            }\n        });\n    }\n});\nworker.on('error', (err) => {\n    worker.terminate();\n    msg.error = err;\n    node.send(msg);\n})\n\n// Send a message to the worker thread\nworker.postMessage({\n    func: 'checkLocationsInPloygon',\n    payload: {\n        locations: tracking,\n        geojson: msg.geoBlock\n    }\n});\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -25331,7 +25331,7 @@
         "y": 2080,
         "wires": [
             [
-                "f4d537707d9939d9"
+                "8ab2f8087937a815"
             ]
         ],
         "icon": "font-awesome/fa-qrcode"
@@ -25364,59 +25364,7 @@
         "y": 2140,
         "wires": [
             [
-                "2da97027bd0d7c7a"
-            ]
-        ]
-    },
-    {
-        "id": "f4d537707d9939d9",
-        "type": "switch",
-        "z": "ea807342102b869e",
-        "g": "9f1e98d4426d35e3",
-        "name": "tracking > 0 ?",
-        "property": "payload.tracking.length",
-        "propertyType": "msg",
-        "rules": [
-            {
-                "t": "gt",
-                "v": "0",
-                "vt": "num"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 1,
-        "x": 560,
-        "y": 2080,
-        "wires": [
-            [
-                "8ab2f8087937a815"
-            ]
-        ]
-    },
-    {
-        "id": "43776b0069d03adc",
-        "type": "switch",
-        "z": "ea807342102b869e",
-        "g": "9f1e98d4426d35e3",
-        "name": "tracking > 0 ?",
-        "property": "payload.tracking.length",
-        "propertyType": "msg",
-        "rules": [
-            {
-                "t": "gt",
-                "v": "0",
-                "vt": "num"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 1,
-        "x": 560,
-        "y": 1940,
-        "wires": [
-            [
-                "55ed1342d1fd4d9c"
+                "2eba0d1cd9992f8b"
             ]
         ]
     },
@@ -25426,7 +25374,7 @@
         "z": "ea807342102b869e",
         "g": "9f1e98d4426d35e3",
         "name": "get tree geojson",
-        "func": "const couchdb = global.get('couchdb');\nlet { area } = msg.payload;\nlet { psm, estate, division, block } = area;\n\ncouchdb.view('smart-geojson', 'tree', 'geo-by-block', {\n    key: [psm, estate, division, block]\n}).then(res => {\n    msg.geoTree = res.data.rows.map(x => x.value);\n    node.send(msg);\n})\nreturn null;",
+        "func": "const couchdb = global.get('couchdb');\nlet { date, ident, area } = msg.payload;\nlet { psm, estate, division, block } = area;\n\ncouchdb.view('smart-geojson', 'tree', 'geo-by-block', {\n    key: [psm, estate, division, block]\n}).then(res => {\n    let geoTree = res.data.rows?.map(x => x.value);\n    couchdb.view('transactions', 'filter', 'by-harvester-date', {\n        key: [ident[0], date]\n    }).then(res => {\n        let transIDs = res.data.rows?.map(x => x.value);\n        msg.geoTree = geoTree.filter(x => !transIDs.includes(x.properties['_id']));\n        node.send(msg);\n    });\n});\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -25447,7 +25395,7 @@
         "z": "ea807342102b869e",
         "g": "9f1e98d4426d35e3",
         "name": "send to worker",
-        "func": "let w = global.get('worker');\nlet worker = new w.Worker('./workers/w-geo.js');\nlet { ident, tracking } = msg.payload;\n\nworker.on('message', (result) => {\n    worker.terminate();\n    setTimeout(function () {\n        node.send({\n            payload: {\n                ident,\n                transaction: result.data\n            }\n        });\n    }, 30);\n});\nworker.on('error', (err) => {\n    worker.terminate();\n    msg.error = err;\n    node.send(msg);\n})\n\n// Send a message to the worker thread\nworker.postMessage({\n    func: 'geofencing',\n    payload: {\n        locations: tracking,\n        geojson: msg.geoTree\n    }\n});\nreturn null;",
+        "func": "let w = global.get('worker');\nlet worker = new w.Worker('./workers/w-geo.js');\nlet { ident, tracking } = msg.payload;\nlet geoTree = msg.geoTree;\n\nworker.on('message', (result) => {\n    worker.terminate();\n    if (result.data && Array.isArray(result.data) && result.data.length > 0) {\n        node.send({\n            payload: {\n                ident,\n                geofencing: result.data\n            }\n        });\n    }\n});\nworker.on('error', (err) => {\n    worker.terminate();\n    msg.error = err;\n    node.send(msg);\n})\n\n// Send a message to the worker thread\nif (Array.isArray(geoTree) && geoTree.length > 0) {\n    worker.postMessage({\n        func: 'geofencing',\n        payload: {\n            locations: tracking,\n            geojson: geoTree\n        }\n    });\n}\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -25458,36 +25406,10 @@
         "y": 2220,
         "wires": [
             [
-                "aa52e72d797f94fa"
+                "4b898ccf9f8a0eaa"
             ]
         ],
         "icon": "font-awesome/fa-qrcode"
-    },
-    {
-        "id": "aa52e72d797f94fa",
-        "type": "switch",
-        "z": "ea807342102b869e",
-        "g": "9f1e98d4426d35e3",
-        "name": "transaction ?",
-        "property": "payload.transaction.length",
-        "propertyType": "msg",
-        "rules": [
-            {
-                "t": "gt",
-                "v": "0",
-                "vt": "num"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 1,
-        "x": 550,
-        "y": 2220,
-        "wires": [
-            [
-                "4b898ccf9f8a0eaa"
-            ]
-        ]
     },
     {
         "id": "c700ab4f34ddb410",
@@ -25545,7 +25467,7 @@
         "z": "ea807342102b869e",
         "g": "9f1e98d4426d35e3",
         "name": "create transactions",
-        "func": "const couchdb = global.get('couchdb');\n\nlet { ident, transaction } = msg.payload;\nlet [nik, device, imei] = ident;\nlet rs = [];\nlet date = new Date(transaction[0].loc[0])\n\ncouchdb.view('transactions', 'filter', 'by-harvester-date', {\n    key: [nik,date.toISOString().split('T')[0]]\n}).then(res => {\n    let ids = res.data.rows.map(x => x.value);\n    node.warn(ids);\n}, (err) => {\n    node.send({\n        error: err\n    });\n})\ntransaction.forEach(t => {\n    let { tree, loc } = t;\n    let {_id, psm, estate, division, block} = t.properties;\n    let transaction = rs.find(x => x.treeID == tree.properties._id);\n    let isHarvested = Number(loc[2]) == 1;\n    if (!transaction) {\n        rs.push({\n            treeID: _id,\n            psm: psm,\n            estate: estate,\n            division: division,\n            block: tree.properties.block,\n            harvester: nik,\n            harvested: (isHarvested) ? Number(loc[2]) : 0,\n            lastHarvested: (isHarvested) ? new Date(loc[0]) : null,\n            visited: 1,\n            lastVisited: new Date(loc[0]),\n            meta: {\n                harvestedPoints: (isHarvested) ? [loc] : [],\n                visitedPoints: [loc]\n            },\n            createdBy: \"system\",\n            createdDate: new Date(),\n            modifiedBy: \"system\",\n            modifiedDate: new Date(),\n        });\n    } else {\n        if (isHarvested) {\n            transaction.harvested++;\n            transaction.lastHarvested = new Date(loc[0]);\n            transaction.meta.harvestedPoints.push(loc);\n        }\n        transaction.visited++;\n        transaction.meta.visitedPoints.push(loc);\n    }\n});\n\nrs.forEach(data => {\n  data.meta.harvestedPoints = JSON.stringify(data.meta.harvestedPoints);\n  data.meta.visitedPoints = JSON.stringify(data.meta.visitedPoints);\n});\n\ncouchdb.bulkInsert('transactions', rs).then(res => {\n    node.send({\n        payload: res.data\n    });\n}, (err) => {\n    node.send({\n        error: err\n    });\n});\nreturn null;",
+        "func": "const couchdb = global.get('couchdb');\n\nlet { ident, geofencing } = msg.payload;\nlet [nik, device, imei] = ident;\nlet rs = [];\ngeofencing.forEach(geof => {\n    let { tree, loc } = geof;\n    let { _id, psm, estate, division, block } = tree.properties;\n    let transaction = rs.find(x => x.treeID == tree.properties._id);\n    let isHarvested = Number(loc[2]) == 1;\n    if (!transaction) {\n        rs.push({\n            treeID: _id,\n            psm: psm,\n            estate: estate,\n            division: division,\n            block: block,\n            harvester: nik,\n            harvested: (isHarvested) ? Number(loc[2]) : 0,\n            lastHarvested: (isHarvested) ? new Date(loc[0]) : null,\n            visited: 1,\n            lastVisited: new Date(loc[0]),\n            meta: {\n                harvestedPoints: (isHarvested) ? [loc] : [],\n                visitedPoints: [loc]\n            },\n            createdBy: \"system\",\n            createdDate: new Date(),\n            modifiedBy: \"system\",\n            modifiedDate: new Date(),\n        });\n    } else {\n        if (isHarvested) {\n            transaction.harvested++;\n            transaction.lastHarvested = new Date(loc[0]);\n            transaction.meta.harvestedPoints.push(loc);\n        }\n        transaction.visited++;\n        transaction.meta.visitedPoints.push(loc);\n    }\n});\n\nrs.forEach(data => {\n    data.meta.harvestedPoints = JSON.stringify(data.meta.harvestedPoints);\n    data.meta.visitedPoints = JSON.stringify(data.meta.visitedPoints);\n});\n\ncouchdb.bulkInsert('transactions', rs).then(res => {\n    node.send({\n        payload: res.data\n    });\n}, (err) => {\n    node.send({\n        error: err\n    });\n});\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -25559,24 +25481,6 @@
                 "d91e33e6c6d8d28c"
             ]
         ]
-    },
-    {
-        "id": "d91e33e6c6d8d28c",
-        "type": "debug",
-        "z": "ea807342102b869e",
-        "g": "9f1e98d4426d35e3",
-        "name": "debug 222",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 590,
-        "y": 2320,
-        "wires": []
     },
     {
         "id": "cb502188a9267d4b",
@@ -25643,5 +25547,101 @@
                 "04b8c3fd7d824bbf"
             ]
         ]
+    },
+    {
+        "id": "d3ea6c903a99d251",
+        "type": "delay",
+        "z": "ea807342102b869e",
+        "g": "9f1e98d4426d35e3",
+        "name": "",
+        "pauseType": "rate",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "210",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 620,
+        "y": 1860,
+        "wires": [
+            [
+                "8f24af074f1a443c"
+            ]
+        ]
+    },
+    {
+        "id": "2eba0d1cd9992f8b",
+        "type": "delay",
+        "z": "ea807342102b869e",
+        "g": "9f1e98d4426d35e3",
+        "name": "",
+        "pauseType": "rate",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "60",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 620,
+        "y": 2140,
+        "wires": [
+            [
+                "2da97027bd0d7c7a"
+            ]
+        ]
+    },
+    {
+        "id": "d398667e86b896fc",
+        "type": "delay",
+        "z": "ea807342102b869e",
+        "g": "9f1e98d4426d35e3",
+        "name": "",
+        "pauseType": "rate",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "30",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 620,
+        "y": 2000,
+        "wires": [
+            [
+                "61a97b32b17dbf53"
+            ]
+        ]
+    },
+    {
+        "id": "d91e33e6c6d8d28c",
+        "type": "debug",
+        "z": "ea807342102b869e",
+        "g": "9f1e98d4426d35e3",
+        "name": "debug 222",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 2320,
+        "wires": []
     }
 ]
