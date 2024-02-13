@@ -1289,9 +1289,7 @@
             "d6165c1f299c9aee"
         ],
         "x": 54,
-        "y": 59,
-        "w": 1172,
-        "h": 382
+        "y": 59
     },
     {
         "id": "9f1e98d4426d35e3",
@@ -25322,7 +25320,7 @@
         "z": "ea807342102b869e",
         "g": "9f1e98d4426d35e3",
         "name": "send to worker",
-        "func": "let w = global.get('worker');\nlet worker = new w.Worker('./workers/w-geo.js');\nlet { ident, tracking } = msg.payload;\n\nworker.on('message', (result) => {\n    worker.terminate();\n    let { area, tracking } = result.data;\n    node.send({\n        payload: {\n            ident,\n            area,\n            tracking\n        }\n    });\n});\nworker.on('error', (err) => {\n    worker.terminate();\n    msg.error = err;\n    node.send(msg);\n})\n\n// Send a message to the worker thread\nworker.postMessage({\n    func: 'checkLocationsInPloygon',\n    payload: {\n        locations: tracking,\n        geojson: msg.geoBlock\n    }\n});\nreturn null;",
+        "func": "let w = global.get('worker');\nlet worker = new w.Worker('./workers/w-geo.js');\nlet { ident, tracking } = msg.payload;\n\nworker.on('message', (result) => {\n    worker.terminate();\n    let { area, tracking } = result.data;\n    setTimeout(function () {\n        node.send({\n            payload: {\n                ident,\n                area,\n                tracking\n            }\n        });\n    }, 100);\n});\nworker.on('error', (err) => {\n    worker.terminate();\n    msg.error = err;\n    node.send(msg);\n})\n\n// Send a message to the worker thread\nworker.postMessage({\n    func: 'checkLocationsInPloygon',\n    payload: {\n        locations: tracking,\n        geojson: msg.geoBlock\n    }\n});\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -25449,7 +25447,7 @@
         "z": "ea807342102b869e",
         "g": "9f1e98d4426d35e3",
         "name": "send to worker",
-        "func": "let w = global.get('worker');\nlet worker = new w.Worker('./workers/w-geo.js');\nlet { ident, tracking } = msg.payload;\n\nworker.on('message', (result) => {\n    worker.terminate();\n    node.send({\n        payload: {\n            ident,\n            transaction: result.data\n        }\n    });\n});\nworker.on('error', (err) => {\n    worker.terminate();\n    msg.error = err;\n    node.send(msg);\n})\n\n// Send a message to the worker thread\nworker.postMessage({\n    func: 'geofencing',\n    payload: {\n        locations: tracking,\n        geojson: msg.geoTree\n    }\n});\nreturn null;",
+        "func": "let w = global.get('worker');\nlet worker = new w.Worker('./workers/w-geo.js');\nlet { ident, tracking } = msg.payload;\n\nworker.on('message', (result) => {\n    worker.terminate();\n    setTimeout(function () {\n        node.send({\n            payload: {\n                ident,\n                transaction: result.data\n            }\n        });\n    }, 30);\n});\nworker.on('error', (err) => {\n    worker.terminate();\n    msg.error = err;\n    node.send(msg);\n})\n\n// Send a message to the worker thread\nworker.postMessage({\n    func: 'geofencing',\n    payload: {\n        locations: tracking,\n        geojson: msg.geoTree\n    }\n});\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -25547,7 +25545,7 @@
         "z": "ea807342102b869e",
         "g": "9f1e98d4426d35e3",
         "name": "create transactions",
-        "func": "const couchdb = global.get('couchdb');\n\nlet { ident, transaction } = msg.payload;\nlet [nik, device, imei] = ident;\nlet rs = [];\ntransaction.forEach(t => {\n    let { tree, loc } = t;\n    let transaction = rs.find(x => x.treeID == tree.properties._id);\n    let isHarvested = Number(loc[2]) == 1;\n    if (!transaction) {\n        rs.push({\n            treeID: tree.properties._id,\n            division: tree.properties.division,\n            block: tree.properties.block,\n            harvester: nik,\n            harvested: (isHarvested) ? Number(loc[2]) : 0,\n            lastHarvested: (isHarvested) ? new Date(loc[0]) : null,\n            visited: 1,\n            lastVisited: new Date(loc[0]),\n            meta: {\n                harvestedPoints: (isHarvested) ? [loc] : [],\n                visitedPoints: [loc]\n            },\n            createdBy: \"system\",\n            createdDate: new Date(),\n            modifiedBy: \"system\",\n            modifiedDate: new Date(),\n        });\n    } else {\n        if (isHarvested) {\n            transaction.harvested++;\n            transaction.lastHarvested = new Date(loc[0]);\n            transaction.meta.harvestedPoints.push(loc);\n        }\n        transaction.visited++;\n        transaction.meta.visitedPoints.push(loc);\n        transaction.harvestedDate = new Date(loc[0])\n    }\n});\n\nrs.forEach(data => {\n  data.meta.harvestedPoints = JSON.stringify(data.meta.harvestedPoints);\n  data.meta.visitedPoints = JSON.stringify(data.meta.visitedPoints);\n});\n\ncouchdb.bulkInsert('transactions', rs).then(res => {\n    node.send({\n        payload: res.data\n    });\n}, (err) => {\n    node.send({\n        error: err\n    });\n});\nreturn null;",
+        "func": "const couchdb = global.get('couchdb');\n\nlet { ident, transaction } = msg.payload;\nlet [nik, device, imei] = ident;\nlet rs = [];\nlet date = new Date(transaction[0].loc[0])\n\ncouchdb.view('transactions', 'filter', 'by-harvester-date', {\n    key: [nik,date.toISOString().split('T')[0]]\n}).then(res => {\n    let ids = res.data.rows.map(x => x.value);\n    node.warn(ids);\n}, (err) => {\n    node.send({\n        error: err\n    });\n})\ntransaction.forEach(t => {\n    let { tree, loc } = t;\n    let {_id, psm, estate, division, block} = t.properties;\n    let transaction = rs.find(x => x.treeID == tree.properties._id);\n    let isHarvested = Number(loc[2]) == 1;\n    if (!transaction) {\n        rs.push({\n            treeID: _id,\n            psm: psm,\n            estate: estate,\n            division: division,\n            block: tree.properties.block,\n            harvester: nik,\n            harvested: (isHarvested) ? Number(loc[2]) : 0,\n            lastHarvested: (isHarvested) ? new Date(loc[0]) : null,\n            visited: 1,\n            lastVisited: new Date(loc[0]),\n            meta: {\n                harvestedPoints: (isHarvested) ? [loc] : [],\n                visitedPoints: [loc]\n            },\n            createdBy: \"system\",\n            createdDate: new Date(),\n            modifiedBy: \"system\",\n            modifiedDate: new Date(),\n        });\n    } else {\n        if (isHarvested) {\n            transaction.harvested++;\n            transaction.lastHarvested = new Date(loc[0]);\n            transaction.meta.harvestedPoints.push(loc);\n        }\n        transaction.visited++;\n        transaction.meta.visitedPoints.push(loc);\n    }\n});\n\nrs.forEach(data => {\n  data.meta.harvestedPoints = JSON.stringify(data.meta.harvestedPoints);\n  data.meta.visitedPoints = JSON.stringify(data.meta.visitedPoints);\n});\n\ncouchdb.bulkInsert('transactions', rs).then(res => {\n    node.send({\n        payload: res.data\n    });\n}, (err) => {\n    node.send({\n        error: err\n    });\n});\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -25579,5 +25577,71 @@
         "x": 590,
         "y": 2320,
         "wires": []
+    },
+    {
+        "id": "cb502188a9267d4b",
+        "type": "inject",
+        "z": "ea807342102b869e",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 170,
+        "y": 2400,
+        "wires": [
+            [
+                "a16fdbf27b4447e8"
+            ]
+        ]
+    },
+    {
+        "id": "04b8c3fd7d824bbf",
+        "type": "debug",
+        "z": "ea807342102b869e",
+        "name": "debug 223",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 2400,
+        "wires": []
+    },
+    {
+        "id": "a16fdbf27b4447e8",
+        "type": "function",
+        "z": "ea807342102b869e",
+        "name": "function 132",
+        "func": "let couchdb = global.get('couchdb');\ncouchdb.view('transactions', 'filter', 'by-harvester-date', {\n    key: [\"SSME-99000\",\"2024-01-17\"]\n}).then(res => {\n    node.send(res.data);\n}, (err) => {\n    node.send({\n        error: err\n    });\n})\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 2400,
+        "wires": [
+            [
+                "04b8c3fd7d824bbf"
+            ]
+        ]
     }
 ]
