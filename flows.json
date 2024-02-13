@@ -23909,7 +23909,7 @@
         "type": "function",
         "z": "ea807342102b869e",
         "name": "return",
-        "func": "let couchdb = global.get('couchdb');\nlet { startDate, endDate } = msg.payload;\n\ncouchdb.view('transactions', 'data', 'by-date', {\n\tstartkey: startDate,\n\tendkey: endDate\n}).then(res => {\n\tmsg.payload = res.data.rows?.map(x => {\n\t\tlet { _id, _rev, ...other } = x.value;\n\t\treturn other\n\t});\n\tnode.send(msg);\n}, (err) => {\n\tmsg.error = err;\n\tnode.send(msg);\n})\n\nreturn null;",
+        "func": "let couchdb = global.get('couchdb');\nlet { startDate, endDate } = msg.payload;\n\nlet start = new Date(startDate);\nstart.setHours(0, 0, 0, 0);\nlet end = new Date(endDate);\nend.setHours(23, 59, 59, 999);\n\ncouchdb.view('transactions', 'data', 'by-date', {\n\tstartkey: start.toISOString().split('T')[0],\n\tendkey: end.toISOString().split('T')[0]\n}).then(res => {\n\tmsg.payload = res.data.rows?.map(x => {\n\t\tlet { _id, _rev, ...other } = x.value;\n\t\treturn other\n\t});\n\tnode.send(msg);\n}, (err) => {\n\tmsg.error = err;\n\tnode.send(msg);\n})\n\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
