@@ -1312,7 +1312,9 @@
             "0eae8461b0dc1b2a"
         ],
         "x": 14,
-        "y": 1819
+        "y": 1819,
+        "w": 772,
+        "h": 122
     },
     {
         "id": "784d89e62dfb5070",
@@ -22281,7 +22283,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 120,
-        "y": 660,
+        "y": 380,
         "wires": [
             [
                 "26b9cfc7cae5d90f"
@@ -22301,7 +22303,7 @@
         "finalize": "",
         "libs": [],
         "x": 330,
-        "y": 660,
+        "y": 380,
         "wires": [
             [
                 "151f54959afeb7a2"
@@ -22322,7 +22324,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 530,
-        "y": 700,
+        "y": 420,
         "wires": []
     },
     {
@@ -22347,7 +22349,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 120,
-        "y": 760,
+        "y": 480,
         "wires": [
             [
                 "a8a9a877b0454df2"
@@ -22367,7 +22369,7 @@
         "finalize": "",
         "libs": [],
         "x": 330,
-        "y": 760,
+        "y": 480,
         "wires": [
             [
                 "fe935740fd98ef5b"
@@ -22388,7 +22390,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 550,
-        "y": 800,
+        "y": 520,
         "wires": []
     },
     {
@@ -22404,7 +22406,7 @@
         "payloadType": "json",
         "block": false,
         "x": 340,
-        "y": 800,
+        "y": 520,
         "wires": [
             [
                 "00b47a3e04493d53"
@@ -22424,7 +22426,7 @@
         "payloadType": "json",
         "block": false,
         "x": 320,
-        "y": 700,
+        "y": 420,
         "wires": [
             [
                 "4c3910f7e2c9af31"
@@ -22437,7 +22439,7 @@
         "z": "b5ec5e315779d1ba",
         "name": "",
         "x": 360,
-        "y": 900,
+        "y": 620,
         "wires": [
             [
                 "6348e1acf2ac164b"
@@ -22457,7 +22459,7 @@
         "finalize": "",
         "libs": [],
         "x": 330,
-        "y": 860,
+        "y": 580,
         "wires": [
             [
                 "de7bb3412c151cb9"
@@ -22486,7 +22488,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 120,
-        "y": 860,
+        "y": 580,
         "wires": [
             [
                 "de5b0f5c4d9b3e2c"
@@ -22507,7 +22509,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 590,
-        "y": 900,
+        "y": 620,
         "wires": []
     },
     {
@@ -22532,7 +22534,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 120,
-        "y": 960,
+        "y": 680,
         "wires": [
             [
                 "17f09ca8a1c681d7"
@@ -22552,7 +22554,7 @@
         "finalize": "",
         "libs": [],
         "x": 330,
-        "y": 960,
+        "y": 680,
         "wires": [
             [
                 "b91034d098f67869"
@@ -22572,7 +22574,7 @@
         "payloadType": "json",
         "block": false,
         "x": 330,
-        "y": 1000,
+        "y": 720,
         "wires": [
             [
                 "e71eb44b21a98f7e"
@@ -22593,7 +22595,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 890,
-        "y": 1080,
+        "y": 800,
         "wires": []
     },
     {
@@ -22608,7 +22610,7 @@
         "stream": false,
         "addname": "",
         "x": 350,
-        "y": 1040,
+        "y": 760,
         "wires": [
             [
                 "59a9c086a1b7d43b"
@@ -22628,7 +22630,7 @@
         "finalize": "",
         "libs": [],
         "x": 550,
-        "y": 960,
+        "y": 680,
         "wires": [
             [
                 "f51fc61b9455489f"
@@ -22641,7 +22643,7 @@
         "z": "b5ec5e315779d1ba",
         "name": "",
         "x": 580,
-        "y": 1000,
+        "y": 720,
         "wires": [
             [
                 "f209e819559c0057"
@@ -22665,7 +22667,7 @@
         "count": "",
         "reduceRight": false,
         "x": 530,
-        "y": 1080,
+        "y": 800,
         "wires": [
             [
                 "010aa4e2a10be41a"
@@ -22685,7 +22687,7 @@
         "finalize": "",
         "libs": [],
         "x": 550,
-        "y": 1040,
+        "y": 760,
         "wires": [
             [
                 "56e03dec5b287e6f"
@@ -22714,7 +22716,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 120,
-        "y": 520,
+        "y": 240,
         "wires": [
             [
                 "daa47392a7f5e831"
@@ -22735,7 +22737,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 610,
-        "y": 600,
+        "y": 320,
         "wires": []
     },
     {
@@ -22751,7 +22753,7 @@
         "finalize": "",
         "libs": [],
         "x": 330,
-        "y": 520,
+        "y": 240,
         "wires": [
             [
                 "854a1d73cc439661"
@@ -22764,7 +22766,7 @@
         "z": "b5ec5e315779d1ba",
         "name": "",
         "x": 360,
-        "y": 560,
+        "y": 280,
         "wires": [
             [
                 "87c96ed0f69f0e7b"
@@ -22777,7 +22779,7 @@
         "z": "b5ec5e315779d1ba",
         "name": "",
         "x": 700,
-        "y": 560,
+        "y": 280,
         "wires": [
             [
                 "9cc8dfbb3d91c7cd"
@@ -22797,7 +22799,7 @@
         "finalize": "",
         "libs": [],
         "x": 610,
-        "y": 520,
+        "y": 240,
         "wires": [
             [
                 "bf03ac8cf6652b49"
@@ -22919,103 +22921,6 @@
         "statusType": "auto",
         "x": 750,
         "y": 120,
-        "wires": []
-    },
-    {
-        "id": "7caf168b939b9028",
-        "type": "amqp in",
-        "z": "b5ec5e315779d1ba",
-        "name": "",
-        "topic": "",
-        "iotype": "4",
-        "ioname": "wt.tracking.import",
-        "server": "e907ba5364e5896f",
-        "x": 150,
-        "y": 280,
-        "wires": [
-            [
-                "bb6860a59623cd4b"
-            ]
-        ]
-    },
-    {
-        "id": "bb6860a59623cd4b",
-        "type": "function",
-        "z": "b5ec5e315779d1ba",
-        "name": "spawn data",
-        "func": "// let payload = msg.payload;\n// msg.ori = payload;\n// msg.payload = payload;\n\n// const chunkSize = 10000;\n\n// if (payload.length > chunkSize) {\n//   for (let i = 0; i < payload.length; i += chunkSize) {\n//     const chunk = payload.slice(i, i + chunkSize);\n//     node.send({\n//       payload: chunk\n//     });\n//   }\n// } else {\n//   node.send({\n//     payload\n//   });\n// }\n// return null;\n\nlet payload = msg.payload;\n\nconst chunkSize = 1000;\nconst delayBetweenChunks = 17 * 1000;\n\nfunction processArrayWithDelay(startIndex) {\n  const endIndex = Math.min(startIndex + chunkSize, payload.length);\n  const chunk = payload.slice(startIndex, endIndex);\n\n  node.send({\n    payload: chunk\n  });\n\n  if (endIndex < payload.length) {\n    setTimeout(() => {\n      processArrayWithDelay(endIndex);\n    }, delayBetweenChunks);\n  }\n}\n\n// Start processing the array with a delay\nprocessArrayWithDelay(0);\nreturn null;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 170,
-        "y": 320,
-        "wires": [
-            [
-                "f449ebb8cc8d7088"
-            ]
-        ],
-        "icon": "node-red/status.svg"
-    },
-    {
-        "id": "f449ebb8cc8d7088",
-        "type": "function",
-        "z": "b5ec5e315779d1ba",
-        "name": "build create & add commands",
-        "func": "const redisTS = global.get('redisTS');\n\nredisTS.commands([['keys', 'wt:*']]).then(rs => {\n    let wtKeys = rs.data[0];\n    let payload = msg.payload;\n    let suffix = ['deviceDatetime', 'latitude', 'longitude', 'altitude', 'speed', 'event', 'battery'];\n    let addCommands = [];\n    let createPayload = [];\n\n    for (const rec of payload) {\n        let { deviceID, deviceDatetime, latitude, longitude, altitude, event, speed, battery } = rec;\n        if (deviceDatetime && deviceDatetime != null && deviceDatetime != \"\") {\n            suffix.forEach(suf => {\n                if (!wtKeys.includes(`wt:${deviceID}:${suf}`) && createPayload.find(x => x.key == `wt:${deviceID}:${suf}`) == undefined) {\n                    createPayload.push({\n                        key: `wt:${deviceID}:${suf}`,\n                        retention: 0,\n                        duplicatePolicy: 'LAST',\n                        labels: ['type', 'worker-tracker', 'deviceID', deviceID, 'topic', suf],\n                        encoding: 'UNCOMPRESSED'\n                    });\n                }\n            })\n            addCommands.push([\n                'TS.ADD',\n                `wt:${deviceID}:deviceDatetime`,\n                new Date(deviceDatetime).getTime().toString(),\n                new Date(deviceDatetime).getTime().toString()\n            ]);\n            addCommands.push([\n                'TS.ADD',\n                `wt:${deviceID}:latitude`,\n                new Date(deviceDatetime).getTime().toString(),\n                parseFloat(latitude).toString()\n            ]);\n            addCommands.push([\n                'TS.ADD',\n                `wt:${deviceID}:longitude`,\n                new Date(deviceDatetime).getTime().toString(),\n                parseFloat(longitude).toString()\n            ]);\n            addCommands.push([\n                'TS.ADD',\n                `wt:${deviceID}:altitude`,\n                new Date(deviceDatetime).getTime().toString(),\n                parseFloat(altitude).toString()\n            ]);\n            addCommands.push([\n                'TS.ADD',\n                `wt:${deviceID}:speed`,\n                new Date(deviceDatetime).getTime().toString(),\n                parseFloat(speed).toString()\n            ]);\n            addCommands.push([\n                'TS.ADD',\n                `wt:${deviceID}:event`,\n                new Date(deviceDatetime).getTime().toString(),\n                parseFloat(event).toString()\n            ]);\n            addCommands.push([\n                'TS.ADD',\n                `wt:${deviceID}:battery`,\n                new Date(deviceDatetime).getTime().toString(),\n                parseFloat(battery).toString()\n            ]);\n        }\n    }\n\n    redisTS.tsCreate(createPayload).then(createRS => {\n        msg.payload = addCommands;\n        node.send(msg);\n    })\n});\n\nreturn null;\n\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 450,
-        "y": 280,
-        "wires": [
-            [
-                "e057ad1e131c55ee"
-            ]
-        ],
-        "icon": "font-awesome/fa-code-fork"
-    },
-    {
-        "id": "e057ad1e131c55ee",
-        "type": "function",
-        "z": "b5ec5e315779d1ba",
-        "name": "ts.add data series",
-        "func": "const w = global.get('worker');\nconst worker = new w.Worker('./workers/w-redis-ts.js', { workerData: 'send data csv to timeseries' });\n\nworker.on('message', (result) => {\n    worker.terminate();\n    node.send({ payload: result });\n});\nworker.on('error', (err) => {\n    worker.terminate();\n    msg.error = err;\n    node.send(msg);\n})\n\n// Send a message to the worker thread\nworker.postMessage({\n    func: 'commands',\n    payload: msg.payload\n});\nreturn null;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 490,
-        "y": 320,
-        "wires": [
-            [
-                "cc9daeab4a1db8e7"
-            ]
-        ],
-        "icon": "font-awesome/fa-qrcode"
-    },
-    {
-        "id": "cc9daeab4a1db8e7",
-        "type": "debug",
-        "z": "b5ec5e315779d1ba",
-        "name": "debug 212",
-        "active": false,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 710,
-        "y": 320,
         "wires": []
     },
     {
@@ -24886,7 +24791,7 @@
         "type": "function",
         "z": "ea807342102b869e",
         "name": "prepare payload",
-        "func": "let csv = msg.csv;\nlet devices = msg.devices;\nlet events = [\"-\", \"alarm\"];\nconst chunkSize = 25000;\nconst delayBetweenChunks = 200000;\nlet payload = [];\nif (Array.isArray(devices) && Array.isArray(csv) && csv.length > 0) {\n    payload = csv.map(x => {\n        let d = devices.find(device => device.szPhysicalNo1 == x.imei);\n        return {\n            deviceID: (d) ? d.szDeviceID : null,\n            deviceDatetime: x.time,\n            latitude: parseFloat(x.lat),\n            longitude: parseFloat(x.lon),\n            altitude: parseFloat(x.alt),\n            speed: Number(x.speed),\n            event: (events.includes(x.eventtype)) ?\n                events.indexOf(x.eventtype) : -1,\n            battery: Number(x.battery_percent)\n        }\n    });\n\n    // Start processing the array with a delay\n    processArrayWithDelay(0);\n    return null;\n}\n\nfunction processArrayWithDelay(startIndex) {\n    const endIndex = Math.min(startIndex + chunkSize, payload.length);\n    const chunk = payload.slice(startIndex, endIndex);\n\n    msg.payload = chunk;\n    node.send(msg);\n\n    if (endIndex < payload.length) {\n        setTimeout(() => {\n            processArrayWithDelay(endIndex);\n        }, delayBetweenChunks);\n    }\n}",
+        "func": "let csv = msg.csv;\nlet devices = msg.devices;\nlet events = [\"-\", \"alarm\"];\nconst chunkSize = 25000;\nconst delayBetweenChunks = 1000;\nlet payload = [];\nif (Array.isArray(devices) && Array.isArray(csv) && csv.length > 0) {\n    payload = csv.map(x => {\n        let d = devices.find(device => device.szPhysicalNo1 == x.imei);\n        return {\n            deviceID: (d) ? d.szDeviceID : null,\n            deviceDatetime: x.time,\n            latitude: parseFloat(x.lat),\n            longitude: parseFloat(x.lon),\n            altitude: parseFloat(x.alt),\n            speed: Number(x.speed),\n            event: (events.includes(x.eventtype)) ?\n                events.indexOf(x.eventtype) : -1,\n            battery: Number(x.battery_percent)\n        }\n    });\n\n    // Start processing the array with a delay\n    processArrayWithDelay(0);\n    return null;\n}\n\nfunction processArrayWithDelay(startIndex) {\n    const endIndex = Math.min(startIndex + chunkSize, payload.length);\n    const chunk = payload.slice(startIndex, endIndex);\n\n    msg.payload = chunk;\n    node.send(msg);\n\n    if (endIndex < payload.length) {\n        setTimeout(() => {\n            processArrayWithDelay(endIndex);\n        }, delayBetweenChunks);\n    }\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -24926,9 +24831,9 @@
         "name": "",
         "routingkey": "",
         "iotype": "4",
-        "ioname": "wt.tracking.import",
+        "ioname": "wt.csv.import",
         "server": "e907ba5364e5896f",
-        "x": 1190,
+        "x": 1170,
         "y": 1400,
         "wires": []
     },
