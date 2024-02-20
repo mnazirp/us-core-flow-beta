@@ -2404,7 +2404,7 @@
         "type": "function",
         "z": "d7ccf53b2b9fe097",
         "name": "read sub",
-        "func": "msg.backup = msg.payload;\n\nlet {\n    database,\n    design,\n    view,\n    key,\n    keys,\n    startkey,\n    endkey,\n    limit,\n    descending,\n    group\n} = msg.sub;\n\nlet url = `${env.get('DOC_MASTER_DOMAIN')}/${database}/_design/${design}/_view/${view}?`;\nif (key) {\n    let keyStr = (Array.isArray(key)) ? `[${key.map(x => `\"${x}\"`).join(',')}]` : `\"${key}\"`;\n    url = `${url}key=${keyStr}`;\n} else if (keys && Array.isArray(keys)) {\n    url = `${url}keys=[${keys}]`;\n} else if (startkey && endkey) {\n    if (Array.isArray(startkey) && Array.isArray(endkey)) {\n        url = `${url}startkey=[${startkey.map(x => {\n            if (typeof x === 'string') return `\"${x}\"`;\n            if (typeof x === 'object') return `{}`;\n            return `${x}`;\n        })}]&endkey=[${endkey.map(x => {\n            if (typeof x === 'string') return `\"${x}\"`;\n            if (typeof x === 'object') return `{}`;\n            return `${x}`;\n        })}]`;\n    } else {\n        url = `${url}startkey=\"${startkey}\"&endkey=\"${endkey}\"`;\n    }\n}\n\nif (group === true && !key && !startkey && !endkey) url = `${url}group=true`;\nelse if (group === true) url = `${url}&group=true`;\n\nif (limit && typeof limit == 'number') {\n    url = `${url}&limit=${limit}`\n}\nif (descending !== undefined) {\n    url = `${url}&descending=${descending}`;\n}\n\nmsg.url = url;\n// node.warn(url);\nmsg.headers = {\n    \"Authorization\": \"Basic \" +\n        Buffer.from(`${env.get('DOCS_MASTER_USER')}:${env.get('DOCS_MASTER_PASSWORD')}`).toString(\"base64\"),\n    \"Content-Type\": \"application/json; charset=utf-8\"\n}\n\nconsole.log(msg);\n\n\nreturn msg;",
+        "func": "msg.backup = msg.payload;\n\nlet {\n    database,\n    design,\n    view,\n    key,\n    keys,\n    startkey,\n    endkey,\n    limit,\n    descending,\n    group\n} = msg.sub;\n\nlet url = `${env.get('DOC_MASTER_DOMAIN')}/${database}/_design/${design}/_view/${view}?`;\nif (key) {\n    let keyStr = (Array.isArray(key)) ? `[${key.map(x => `\"${x}\"`).join(',')}]` : `\"${key}\"`;\n    url = `${url}key=${keyStr}`;\n} else if (keys && Array.isArray(keys)) {\n    url = `${url}keys=[${keys}]`;\n} else if (startkey && endkey) {\n    if (Array.isArray(startkey) && Array.isArray(endkey)) {\n        url = `${url}startkey=[${startkey.map(x => {\n            if (typeof x === 'string') return `\"${x}\"`;\n            if (typeof x === 'object') return `{}`;\n            return `${x}`;\n        })}]&endkey=[${endkey.map(x => {\n            if (typeof x === 'string') return `\"${x}\"`;\n            if (typeof x === 'object') return `{}`;\n            return `${x}`;\n        })}]`;\n    } else {\n        url = `${url}startkey=\"${startkey}\"&endkey=\"${endkey}\"`;\n    }\n}\n\nif (group === true && !key && !startkey && !endkey) url = `${url}group=true`;\nelse if (group === true) url = `${url}&group=true`;\n\nif (limit && typeof limit == 'number') {\n    url = `${url}&limit=${limit}`\n}\nif (descending !== undefined) {\n    url = `${url}&descending=${descending}`;\n}\n\nmsg.url = url;\n// node.warn(url);\nmsg.headers = {\n    \"Authorization\": \"Basic \" +\n        Buffer.from(`${env.get('DOCS_MASTER_USER')}:${env.get('DOCS_MASTER_PASSWORD')}`).toString(\"base64\"),\n    \"Content-Type\": \"application/json; charset=utf-8\"\n}\n\n\n\nreturn msg;",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
@@ -2448,7 +2448,7 @@
         "type": "function",
         "z": "d7ccf53b2b9fe097",
         "name": "result",
-        "func": "try {\n    console.log('status code',msg.statusCode);\n    msg.sub = JSON.parse(msg.payload)\n} catch (error) {\n    msg.sub = error\n}\nmsg.payload = msg.backup;\ndelete msg.backup;\ndelete msg.url;\ndelete msg.headers;\ndelete msg.redirectList;\ndelete msg.retry;\ndelete msg.responseUrl;\nreturn msg;",
+        "func": "try {\n    msg.sub = JSON.parse(msg.payload)\n} catch (error) {\n    msg.sub = error\n}\nmsg.payload = msg.backup;\ndelete msg.backup;\ndelete msg.url;\ndelete msg.headers;\ndelete msg.redirectList;\ndelete msg.retry;\ndelete msg.responseUrl;\nreturn msg;",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
@@ -20755,7 +20755,7 @@
         "type": "function",
         "z": "d13820078197e616",
         "name": "result",
-        "func": "try {\n    console.log('status code',msg.statusCode);\n    msg.sub = JSON.parse(msg.payload)\n} catch (error) {\n    msg.sub = error\n}\nmsg.payload = msg.backup;\ndelete msg.backup;\ndelete msg.url;\ndelete msg.headers;\ndelete msg.redirectList;\ndelete msg.retry;\ndelete msg.responseUrl;\nreturn msg;",
+        "func": "try {\n    msg.sub = JSON.parse(msg.payload)\n} catch (error) {\n    msg.sub = error\n}\nmsg.payload = msg.backup;\ndelete msg.backup;\ndelete msg.url;\ndelete msg.headers;\ndelete msg.redirectList;\ndelete msg.retry;\ndelete msg.responseUrl;\nreturn msg;",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
@@ -23936,7 +23936,7 @@
         "type": "function",
         "z": "ea807342102b869e",
         "name": "view-user by NIK",
-        "func": "let party = msg.sub.rows[0].value.data;\nmsg.party = party;\n\nlet view = 'by-nik';\nlet keys = party.map(x => `\"${x.nik}\"`)\nif(msg.params) {\n    console.log(\"params\",msg.params);\n    view = 'by-scopes-estate';\n    keys = party.map(x => `[\"${x.nik}\",\"${msg.params.estate}\"]`)\n    if (msg.params.division) {\n        view = 'by-scopes-division';\n        keys = party.map(x => `[\"${x.nik}\",\"${msg.params.estate}\",\"${msg.params.division}\"]`)\n    }\n}\n\nmsg.sub = {\n    database: 'smart-users',\n    design: 'view-user',\n    view: view,\n    keys: keys\n}\nreturn msg;",
+        "func": "let party = msg.sub.rows[0].value.data;\nmsg.party = party;\n\nlet view = 'by-nik';\nlet keys = party.map(x => `\"${x.nik}\"`)\nif(msg.params) {\n    view = 'by-scopes-estate';\n    keys = party.map(x => `[\"${x.nik}\",\"${msg.params.estate}\"]`)\n    if (msg.params.division) {\n        view = 'by-scopes-division';\n        keys = party.map(x => `[\"${x.nik}\",\"${msg.params.estate}\",\"${msg.params.division}\"]`)\n    }\n}\n\nmsg.sub = {\n    database: 'smart-users',\n    design: 'view-user',\n    view: view,\n    keys: keys\n}\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -24802,27 +24802,9 @@
         "y": 1380,
         "wires": [
             [
-                "34f1b711674ca8b0",
                 "f3ad25f6731ae06c"
             ]
         ]
-    },
-    {
-        "id": "34f1b711674ca8b0",
-        "type": "debug",
-        "z": "ea807342102b869e",
-        "name": "debug 211",
-        "active": false,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1170,
-        "y": 1360,
-        "wires": []
     },
     {
         "id": "f3ad25f6731ae06c",
@@ -24834,7 +24816,7 @@
         "ioname": "wt.csv.import",
         "server": "e907ba5364e5896f",
         "x": 1170,
-        "y": 1400,
+        "y": 1380,
         "wires": []
     },
     {
