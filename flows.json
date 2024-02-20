@@ -4407,26 +4407,6 @@
         ]
     },
     {
-        "id": "2dcfc58caf4bbf9d",
-        "type": "exec",
-        "z": "68f1d2b77bbdcda6",
-        "command": "",
-        "addpay": "",
-        "append": "",
-        "useSpawn": "false",
-        "timer": "",
-        "winHide": false,
-        "oldrc": false,
-        "name": "",
-        "x": 700,
-        "y": 380,
-        "wires": [
-            [],
-            [],
-            []
-        ]
-    },
-    {
         "id": "cc2ca5ee337e0870",
         "type": "http in",
         "z": "10a453599cf0bfe0",
