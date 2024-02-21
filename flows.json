@@ -21531,7 +21531,7 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 910,
+        "x": 930,
         "y": 160,
         "wires": []
     },
@@ -22054,7 +22054,7 @@
         "type": "function",
         "z": "d27f5b11c2fa7b08",
         "name": "dates",
-        "func": "let counter = 0;\nlet payload = [\n    '2023-12-12',\n    '2023-12-13',\n    '2023-12-18',\n    '2023-12-19',\n    '2023-12-20',\n    '2023-12-21',\n    '2023-12-22'\n];\nsplit();\nreturn null;\n\nfunction split() {\n    if (counter < payload.length) {\n        node.send({\n            payload: payload[counter]\n        });\n        counter++;\n        setTimeout(split, 1000);\n    }\n}",
+        "func": "let counter = 0;\nlet payload = [\n    '2024-02-03',\n    '2024-02-16',\n];\nsplit();\nreturn null;\n\nfunction split() {\n    if (counter < payload.length) {\n        node.send({\n            payload: payload[counter]\n        });\n        counter++;\n        setTimeout(split, 1000);\n    }\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -22098,7 +22098,7 @@
         "y": 520,
         "wires": [
             [
-                "a222e9b19c59510b"
+                "5aa9dc840b2e1568"
             ]
         ]
     },
@@ -22117,9 +22117,7 @@
         "x": 410,
         "y": 560,
         "wires": [
-            [
-                "2eaf0348ae0ed93c"
-            ]
+            []
         ]
     },
     {
@@ -22243,6 +22241,22 @@
                 "998d4bd4875d56dd"
             ]
         ]
+    },
+    {
+        "id": "5aa9dc840b2e1568",
+        "type": "debug",
+        "z": "d27f5b11c2fa7b08",
+        "name": "debug 221",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 680,
+        "y": 460,
+        "wires": []
     },
     {
         "id": "3180930ea2b7037b",
@@ -22811,7 +22825,7 @@
         "type": "function",
         "z": "b5ec5e315779d1ba",
         "name": "spawn data",
-        "func": "let counter = 0;\nlet payload = msg.payload;\nsplit();\nreturn null;\nfunction split() {\n    if (counter < payload.length) {\n        node.send({\n            payload: payload[counter]\n        });\n        counter++;\n        setTimeout(split, 3 * 1000);\n    }\n}",
+        "func": "let counter = 0;\nlet payload = msg.payload;\nsplit();\nreturn null;\nfunction split() {\n    if (counter < payload.length) {\n        node.send({\n            payload: JSON.parse(payload[counter].data)\n        });\n        counter++;\n        setTimeout(split, 3 * 1000);\n    }\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -22891,7 +22905,7 @@
         "type": "function",
         "z": "b5ec5e315779d1ba",
         "name": "create keys series",
-        "func": "const redisTS = global.get('redisTS');\nlet existingKeys = msg.payload;\nlet payload = msg.ori.data;\nlet suffix = ['vehicleStatus', 'odometer', 'engineHours', 'longitude', 'latitude', 'altitude',\n    'heading', 'speed', 'positionDatetime', 'createdDatetime', 'printedTimezone'];\nlet vehicleStatusOptions = ['OFF', 'ON', 'MOVING', 'IDDLE'];\n\nlet needToCreate = [];\nlet needToAdd = [];\nfor (const rec of payload) {\n    if (needToCreate.length == 0 || needToCreate.some(x => x.vin != rec.vin)) {\n        needToCreate.push({\n            vin: `${rec.vin}`,\n            createPayload: suffix.map(suf => {\n                return {\n                    key: `${rec.vin}:${suf}`,\n                    retention: 0,\n                    duplicatePolicy: 'LAST',\n                    labels: ['type', 'vehicle-position', 'vin', rec.vin, 'topic', suf],\n                    encoding: 'UNCOMPRESSED'\n                }\n            })\n        });\n    }\n    needToAdd.push({\n        key: `${rec.vin}:vehicleStatus`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: vehicleStatusOptions.indexOf(rec.vehiclestatus).toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:odometer`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.odometer) ? parseFloat(rec.odometer).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:engineHours`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.enginehours) ? parseFloat(rec.enginehours).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:longitude`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: rec.longitude.toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:latitude`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: rec.latitude.toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:altitude`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.altitude) ? parseFloat(rec.altitude).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:heading`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.heading) ? parseFloat(rec.heading).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:speed`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.speed) ? parseFloat(rec.speed).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:positionDatetime`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: new Date(rec.positiondatetime).getTime().toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:createdDatetime`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: new Date(rec.createddatetime).getTime().toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:printedTimezone`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: new Date(rec.printed_timezone).getTime().toString()\n    });\n}\nlet keys = [].concat(needToCreate.map(x => x.createPayload)).flat().map(innerArray => innerArray);\nmsg.create = keys.filter(x => !existingKeys.includes(x.key));\nmsg.needToAdd = needToAdd;\nredisTS.tsCreate(msg.create).then(x => {\n    msg.payload = x;\n    node.send(msg);\n});\nreturn null;",
+        "func": "const redisTS = global.get('redisTS');\nlet existingKeys = msg.payload;\nlet payload = msg.ori;\nlet suffix = ['vehicleStatus', 'odometer', 'engineHours', 'longitude', 'latitude', 'altitude',\n    'heading', 'speed', 'positionDatetime', 'createdDatetime', 'printedTimezone'];\nlet vehicleStatusOptions = ['OFF', 'ON', 'MOVING', 'IDDLE'];\n\nlet needToCreate = [];\nlet needToAdd = [];\nfor (const rec of payload) {\n    if (needToCreate.length == 0 || needToCreate.some(x => x.vin != rec.vin)) {\n        needToCreate.push({\n            vin: `${rec.vin}`,\n            createPayload: suffix.map(suf => {\n                return {\n                    key: `${rec.vin}:${suf}`,\n                    retention: 0,\n                    duplicatePolicy: 'LAST',\n                    labels: ['type', 'vehicle-position', 'vin', rec.vin, 'topic', suf],\n                    encoding: 'UNCOMPRESSED'\n                }\n            })\n        });\n    }\n    needToAdd.push({\n        key: `${rec.vin}:vehicleStatus`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: vehicleStatusOptions.indexOf(rec.vehiclestatus).toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:odometer`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.odometer) ? parseFloat(rec.odometer).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:engineHours`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.enginehours) ? parseFloat(rec.enginehours).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:longitude`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: rec.longitude.toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:latitude`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: rec.latitude.toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:altitude`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.altitude) ? parseFloat(rec.altitude).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:heading`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.heading) ? parseFloat(rec.heading).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:speed`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.speed) ? parseFloat(rec.speed).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:positionDatetime`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: new Date(rec.positiondatetime).getTime().toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:createdDatetime`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: new Date(rec.createddatetime).getTime().toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:printedTimezone`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: new Date(rec.printed_timezone).getTime().toString()\n    });\n}\nlet keys = [].concat(needToCreate.map(x => x.createPayload)).flat().map(innerArray => innerArray);\nmsg.create = keys.filter(x => !existingKeys.includes(x.key));\nmsg.needToAdd = needToAdd;\nredisTS.tsCreate(msg.create).then(x => {\n    msg.payload = x;\n    node.send(msg);\n});\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -22911,7 +22925,7 @@
         "type": "debug",
         "z": "b5ec5e315779d1ba",
         "name": "debug 196",
-        "active": false,
+        "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -24606,8 +24620,8 @@
         "y": 1300,
         "wires": [
             [
-                "f1540cfcc2e4bda0",
-                "95644f4439c51782"
+                "95644f4439c51782",
+                "f695988e37702ae8"
             ]
         ]
     },
@@ -24791,7 +24805,7 @@
         "type": "function",
         "z": "ea807342102b869e",
         "name": "prepare payload",
-        "func": "let csv = msg.csv;\nlet devices = msg.devices;\nconst chunkSize = 25000;\nconst delayBetweenChunks = 1000;\nlet payload = [];\nif (Array.isArray(devices) && Array.isArray(csv) && csv.length > 0) {\n    payload = csv.map(x => {\n        let d = devices.find(device => device.szPhysicalNo1 == x.imei);\n        return {\n            deviceID: (d) ? d.szDeviceID : null,\n            deviceDatetime: x.time,\n            latitude: parseFloat(x.lat),\n            longitude: parseFloat(x.lon),\n            altitude: parseFloat(x.alt),\n            speed: Number(x.speed),\n            event: (x.eventtype != \"alarm\") ? 0 : 1,\n            battery: Number(x.battery_percent),\n            imei: x.imei\n        }\n    });\n\n    // Start processing the array with a delay\n    processArrayWithDelay(0);\n    return null;\n}\n\nfunction processArrayWithDelay(startIndex) {\n    const endIndex = Math.min(startIndex + chunkSize, payload.length);\n    const chunk = payload.slice(startIndex, endIndex);\n\n    msg.payload = chunk;\n    node.send(msg);\n\n    if (endIndex < payload.length) {\n        setTimeout(() => {\n            processArrayWithDelay(endIndex);\n        }, delayBetweenChunks);\n    }\n}",
+        "func": "let csv = msg.csv;\nlet devices = msg.devices;\nlet payload = [];\nif (Array.isArray(devices) && Array.isArray(csv) && csv.length > 0) {\n    payload = csv.map(x => {\n        let d = devices.find(device => device.szPhysicalNo1 == x.imei);\n        return {\n            deviceID: (d) ? d.szDeviceID : null,\n            deviceDatetime: x.time,\n            latitude: parseFloat(x.lat),\n            longitude: parseFloat(x.lon),\n            altitude: parseFloat(x.alt),\n            speed: Number(x.speed),\n            event: (x.eventtype != \"alarm\") ? 0 : 1,\n            battery: Number(x.battery_percent),\n            imei: x.imei\n        }\n    });\n    let chunkSize = 25000;\n    for (let i = 0; i < payload.length; i += chunkSize) {\n        const chunk = payload.slice(i, i + chunkSize);\n        node.send({\n            payload: chunk\n        });\n    }\n    return null;\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -25116,6 +25130,44 @@
         "server": "e907ba5364e5896f",
         "x": 660,
         "y": 1860,
+        "wires": []
+    },
+    {
+        "id": "f695988e37702ae8",
+        "type": "change",
+        "z": "ea807342102b869e",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "success",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 640,
+        "y": 1500,
+        "wires": [
+            [
+                "d943db85e418f9a9"
+            ]
+        ]
+    },
+    {
+        "id": "d943db85e418f9a9",
+        "type": "http response",
+        "z": "ea807342102b869e",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 660,
+        "y": 1540,
         "wires": []
     }
 ]
