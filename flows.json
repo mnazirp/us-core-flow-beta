@@ -21208,7 +21208,7 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 520,
+        "x": 580,
         "y": 100,
         "wires": []
     },
@@ -21222,7 +21222,7 @@
         "func": "local keys = redis.call('KEYS', ARGV[1]);\n\nfor i, key in ipairs(keys) do\n    redis.call('DEL', key)\nend\n\nreturn keys;",
         "stored": false,
         "block": false,
-        "x": 340,
+        "x": 400,
         "y": 100,
         "wires": [
             [
@@ -21242,7 +21242,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 320,
+        "x": 380,
         "y": 60,
         "wires": [
             [
@@ -21262,7 +21262,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 520,
+        "x": 580,
         "y": 60,
         "wires": [
             [
@@ -21274,12 +21274,12 @@
         "id": "5fd824e0823b5497",
         "type": "promptinput",
         "z": "4482c877021370dc",
-        "name": "Confirm",
+        "name": "Confirm ke Redis",
         "datatype": "str",
         "prompt": "input key pattern ?",
         "property": "sub",
         "propertyType": "msg",
-        "x": 110,
+        "x": 140,
         "y": 60,
         "wires": [
             [
@@ -21299,8 +21299,8 @@
         "paramsType": "json",
         "payloadType": "json",
         "block": false,
-        "x": 330,
-        "y": 280,
+        "x": 390,
+        "y": 200,
         "wires": [
             [
                 "b0ad616d70bff933"
@@ -21320,8 +21320,8 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 730,
-        "y": 280,
+        "x": 790,
+        "y": 240,
         "wires": []
     },
     {
@@ -21335,8 +21335,8 @@
         "arraySpltType": "len",
         "stream": false,
         "addname": "",
-        "x": 550,
-        "y": 200,
+        "x": 610,
+        "y": 160,
         "wires": [
             [
                 "6225c85cbfef4342"
@@ -21355,8 +21355,8 @@
         "paramsType": "json",
         "payloadType": "json",
         "block": false,
-        "x": 540,
-        "y": 240,
+        "x": 600,
+        "y": 200,
         "wires": [
             [
                 "e1149da61cb41497"
@@ -21379,8 +21379,8 @@
         "timeout": "",
         "count": "",
         "reduceRight": false,
-        "x": 550,
-        "y": 280,
+        "x": 610,
+        "y": 240,
         "wires": [
             [
                 "2b1354f7155d487c"
@@ -21391,38 +21391,13 @@
         "id": "dfe6e56024dd1413",
         "type": "promptinput",
         "z": "4482c877021370dc",
-        "name": "Confirm",
+        "name": "Confirm to Redis TS",
         "datatype": "str",
         "prompt": "input key pattern & flush all series data ?",
         "property": "sub",
         "propertyType": "msg",
-        "x": 110,
-        "y": 200,
-        "wires": [
-            [
-                "152ebadc0ff5c925"
-            ]
-        ]
-    },
-    {
-        "id": "152ebadc0ff5c925",
-        "type": "switch",
-        "z": "4482c877021370dc",
-        "name": "",
-        "property": "sub",
-        "propertyType": "msg",
-        "rules": [
-            {
-                "t": "eq",
-                "v": "y",
-                "vt": "str"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 1,
-        "x": 290,
-        "y": 200,
+        "x": 150,
+        "y": 160,
         "wires": [
             [
                 "a2a9a2b8d581a7c8"
@@ -21439,8 +21414,8 @@
                 "t": "set",
                 "p": "payload",
                 "pt": "msg",
-                "to": "*",
-                "tot": "str"
+                "to": "sub",
+                "tot": "msg"
             }
         ],
         "action": "",
@@ -21448,8 +21423,8 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 320,
-        "y": 240,
+        "x": 380,
+        "y": 160,
         "wires": [
             [
                 "5c706061eb0789b2"
@@ -24606,8 +24581,8 @@
         "y": 1300,
         "wires": [
             [
-                "f1540cfcc2e4bda0",
-                "95644f4439c51782"
+                "95644f4439c51782",
+                "4ed9fe4ca6db3943"
             ]
         ]
     },
@@ -25116,6 +25091,44 @@
         "server": "e907ba5364e5896f",
         "x": 660,
         "y": 1860,
+        "wires": []
+    },
+    {
+        "id": "4ed9fe4ca6db3943",
+        "type": "change",
+        "z": "ea807342102b869e",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "success",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 660,
+        "y": 1500,
+        "wires": [
+            [
+                "07da7cbca5d026b6"
+            ]
+        ]
+    },
+    {
+        "id": "07da7cbca5d026b6",
+        "type": "http response",
+        "z": "ea807342102b869e",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 680,
+        "y": 1540,
         "wires": []
     }
 ]
