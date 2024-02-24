@@ -1334,8 +1334,8 @@
     {
         "id": "e907ba5364e5896f",
         "type": "amqp-server",
-        "host": "localhost",
-        "port": "5630",
+        "host": "${BROKER_DOMAIN}",
+        "port": "${BROKER_PORT}",
         "vhost": "",
         "keepalive": "30",
         "usetls": false,
@@ -22218,6 +22218,22 @@
         ]
     },
     {
+        "id": "5aa9dc840b2e1568",
+        "type": "debug",
+        "z": "d27f5b11c2fa7b08",
+        "name": "debug 221",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 680,
+        "y": 460,
+        "wires": []
+    },
+    {
         "id": "3180930ea2b7037b",
         "type": "amqp in",
         "z": "b5ec5e315779d1ba",
@@ -25130,22 +25146,6 @@
         "wires": []
     },
     {
-        "id": "5aa9dc840b2e1568",
-        "type": "debug",
-        "z": "d27f5b11c2fa7b08",
-        "name": "debug 221",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 680,
-        "y": 460,
-        "wires": []
-    },
-    {
         "id": "f695988e37702ae8",
         "type": "change",
         "z": "ea807342102b869e",
@@ -25182,5 +25182,111 @@
         "x": 660,
         "y": 1540,
         "wires": []
+    },
+    {
+        "id": "fb62739edac27436",
+        "type": "inject",
+        "z": "ea807342102b869e",
+        "name": "",
+        "props": [
+            {
+                "p": "date",
+                "v": "2024-01-18",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 170,
+        "y": 2040,
+        "wires": [
+            [
+                "158521c3aaff70e3"
+            ]
+        ]
+    },
+    {
+        "id": "158521c3aaff70e3",
+        "type": "function",
+        "z": "ea807342102b869e",
+        "name": "function 132",
+        "func": "const couchdb = global.get('couchdb');\n\ncouchdb.view('pra-trans', 'map', 'geo', {\n    key: ['SSME-99022', '2024-01-18']\n}).then(res => {\n    node.send({\n        payload: {\n            ident: res.data.rows[0].key,\n            data: [].concat(...res.data.rows.map(x => x.value))\n        }\n    });\n})\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 2040,
+        "wires": [
+            [
+                "3a74cdd322f0e1a3"
+            ]
+        ]
+    },
+    {
+        "id": "3a74cdd322f0e1a3",
+        "type": "function",
+        "z": "ea807342102b869e",
+        "name": "function 133",
+        "func": "let { ident, data } = msg.payload;\nlet visited = data;\nnode.warn(ident);\nnode.warn(visited.length);\nnode.warn(visited.map(x => Number(x.event)).reduce((a, b) => a + b));\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 2080,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8281340edea3a8e6",
+        "type": "inject",
+        "z": "ea807342102b869e",
+        "name": "",
+        "props": [
+            {
+                "p": "date",
+                "v": "2024-01-18",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 170,
+        "y": 2180,
+        "wires": [
+            [
+                "14a2c98a0ba87b41"
+            ]
+        ]
+    },
+    {
+        "id": "14a2c98a0ba87b41",
+        "type": "function",
+        "z": "ea807342102b869e",
+        "name": "function 134",
+        "func": "const redisTS = global.get('redisTS');\n\nlet date = \"2024-01-18\";\nlet start = new Date(date).setHours(0, 0, 0, 0);\nlet end = new Date(date).setHours(23, 59, 59, 999);\n\nredisTS.commands([\n    ['ts.mrange', '1705510800000', '1705597199999', 'filter', 'topic=event', 'imei=350317171475407']\n]).then(res => {\n    let data = res.data[0][0][2];\n    node.warn(data.map(x => Number(x[1])).reduce((a, b) => a + b, 0));\n})\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 2180,
+        "wires": [
+            []
+        ]
     }
 ]
