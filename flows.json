@@ -25184,109 +25184,38 @@
         "wires": []
     },
     {
-        "id": "fb62739edac27436",
-        "type": "inject",
-        "z": "ea807342102b869e",
-        "name": "",
-        "props": [
-            {
-                "p": "date",
-                "v": "2024-01-18",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "x": 170,
-        "y": 2040,
-        "wires": [
-            [
-                "158521c3aaff70e3"
-            ]
-        ]
-    },
-    {
-        "id": "158521c3aaff70e3",
+        "id": "6ba284c96de9e55f",
         "type": "function",
         "z": "ea807342102b869e",
-        "name": "function 132",
-        "func": "try {\n    const couchdb = global.get('couchdb');\n\n    couchdb.view('pra-trans', 'map', 'geo', {\n        key: ['SSME-99022', '2024-01-18']\n    }).then(res => {\n        node.send({\n            payload: {\n                ident: res.data.rows[0]?.key,\n                data: [].concat(...res.data.rows.map(x => x.value))\n            }\n        });\n    })\n} catch (err) {\n    node.error(err);\n}",
+        "name": "import from smart-bucket",
+        "func": "try {\n    const couchdb = global.get('couchdb');\n    let date = msg.payload;\n    let d = `${date.split('-')[2]}${date.split('-')[1]}${date.split('-')[0]}`;\n    couchdb.view('smart-bucket', 'set-manual', 'worker-tracker', {\n        key: [d]\n    }).then(res => {\n        let _id = res.data?.rows[0]?.value;\n        if (_id) {\n            couchdb.openByID('smart-bucket', _id).then(res => {\n                let csvBuffer = res.data.payload;\n                let payload = csvBufferToJson(csvBuffer);\n                let groupedObject = grouped(payload, 'imei');\n                const rs = Object.entries(groupedObject).map(([key, val]) => ({\n                    imei: key,\n                    date,\n                    series: Object.entries(grouped(val, 'time'))\n                        .map(([x, y]) => ({ key: new Date(x).getTime(), values: y }))\n                }));\n                let docs = rs.map(item => {\n                    return {\n                        topic: 'wt-tracking',\n                        groupBy: 'imei:date:source',\n                        source: {\n                            from: 'smart-bucket',\n                            docID: _id\n                        },\n                        ...item\n                    }\n                });\n                couchdb.bulkInsert('smart-timeseries', docs).then(res => {\n                    node.warn(res);\n                })\n            }, (err) => { node.error(err); });\n        } else {\n            node.error(\"document not found\");\n        }\n    }, (err) => { node.error(err); });\n} catch (err) {\n    node.error({ 'xx': err });\n}\n\nfunction grouped(payload, key) {\n    return payload.reduce((res, obj) => {\n        const index = obj[key];\n        res[index] = res[index] || [];\n        let { imei, ...other } = obj;\n        res[index].push(other)\n        return res;\n    }, {});\n}\n\nfunction csvBufferToJson(csvBuffer) {\n    // Convert the CSV buffer to a string\n    const csvString = csvBuffer.toString('utf8');\n\n    // Split the CSV string into lines\n    const lines = csvString.split('\\n');\n\n    // Extract header (assuming the first line is the header)\n    const headers = lines[0].trim().split(',');\n\n    // Initialize an array to store the JSON objects\n    const jsonArray = [];\n\n    // Iterate over each line (starting from the second line) to create JSON objects\n    for (let i = 1; i < lines.length; i++) {\n        const values = lines[i].trim().split(',');\n        const jsonObject = {};\n\n        // Populate the JSON object with key-value pairs\n        for (let j = 0; j < headers.length; j++) {\n            jsonObject[headers[j].replace(/\"/g, '')] = (values[j]) ? values[j].replace(/\"/g, '') : \"\";\n        }\n\n        // Add the JSON object to the array\n        jsonArray.push(jsonObject);\n    }\n\n    return jsonArray;\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 330,
-        "y": 2040,
-        "wires": [
-            [
-                "3a74cdd322f0e1a3"
-            ]
-        ]
-    },
-    {
-        "id": "3a74cdd322f0e1a3",
-        "type": "function",
-        "z": "ea807342102b869e",
-        "name": "function 133",
-        "func": "try {\n    let { ident, data } = msg.payload;\n    let visited = data;\n    node.warn(ident);\n    node.warn(visited.length);\n    node.warn(visited.map(x => Number(x.event)).reduce((a, b) => a + b, 0));\n    return msg;\n} catch (err) {\n    node.error(err);\n}",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 330,
-        "y": 2080,
+        "x": 370,
+        "y": 1980,
         "wires": [
             []
         ]
     },
     {
-        "id": "8281340edea3a8e6",
-        "type": "inject",
+        "id": "60d8a688818f0535",
+        "type": "promptinput",
         "z": "ea807342102b869e",
         "name": "",
-        "props": [
-            {
-                "p": "date",
-                "v": "2024-01-18",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "x": 170,
-        "y": 2180,
+        "datatype": "str",
+        "prompt": "inputkan format tanggal YYYY-MM-DD",
+        "property": "payload",
+        "propertyType": "msg",
+        "x": 130,
+        "y": 1980,
         "wires": [
             [
-                "14a2c98a0ba87b41"
+                "6ba284c96de9e55f"
             ]
-        ]
-    },
-    {
-        "id": "14a2c98a0ba87b41",
-        "type": "function",
-        "z": "ea807342102b869e",
-        "name": "function 134",
-        "func": "const redisTS = global.get('redisTS');\n\nlet date = \"2024-01-18\";\nlet start = new Date(date).setHours(0, 0, 0, 0);\nlet end = new Date(date).setHours(23, 59, 59, 999);\n\nredisTS.commands([\n    ['ts.mrange', '1705510800000', '1705597199999', 'filter', 'topic=event', 'imei=350317171475407']\n]).then(res => {\n    let data = res.data[0][0][2];\n    node.warn(data.map(x => Number(x[1])).reduce((a, b) => a + b, 0));\n})\nreturn null;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 330,
-        "y": 2180,
-        "wires": [
-            []
         ]
     }
 ]
