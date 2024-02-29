@@ -192,6 +192,14 @@
         "env": []
     },
     {
+        "id": "8a2099e398e5d7dd",
+        "type": "tab",
+        "label": "publisher: worker-tracker",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "77002254b872fa8e",
         "type": "subflow",
         "name": "algo: jwt-sign",
@@ -1294,7 +1302,7 @@
     {
         "id": "9f1e98d4426d35e3",
         "type": "group",
-        "z": "ea807342102b869e",
+        "z": "8a2099e398e5d7dd",
         "name": "wroker tracker transaction",
         "style": {
             "label": true,
@@ -1311,15 +1319,15 @@
             "c700ab4f34ddb410",
             "0eae8461b0dc1b2a"
         ],
-        "x": 14,
-        "y": 1819,
+        "x": 34,
+        "y": 39,
         "w": 772,
         "h": 122
     },
     {
         "id": "7aaf569aa41ac02a",
         "type": "group",
-        "z": "ea807342102b869e",
+        "z": "8a2099e398e5d7dd",
         "name": "wt: import from smart-bucket to smart-timeseries",
         "style": {
             "stroke": "none",
@@ -1335,8 +1343,8 @@
             "f8c46e73185a6241",
             "7f66a0114336a27e"
         ],
-        "x": 14,
-        "y": 1959,
+        "x": 34,
+        "y": 179,
         "w": 692,
         "h": 142
     },
@@ -23671,7 +23679,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 160,
-        "y": 560,
+        "y": 540,
         "wires": [
             [
                 "cc912c70951758f5"
@@ -23686,7 +23694,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 1060,
-        "y": 600,
+        "y": 580,
         "wires": []
     },
     {
@@ -23702,7 +23710,7 @@
         "finalize": "",
         "libs": [],
         "x": 400,
-        "y": 560,
+        "y": 540,
         "wires": [
             [
                 "2c574fc865e03233"
@@ -23728,7 +23736,7 @@
         "repair": false,
         "outputs": 2,
         "x": 420,
-        "y": 600,
+        "y": 580,
         "wires": [
             [
                 "d473af3fbcad9ed3"
@@ -23746,7 +23754,7 @@
         "statusCode": "400",
         "headers": {},
         "x": 660,
-        "y": 740,
+        "y": 720,
         "wires": []
     },
     {
@@ -23769,7 +23777,7 @@
         "to": "",
         "reg": false,
         "x": 640,
-        "y": 700,
+        "y": 680,
         "wires": [
             [
                 "67ed88ad885545bd"
@@ -23786,7 +23794,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 170,
-        "y": 840,
+        "y": 800,
         "wires": [
             [
                 "04081f41542ec6ce"
@@ -23801,7 +23809,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 780,
-        "y": 860,
+        "y": 820,
         "wires": []
     },
     {
@@ -23817,7 +23825,7 @@
         "finalize": "",
         "libs": [],
         "x": 610,
-        "y": 860,
+        "y": 820,
         "wires": [
             [
                 "9de8e19d0b4dbb18"
@@ -23837,7 +23845,7 @@
         "finalize": "",
         "libs": [],
         "x": 420,
-        "y": 840,
+        "y": 800,
         "wires": [
             [
                 "c27eb834654df08b"
@@ -23863,7 +23871,7 @@
         "repair": false,
         "outputs": 2,
         "x": 440,
-        "y": 880,
+        "y": 840,
         "wires": [
             [
                 "596c783f3c219a76"
@@ -23881,7 +23889,7 @@
         "statusCode": "400",
         "headers": {},
         "x": 840,
-        "y": 900,
+        "y": 860,
         "wires": []
     },
     {
@@ -23904,7 +23912,7 @@
         "to": "",
         "reg": false,
         "x": 640,
-        "y": 900,
+        "y": 860,
         "wires": [
             [
                 "fb956422b0cbdd4b"
@@ -24247,7 +24255,7 @@
         "upload": true,
         "swaggerDoc": "",
         "x": 190,
-        "y": 1040,
+        "y": 960,
         "wires": [
             [
                 "1a5b54955ff2dc2b"
@@ -24267,7 +24275,7 @@
         "finalize": "",
         "libs": [],
         "x": 450,
-        "y": 1040,
+        "y": 960,
         "wires": [
             [
                 "431de52b359fbaca"
@@ -24282,7 +24290,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 960,
-        "y": 1120,
+        "y": 1040,
         "wires": []
     },
     {
@@ -24291,7 +24299,7 @@
         "z": "ea807342102b869e",
         "name": "",
         "x": 480,
-        "y": 1080,
+        "y": 1000,
         "wires": [
             [
                 "4bfa1d879e5754a2"
@@ -24311,7 +24319,7 @@
         "finalize": "",
         "libs": [],
         "x": 470,
-        "y": 1120,
+        "y": 1040,
         "wires": [
             [
                 "8e960863f6acc562"
@@ -24324,7 +24332,7 @@
         "z": "ea807342102b869e",
         "name": "",
         "x": 490,
-        "y": 1160,
+        "y": 1080,
         "wires": [
             [
                 "d81af5ed79173699"
@@ -24344,7 +24352,7 @@
         "finalize": "",
         "libs": [],
         "x": 760,
-        "y": 1040,
+        "y": 960,
         "wires": [
             [
                 "fe387e1c82d379e7"
@@ -24357,7 +24365,7 @@
         "z": "ea807342102b869e",
         "name": "",
         "x": 750,
-        "y": 1080,
+        "y": 1000,
         "wires": [
             [
                 "1e829227f7dbd52e"
@@ -24384,7 +24392,7 @@
         "to": "",
         "reg": false,
         "x": 760,
-        "y": 1120,
+        "y": 1040,
         "wires": [
             [
                 "de21f689f4520b70"
@@ -24404,7 +24412,7 @@
         "finalize": "",
         "libs": [],
         "x": 840,
-        "y": 600,
+        "y": 580,
         "wires": [
             [
                 "5ae68a6d28cc4c03",
@@ -24430,7 +24438,7 @@
         "repair": false,
         "outputs": 1,
         "x": 1050,
-        "y": 640,
+        "y": 620,
         "wires": [
             [
                 "5ada30e345ee5d07"
@@ -24450,7 +24458,7 @@
         "payloadType": "json",
         "block": false,
         "x": 1240,
-        "y": 680,
+        "y": 660,
         "wires": [
             []
         ]
@@ -24468,7 +24476,7 @@
         "finalize": "",
         "libs": [],
         "x": 620,
-        "y": 560,
+        "y": 540,
         "wires": [
             [
                 "45dbc24603a7777c"
@@ -24488,7 +24496,7 @@
         "payloadType": "json",
         "block": false,
         "x": 620,
-        "y": 600,
+        "y": 580,
         "wires": [
             [
                 "0c5c5585816ca04a"
@@ -24514,7 +24522,7 @@
         "repair": false,
         "outputs": 2,
         "x": 630,
-        "y": 640,
+        "y": 620,
         "wires": [
             [
                 "fdc4123c2414fe6b"
@@ -24537,7 +24545,7 @@
         "finalize": "",
         "libs": [],
         "x": 820,
-        "y": 680,
+        "y": 660,
         "wires": [
             [
                 "191334951255d693"
@@ -24552,7 +24560,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 1020,
-        "y": 680,
+        "y": 660,
         "wires": []
     },
     {
@@ -24565,7 +24573,7 @@
         "upload": true,
         "swaggerDoc": "",
         "x": 170,
-        "y": 1300,
+        "y": 1180,
         "wires": [
             [
                 "f1538c9e9e1234c5"
@@ -24593,7 +24601,7 @@
         "repair": false,
         "outputs": 2,
         "x": 210,
-        "y": 1340,
+        "y": 1220,
         "wires": [
             [
                 "0eb4b25deeabfc7b"
@@ -24616,7 +24624,7 @@
         "finalize": "",
         "libs": [],
         "x": 430,
-        "y": 1300,
+        "y": 1180,
         "wires": [
             [
                 "f1540cfcc2e4bda0"
@@ -24643,7 +24651,7 @@
         "to": "",
         "reg": false,
         "x": 440,
-        "y": 1380,
+        "y": 1260,
         "wires": [
             [
                 "6d1daac0179499c3"
@@ -24663,7 +24671,7 @@
         "finalize": "",
         "libs": [],
         "x": 460,
-        "y": 1340,
+        "y": 1220,
         "wires": [
             [
                 "3978fed9f7b9dddb"
@@ -24678,7 +24686,7 @@
         "statusCode": "400",
         "headers": {},
         "x": 460,
-        "y": 1420,
+        "y": 1300,
         "wires": []
     },
     {
@@ -24687,7 +24695,7 @@
         "z": "ea807342102b869e",
         "name": "",
         "x": 710,
-        "y": 1300,
+        "y": 1180,
         "wires": [
             [
                 "0bc18298c1abe2e0"
@@ -24714,7 +24722,7 @@
         "to": "",
         "reg": false,
         "x": 700,
-        "y": 1340,
+        "y": 1220,
         "wires": [
             [
                 "373f8db39c726fcd"
@@ -24729,7 +24737,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 900,
-        "y": 1340,
+        "y": 1220,
         "wires": []
     },
     {
@@ -24745,7 +24753,7 @@
         "finalize": "",
         "libs": [],
         "x": 1230,
-        "y": 640,
+        "y": 620,
         "wires": [
             [
                 "3d62bc953c7bd7cf"
@@ -24765,7 +24773,7 @@
         "finalize": "",
         "libs": [],
         "x": 410,
-        "y": 1640,
+        "y": 1420,
         "wires": [
             [
                 "6488b7ddddde1a91"
@@ -24778,7 +24786,7 @@
         "z": "ea807342102b869e",
         "name": "",
         "x": 440,
-        "y": 1680,
+        "y": 1460,
         "wires": [
             [
                 "8dc80be894ba8bea"
@@ -24798,7 +24806,7 @@
         "finalize": "",
         "libs": [],
         "x": 690,
-        "y": 1640,
+        "y": 1420,
         "wires": [
             [
                 "10e91890ce39c2e5"
@@ -24815,7 +24823,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 160,
-        "y": 1600,
+        "y": 1380,
         "wires": [
             [
                 "7504258ae1710418"
@@ -24830,7 +24838,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 940,
-        "y": 1680,
+        "y": 1460,
         "wires": []
     },
     {
@@ -24839,7 +24847,7 @@
         "z": "ea807342102b869e",
         "name": "",
         "x": 720,
-        "y": 1680,
+        "y": 1460,
         "wires": [
             [
                 "b7d8293257b2eb0e"
@@ -24859,7 +24867,7 @@
         "finalize": "",
         "libs": [],
         "x": 170,
-        "y": 1640,
+        "y": 1420,
         "wires": [
             [
                 "84603ba3b981e07f"
@@ -24885,7 +24893,7 @@
         "repair": false,
         "outputs": 2,
         "x": 210,
-        "y": 1680,
+        "y": 1460,
         "wires": [
             [
                 "a50b5a548e71420c"
@@ -24915,7 +24923,7 @@
         "to": "",
         "reg": false,
         "x": 420,
-        "y": 1720,
+        "y": 1500,
         "wires": [
             [
                 "7b107e85b5fc7077"
@@ -24930,21 +24938,21 @@
         "statusCode": "400",
         "headers": {},
         "x": 620,
-        "y": 1720,
+        "y": 1500,
         "wires": []
     },
     {
         "id": "bc3395fb23c960b3",
         "type": "promptinput",
-        "z": "ea807342102b869e",
+        "z": "8a2099e398e5d7dd",
         "g": "9f1e98d4426d35e3",
         "name": "",
         "datatype": "str",
         "prompt": "enter tracking date",
         "property": "date",
         "propertyType": "msg",
-        "x": 130,
-        "y": 1860,
+        "x": 150,
+        "y": 80,
         "wires": [
             [
                 "6989d9d7ed54d28c"
@@ -24954,7 +24962,7 @@
     {
         "id": "6989d9d7ed54d28c",
         "type": "function",
-        "z": "ea807342102b869e",
+        "z": "8a2099e398e5d7dd",
         "g": "9f1e98d4426d35e3",
         "name": "get longlat & delayLoop",
         "func": "const redisTS = global.get('redisTS');\nconst couchdb = global.get('couchdb');\n\ncouchdb.view('smart-libs', 'refs', 'by-topic', {\n    keys: ['wt-devices', 'wt-party-ident']\n}).then(res => {\n    let devices = res.data.rows[0].value.data;\n    let party = res.data.rows[1].value.data;\n    let identities = devices.map(x => {\n        return {\n            device: x.szDeviceID,\n            imei: x.szPhysicalNo1,\n            nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n        }\n    });\n    let start = new Date(msg.date).setHours(0, 0, 0, 0);\n    let end = new Date(msg.date).setHours(23, 59, 59, 999);\n    let commands = [\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=longitude'],\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=latitude'],\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=event'],\n    ];\n    redisTS.commands(commands).then(res => {\n        let long = res.data[0].map(x => [x[0].split(':')[1], x[2]]);\n        let mapLong = new Map(long.map(([device, series]) => [device, series]));\n        let event = res.data[2].map(x => [x[0].split(':')[1], x[2]]);\n        let mapEvent = new Map(event.map(([device, series]) => [device, series]));\n        let lat = res.data[1].map(x => [x[0].split(':')[1], x[2]]);\n        let mapPerDevice = lat.map(([device, latitude]) => {\n            const longitude = mapLong.get(device);\n            const trackEvent = mapEvent.get(device);\n            return [device, [longitude, latitude, trackEvent]];\n        });\n        let rs = mapPerDevice.map(mPerDevice => {\n            let ident = identities.find(p => p.device == mPerDevice[0]);\n            let { device, imei, nik } = ident;\n            let dLong = mPerDevice[1][0];\n            let mapDeviceLong = new Map(dLong.map(([timestamp, longitude]) => [timestamp, longitude]));\n            let dEvent = mPerDevice[1][2];\n            let mapDeviceEvent = new Map(dEvent.map(([timestamp, event]) => [timestamp, event]));\n            let dLat = mPerDevice[1][1];\n            let mapResult = dLat.map(([timestamp, latitude]) => {\n                const longitude = mapDeviceLong.get(timestamp);\n                const e = mapDeviceEvent.get(timestamp);\n                return [timestamp, [longitude, latitude], e]\n            });\n            return [[nik, device, imei], mapResult];\n        });\n        rs.forEach(x => {\n            node.send({\n                payload: {\n                    date: msg.date,\n                    series: x,\n                }\n            });\n        })\n        /**rata rata perdevice makan waktu 3m jika point convert to tree circle */\n        // let index = 0;\n        // function delayLoop() {\n        //     if (index < rs.length) {\n        //         msg.tracking = rs[index];\n        //         index++;\n        //         node.send(msg);\n        //         setTimeout(delayLoop, 60 * 1000)\n        //     }\n        // }\n        // delayLoop();\n    });\n});\n\nreturn null;",
@@ -24964,8 +24972,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 370,
-        "y": 1860,
+        "x": 390,
+        "y": 80,
         "wires": [
             [
                 "0eae8461b0dc1b2a"
@@ -24975,7 +24983,7 @@
     {
         "id": "7a5b7cbb1a6dd572",
         "type": "inject",
-        "z": "ea807342102b869e",
+        "z": "8a2099e398e5d7dd",
         "g": "9f1e98d4426d35e3",
         "name": "",
         "props": [
@@ -24990,8 +24998,8 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 150,
-        "y": 1900,
+        "x": 170,
+        "y": 120,
         "wires": [
             [
                 "6989d9d7ed54d28c",
@@ -25002,7 +25010,7 @@
     {
         "id": "c700ab4f34ddb410",
         "type": "debug",
-        "z": "ea807342102b869e",
+        "z": "8a2099e398e5d7dd",
         "g": "9f1e98d4426d35e3",
         "name": "debug 220",
         "active": true,
@@ -25013,28 +25021,28 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 330,
-        "y": 1900,
+        "x": 350,
+        "y": 120,
         "wires": []
     },
     {
         "id": "0eae8461b0dc1b2a",
         "type": "amqp out",
-        "z": "ea807342102b869e",
+        "z": "8a2099e398e5d7dd",
         "g": "9f1e98d4426d35e3",
         "name": "",
         "routingkey": "",
         "iotype": "4",
         "ioname": "wt.tracking.perdevice",
         "server": "e907ba5364e5896f",
-        "x": 660,
-        "y": 1860,
+        "x": 680,
+        "y": 80,
         "wires": []
     },
     {
         "id": "a83669472413888b",
         "type": "function",
-        "z": "ea807342102b869e",
+        "z": "8a2099e398e5d7dd",
         "g": "7aaf569aa41ac02a",
         "name": "import from smart-bucket",
         "func": "try {\n    const couchdb = global.get('couchdb');\n    let date = msg.payload;\n    let d = `${date.split('-')[2]}${date.split('-')[1]}${date.split('-')[0]}`;\n    couchdb.view('smart-bucket', 'set-manual', 'worker-tracker', {\n        key: [d]\n    }).then(res => {\n        let _id = res.data?.rows[0]?.value;\n        if (_id) {\n            couchdb.openByID('smart-bucket', _id).then(res => {\n                let csvBuffer = res.data.payload;\n                let payload = csvBufferToJson(csvBuffer);\n                let docs = payload.map(item => {\n                    return {\n                        topic: 'wt-tracking',\n                        source: {\n                            from: 'smart-bucket',\n                            docID: _id\n                        },\n                        date,\n                        ...item,\n                        createdAt: new Date(),\n                        createdBy: 'system'\n                    }\n                });\n                let chunkSize = 1000;\n                for (let i = 0; i < docs.length; i += chunkSize) {\n                    const chunk = docs.slice(i, i + chunkSize);\n                    node.send({\n                        payload: chunk\n                    });\n                }\n            }, (err) => { node.error(err); });\n        } else {\n            node.error(\"document not found\");\n        }\n    }, (err) => { node.error(err); });\n} catch (err) {\n    node.error({ 'xx': err });\n}\n\nfunction grouped(payload, key) {\n    return payload.reduce((res, obj) => {\n        const index = obj[key];\n        res[index] = res[index] || [];\n        let { imei, ...other } = obj;\n        res[index].push(other)\n        return res;\n    }, {});\n}\n\nfunction csvBufferToJson(csvBuffer) {\n    // Convert the CSV buffer to a string\n    const csvString = csvBuffer.toString('utf8');\n\n    // Split the CSV string into lines\n    const lines = csvString.split('\\n');\n\n    // Extract header (assuming the first line is the header)\n    const headers = lines[0].trim().split(',');\n\n    // Initialize an array to store the JSON objects\n    const jsonArray = [];\n\n    // Iterate over each line (starting from the second line) to create JSON objects\n    for (let i = 1; i < lines.length; i++) {\n        const values = lines[i].trim().split(',');\n        const jsonObject = {};\n\n        // Populate the JSON object with key-value pairs\n        for (let j = 0; j < headers.length; j++) {\n            jsonObject[headers[j].replace(/\"/g, '')] = (values[j]) ? values[j].replace(/\"/g, '') : \"\";\n        }\n\n        // Add the JSON object to the array\n        jsonArray.push(jsonObject);\n    }\n\n    return jsonArray;\n}",
@@ -25044,8 +25052,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 370,
-        "y": 2020,
+        "x": 390,
+        "y": 240,
         "wires": [
             [
                 "f8c46e73185a6241"
@@ -25055,15 +25063,15 @@
     {
         "id": "49e80d2fac9b8e6f",
         "type": "promptinput",
-        "z": "ea807342102b869e",
+        "z": "8a2099e398e5d7dd",
         "g": "7aaf569aa41ac02a",
         "name": "",
         "datatype": "str",
         "prompt": "inputkan format tanggal YYYY-MM-DD",
         "property": "payload",
         "propertyType": "msg",
-        "x": 130,
-        "y": 2020,
+        "x": 150,
+        "y": 240,
         "wires": [
             [
                 "a83669472413888b"
@@ -25073,73 +25081,26 @@
     {
         "id": "f8c46e73185a6241",
         "type": "amqp out",
-        "z": "ea807342102b869e",
+        "z": "8a2099e398e5d7dd",
         "g": "7aaf569aa41ac02a",
         "name": "",
         "routingkey": "",
         "iotype": "4",
         "ioname": "wt.save.timeseries.to.couchdb",
         "server": "e907ba5364e5896f",
-        "x": 390,
-        "y": 2060,
+        "x": 410,
+        "y": 280,
         "wires": []
-    },
-    {
-        "id": "df8084bae830e5b4",
-        "type": "inject",
-        "z": "ea807342102b869e",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 110,
-        "y": 2140,
-        "wires": [
-            [
-                "8c0df502f9cbb317"
-            ]
-        ]
-    },
-    {
-        "id": "8c0df502f9cbb317",
-        "type": "function",
-        "z": "ea807342102b869e",
-        "name": "function 132",
-        "func": "try {\n    const couchdb = global.get('couchdb');\n    couchdb.view('smart-timeseries', 'worker-tracker', 'by-date-imei', {\n        key: ['2024-01-22', '350317171460409']\n    }).then(res => {\n        node.warn(res.data.rows.map(x => x.value));\n    });\n} catch (err) {\n    node.error(err);\n}\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 310,
-        "y": 2140,
-        "wires": [
-            []
-        ]
     },
     {
         "id": "7f66a0114336a27e",
         "type": "comment",
-        "z": "ea807342102b869e",
+        "z": "8a2099e398e5d7dd",
         "g": "7aaf569aa41ac02a",
         "name": "",
         "info": "# desc\n    import data dari smart-bucket by date kemudian \n    insert ke couchdb smart-timeseries yg mana 1 doc : 1 timestamp",
-        "x": 620,
-        "y": 2000,
+        "x": 640,
+        "y": 220,
         "wires": []
     }
 ]
