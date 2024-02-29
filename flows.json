@@ -1317,6 +1317,30 @@
         "h": 122
     },
     {
+        "id": "7aaf569aa41ac02a",
+        "type": "group",
+        "z": "ea807342102b869e",
+        "name": "wt: import from smart-bucket to smart-timeseries",
+        "style": {
+            "stroke": "none",
+            "fill": "#e3f3d3",
+            "fill-opacity": "0.49",
+            "label": true,
+            "label-position": "n",
+            "color": "#ff3f3f"
+        },
+        "nodes": [
+            "a83669472413888b",
+            "49e80d2fac9b8e6f",
+            "f8c46e73185a6241",
+            "7f66a0114336a27e"
+        ],
+        "x": 14,
+        "y": 1959,
+        "w": 692,
+        "h": 142
+    },
+    {
         "id": "784d89e62dfb5070",
         "type": "cloudantplus",
         "host": "${DOCS_MASTER}",
@@ -24595,8 +24619,7 @@
         "y": 1300,
         "wires": [
             [
-                "95644f4439c51782",
-                "4ed9fe4ca6db3943"
+                "f1540cfcc2e4bda0"
             ]
         ]
     },
@@ -24639,31 +24662,11 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 680,
-        "y": 1420,
+        "x": 460,
+        "y": 1340,
         "wires": [
             [
                 "3978fed9f7b9dddb"
-            ]
-        ]
-    },
-    {
-        "id": "95644f4439c51782",
-        "type": "function",
-        "z": "ea807342102b869e",
-        "name": "get wt-devices",
-        "func": "msg.sub = {\n    database: 'smart-libs',\n    design: 'refs',\n    view: 'by-topic',\n    key: 'wt-devices'\n}\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 660,
-        "y": 1300,
-        "wires": [
-            [
-                "07840acbde03ea5a"
             ]
         ]
     },
@@ -24683,24 +24686,11 @@
         "type": "subflow:ef0e7b589320b81a",
         "z": "ea807342102b869e",
         "name": "",
-        "x": 690,
-        "y": 1460,
+        "x": 710,
+        "y": 1300,
         "wires": [
             [
                 "0bc18298c1abe2e0"
-            ]
-        ]
-    },
-    {
-        "id": "07840acbde03ea5a",
-        "type": "subflow:d7ccf53b2b9fe097",
-        "z": "ea807342102b869e",
-        "name": "",
-        "x": 680,
-        "y": 1340,
-        "wires": [
-            [
-                "c1dd237885fa5f7b"
             ]
         ]
     },
@@ -24723,31 +24713,11 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 940,
-        "y": 1420,
+        "x": 700,
+        "y": 1340,
         "wires": [
             [
                 "373f8db39c726fcd"
-            ]
-        ]
-    },
-    {
-        "id": "c1dd237885fa5f7b",
-        "type": "function",
-        "z": "ea807342102b869e",
-        "name": "update wt devices",
-        "func": "let wtDeviceDoc = msg.sub.rows[0].value;\nlet devices = wtDeviceDoc.data;\nlet lsImei = msg.imei;\nlet date = new Date();\nif (Array.isArray(devices) && Array.isArray(lsImei)) {\n    let lsID = devices.map(x => x.szDeviceID);\n    let devicesTobeCreate = lsImei.filter(x => !(devices.map(x => x.szPhysicalNo1)).includes(x));\n    devicesTobeCreate.forEach(imei => {\n        let lastID = lsID.sort((a, b) => {\n            // Extract numeric parts and convert to integers\n            let numericA = parseInt(a.slice(2), 10);\n            let numericB = parseInt(b.slice(2), 10);\n\n            // Compare in descending order\n            return numericB - numericA;\n        })[0];\n        let newID = incrementDeviceID(lastID);\n        lsID.push(newID);\n        devices.push({\n            szDeviceID: newID,\n            iCatID: 1,\n            iSourceID: 1,\n            szPhysicalNo1: imei,\n            szPhysicalNo2: \"\",\n            szPhysicalNo3: \"\",\n            szImei: \"\",\n            szBrand: \"\",\n            szModel: \"\",\n            szType: \"\",\n            szDescription: \"\",\n            iCreatedBy: \"system\",\n            dtmCreatedDate: date,\n            iModifiedBy: \"system\",\n            dtmModifiedDate: date\n        });\n    });\n    wtDeviceDoc.data = devices;\n    msg.payload = devices;\n    msg.devices = devices;\n    msg.sub = {\n        database: 'smart-libs',\n        doc: wtDeviceDoc\n    };\n}\nreturn msg;\n\nfunction incrementDeviceID(deviceID) {\n    // Extract numeric part and convert to integer\n    let numericPart = parseInt(deviceID.slice(2), 10);\n\n    // Increment the numeric part\n    numericPart++;\n\n    // Format the incremented numeric part with leading zeros\n    let formattedNumericPart = String(numericPart).padStart(4, '0');\n\n    // Build the new device ID\n    let newDeviceID = \"wt\" + formattedNumericPart;\n\n    return newDeviceID;\n}",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 670,
-        "y": 1380,
-        "wires": [
-            [
-                "d262cc3cc269574c"
             ]
         ]
     },
@@ -24758,54 +24728,8 @@
         "name": "",
         "statusCode": "200",
         "headers": {},
-        "x": 960,
-        "y": 1460,
-        "wires": []
-    },
-    {
-        "id": "d262cc3cc269574c",
-        "type": "subflow:ef0e7b589320b81a",
-        "z": "ea807342102b869e",
-        "name": "",
-        "x": 950,
+        "x": 900,
         "y": 1340,
-        "wires": [
-            [
-                "e4f44dcc4b9b0a0f"
-            ]
-        ]
-    },
-    {
-        "id": "e4f44dcc4b9b0a0f",
-        "type": "function",
-        "z": "ea807342102b869e",
-        "name": "prepare payload",
-        "func": "let csv = msg.csv;\nlet devices = msg.devices;\nlet payload = [];\nif (Array.isArray(devices) && Array.isArray(csv) && csv.length > 0) {\n    payload = csv.map(x => {\n        let d = devices.find(device => device.szPhysicalNo1 == x.imei);\n        return {\n            deviceID: (d) ? d.szDeviceID : null,\n            deviceDatetime: x.time,\n            latitude: parseFloat(x.lat),\n            longitude: parseFloat(x.lon),\n            altitude: parseFloat(x.alt),\n            speed: Number(x.speed),\n            event: (x.eventtype != \"alarm\") ? 0 : 1,\n            battery: Number(x.battery_percent),\n            imei: x.imei\n        }\n    });\n    let chunkSize = 25000;\n    for (let i = 0; i < payload.length; i += chunkSize) {\n        const chunk = payload.slice(i, i + chunkSize);\n        node.send({\n            payload: chunk\n        });\n    }\n    return null;\n}",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 960,
-        "y": 1380,
-        "wires": [
-            [
-                "f3ad25f6731ae06c"
-            ]
-        ]
-    },
-    {
-        "id": "f3ad25f6731ae06c",
-        "type": "amqp out",
-        "z": "ea807342102b869e",
-        "name": "",
-        "routingkey": "",
-        "iotype": "4",
-        "ioname": "wt.csv.import",
-        "server": "e907ba5364e5896f",
-        "x": 1170,
-        "y": 1380,
         "wires": []
     },
     {
@@ -25108,87 +25032,12 @@
         "wires": []
     },
     {
-        "id": "4ed9fe4ca6db3943",
-        "type": "change",
-        "z": "ea807342102b869e",
-        "name": "",
-        "rules": [
-            {
-                "t": "set",
-                "p": "payload",
-                "pt": "msg",
-                "to": "success",
-                "tot": "str"
-            }
-        ],
-        "action": "",
-        "property": "",
-        "from": "",
-        "to": "",
-        "reg": false,
-        "x": 660,
-        "y": 1500,
-        "wires": [
-            [
-                "07da7cbca5d026b6"
-            ]
-        ]
-    },
-    {
-        "id": "07da7cbca5d026b6",
-        "type": "http response",
-        "z": "ea807342102b869e",
-        "name": "",
-        "statusCode": "200",
-        "headers": {},
-        "x": 680,
-        "y": 1540,
-        "wires": []
-    },
-    {
-        "id": "f695988e37702ae8",
-        "type": "change",
-        "z": "ea807342102b869e",
-        "name": "",
-        "rules": [
-            {
-                "t": "set",
-                "p": "payload",
-                "pt": "msg",
-                "to": "success",
-                "tot": "str"
-            }
-        ],
-        "action": "",
-        "property": "",
-        "from": "",
-        "to": "",
-        "reg": false,
-        "x": 640,
-        "y": 1500,
-        "wires": [
-            [
-                "d943db85e418f9a9"
-            ]
-        ]
-    },
-    {
-        "id": "d943db85e418f9a9",
-        "type": "http response",
-        "z": "ea807342102b869e",
-        "name": "",
-        "statusCode": "200",
-        "headers": {},
-        "x": 660,
-        "y": 1540,
-        "wires": []
-    },
-    {
-        "id": "6ba284c96de9e55f",
+        "id": "a83669472413888b",
         "type": "function",
         "z": "ea807342102b869e",
+        "g": "7aaf569aa41ac02a",
         "name": "import from smart-bucket",
-        "func": "try {\n    const couchdb = global.get('couchdb');\n    let date = msg.payload;\n    let d = `${date.split('-')[2]}${date.split('-')[1]}${date.split('-')[0]}`;\n    couchdb.view('smart-bucket', 'set-manual', 'worker-tracker', {\n        key: [d]\n    }).then(res => {\n        let _id = res.data?.rows[0]?.value;\n        if (_id) {\n            couchdb.openByID('smart-bucket', _id).then(res => {\n                let csvBuffer = res.data.payload;\n                let payload = csvBufferToJson(csvBuffer);\n                let groupedObject = grouped(payload, 'imei');\n                const rs = Object.entries(groupedObject).map(([key, val]) => ({\n                    imei: key,\n                    date,\n                    series: Object.entries(grouped(val, 'time'))\n                        .map(([x, y]) => ({ key: new Date(x).getTime(), values: y }))\n                }));\n                let docs = rs.map(item => {\n                    return {\n                        topic: 'wt-tracking',\n                        groupBy: 'imei:date:source',\n                        source: {\n                            from: 'smart-bucket',\n                            docID: _id\n                        },\n                        ...item\n                    }\n                });\n                couchdb.bulkInsert('smart-timeseries', docs).then(res => {\n                    node.warn(res);\n                })\n            }, (err) => { node.error(err); });\n        } else {\n            node.error(\"document not found\");\n        }\n    }, (err) => { node.error(err); });\n} catch (err) {\n    node.error({ 'xx': err });\n}\n\nfunction grouped(payload, key) {\n    return payload.reduce((res, obj) => {\n        const index = obj[key];\n        res[index] = res[index] || [];\n        let { imei, ...other } = obj;\n        res[index].push(other)\n        return res;\n    }, {});\n}\n\nfunction csvBufferToJson(csvBuffer) {\n    // Convert the CSV buffer to a string\n    const csvString = csvBuffer.toString('utf8');\n\n    // Split the CSV string into lines\n    const lines = csvString.split('\\n');\n\n    // Extract header (assuming the first line is the header)\n    const headers = lines[0].trim().split(',');\n\n    // Initialize an array to store the JSON objects\n    const jsonArray = [];\n\n    // Iterate over each line (starting from the second line) to create JSON objects\n    for (let i = 1; i < lines.length; i++) {\n        const values = lines[i].trim().split(',');\n        const jsonObject = {};\n\n        // Populate the JSON object with key-value pairs\n        for (let j = 0; j < headers.length; j++) {\n            jsonObject[headers[j].replace(/\"/g, '')] = (values[j]) ? values[j].replace(/\"/g, '') : \"\";\n        }\n\n        // Add the JSON object to the array\n        jsonArray.push(jsonObject);\n    }\n\n    return jsonArray;\n}",
+        "func": "try {\n    const couchdb = global.get('couchdb');\n    let date = msg.payload;\n    let d = `${date.split('-')[2]}${date.split('-')[1]}${date.split('-')[0]}`;\n    couchdb.view('smart-bucket', 'set-manual', 'worker-tracker', {\n        key: [d]\n    }).then(res => {\n        let _id = res.data?.rows[0]?.value;\n        if (_id) {\n            couchdb.openByID('smart-bucket', _id).then(res => {\n                let csvBuffer = res.data.payload;\n                let payload = csvBufferToJson(csvBuffer);\n                let docs = payload.map(item => {\n                    return {\n                        topic: 'wt-tracking',\n                        source: {\n                            from: 'smart-bucket',\n                            docID: _id\n                        },\n                        date,\n                        ...item,\n                        createdAt: new Date(),\n                        createdBy: 'system'\n                    }\n                });\n                let chunkSize = 1000;\n                for (let i = 0; i < docs.length; i += chunkSize) {\n                    const chunk = docs.slice(i, i + chunkSize);\n                    node.send({\n                        payload: chunk\n                    });\n                }\n            }, (err) => { node.error(err); });\n        } else {\n            node.error(\"document not found\");\n        }\n    }, (err) => { node.error(err); });\n} catch (err) {\n    node.error({ 'xx': err });\n}\n\nfunction grouped(payload, key) {\n    return payload.reduce((res, obj) => {\n        const index = obj[key];\n        res[index] = res[index] || [];\n        let { imei, ...other } = obj;\n        res[index].push(other)\n        return res;\n    }, {});\n}\n\nfunction csvBufferToJson(csvBuffer) {\n    // Convert the CSV buffer to a string\n    const csvString = csvBuffer.toString('utf8');\n\n    // Split the CSV string into lines\n    const lines = csvString.split('\\n');\n\n    // Extract header (assuming the first line is the header)\n    const headers = lines[0].trim().split(',');\n\n    // Initialize an array to store the JSON objects\n    const jsonArray = [];\n\n    // Iterate over each line (starting from the second line) to create JSON objects\n    for (let i = 1; i < lines.length; i++) {\n        const values = lines[i].trim().split(',');\n        const jsonObject = {};\n\n        // Populate the JSON object with key-value pairs\n        for (let j = 0; j < headers.length; j++) {\n            jsonObject[headers[j].replace(/\"/g, '')] = (values[j]) ? values[j].replace(/\"/g, '') : \"\";\n        }\n\n        // Add the JSON object to the array\n        jsonArray.push(jsonObject);\n    }\n\n    return jsonArray;\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -25196,26 +25045,101 @@
         "finalize": "",
         "libs": [],
         "x": 370,
-        "y": 1980,
+        "y": 2020,
         "wires": [
-            []
+            [
+                "f8c46e73185a6241"
+            ]
         ]
     },
     {
-        "id": "60d8a688818f0535",
+        "id": "49e80d2fac9b8e6f",
         "type": "promptinput",
         "z": "ea807342102b869e",
+        "g": "7aaf569aa41ac02a",
         "name": "",
         "datatype": "str",
         "prompt": "inputkan format tanggal YYYY-MM-DD",
         "property": "payload",
         "propertyType": "msg",
         "x": 130,
-        "y": 1980,
+        "y": 2020,
         "wires": [
             [
-                "6ba284c96de9e55f"
+                "a83669472413888b"
             ]
         ]
+    },
+    {
+        "id": "f8c46e73185a6241",
+        "type": "amqp out",
+        "z": "ea807342102b869e",
+        "g": "7aaf569aa41ac02a",
+        "name": "",
+        "routingkey": "",
+        "iotype": "4",
+        "ioname": "wt.save.timeseries.to.couchdb",
+        "server": "e907ba5364e5896f",
+        "x": 390,
+        "y": 2060,
+        "wires": []
+    },
+    {
+        "id": "df8084bae830e5b4",
+        "type": "inject",
+        "z": "ea807342102b869e",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 2140,
+        "wires": [
+            [
+                "8c0df502f9cbb317"
+            ]
+        ]
+    },
+    {
+        "id": "8c0df502f9cbb317",
+        "type": "function",
+        "z": "ea807342102b869e",
+        "name": "function 132",
+        "func": "try {\n    const couchdb = global.get('couchdb');\n    couchdb.view('smart-timeseries', 'worker-tracker', 'by-date-imei', {\n        key: ['2024-01-22', '350317171460409']\n    }).then(res => {\n        node.warn(res.data.rows.map(x => x.value));\n    });\n} catch (err) {\n    node.error(err);\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 2140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7f66a0114336a27e",
+        "type": "comment",
+        "z": "ea807342102b869e",
+        "g": "7aaf569aa41ac02a",
+        "name": "",
+        "info": "# desc\n    import data dari smart-bucket by date kemudian \n    insert ke couchdb smart-timeseries yg mana 1 doc : 1 timestamp",
+        "x": 620,
+        "y": 2000,
+        "wires": []
     }
 ]
