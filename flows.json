@@ -1343,7 +1343,7 @@
             "7f66a0114336a27e"
         ],
         "x": 34,
-        "y": 179,
+        "y": 199,
         "w": 692,
         "h": 142
     },
@@ -1367,7 +1367,7 @@
             "596ccc69fa7978cd"
         ],
         "x": 34,
-        "y": 359,
+        "y": 379,
         "w": 712,
         "h": 122
     },
@@ -25057,7 +25057,7 @@
         "finalize": "",
         "libs": [],
         "x": 390,
-        "y": 240,
+        "y": 260,
         "wires": [
             [
                 "f8c46e73185a6241"
@@ -25075,7 +25075,7 @@
         "property": "payload",
         "propertyType": "msg",
         "x": 150,
-        "y": 240,
+        "y": 260,
         "wires": [
             [
                 "a83669472413888b"
@@ -25093,7 +25093,7 @@
         "ioname": "wt.save.timeseries.to.couchdb",
         "server": "e907ba5364e5896f",
         "x": 410,
-        "y": 280,
+        "y": 300,
         "wires": []
     },
     {
@@ -25104,7 +25104,7 @@
         "name": "",
         "info": "# desc\n    import data dari smart-bucket by date kemudian \n    insert ke couchdb smart-timeseries yg mana 1 doc : 1 timestamp",
         "x": 640,
-        "y": 220,
+        "y": 240,
         "wires": []
     },
     {
@@ -25118,7 +25118,7 @@
         "property": "date",
         "propertyType": "msg",
         "x": 150,
-        "y": 400,
+        "y": 420,
         "wires": [
             [
                 "b16a4b8417bb586d"
@@ -25139,7 +25139,7 @@
         "finalize": "",
         "libs": [],
         "x": 390,
-        "y": 400,
+        "y": 420,
         "wires": [
             [
                 "596ccc69fa7978cd"
@@ -25165,7 +25165,7 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 170,
-        "y": 440,
+        "y": 460,
         "wires": [
             [
                 "b16a4b8417bb586d"
@@ -25183,7 +25183,7 @@
         "ioname": "wt.csv.import",
         "server": "e907ba5364e5896f",
         "x": 650,
-        "y": 400,
+        "y": 420,
         "wires": []
     }
 ]
