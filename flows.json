@@ -1303,7 +1303,7 @@
         "id": "9f1e98d4426d35e3",
         "type": "group",
         "z": "8a2099e398e5d7dd",
-        "name": "wroker tracker transaction",
+        "name": "wt: geofencing from redis",
         "style": {
             "label": true,
             "label-position": "n",
@@ -1316,7 +1316,6 @@
             "bc3395fb23c960b3",
             "6989d9d7ed54d28c",
             "7a5b7cbb1a6dd572",
-            "c700ab4f34ddb410",
             "0eae8461b0dc1b2a"
         ],
         "x": 34,
@@ -1347,6 +1346,30 @@
         "y": 179,
         "w": 692,
         "h": 142
+    },
+    {
+        "id": "93d125404594bdb3",
+        "type": "group",
+        "z": "8a2099e398e5d7dd",
+        "name": "wt: couchdb-ts to redis-ts",
+        "style": {
+            "label": true,
+            "label-position": "n",
+            "stroke": "none",
+            "color": "#ff0000",
+            "fill": "#e3f3d3",
+            "fill-opacity": "0.4"
+        },
+        "nodes": [
+            "557a1e4f43561a80",
+            "b16a4b8417bb586d",
+            "452dd37c2852c2f2",
+            "596ccc69fa7978cd"
+        ],
+        "x": 34,
+        "y": 359,
+        "w": 712,
+        "h": 122
     },
     {
         "id": "784d89e62dfb5070",
@@ -25002,28 +25025,9 @@
         "y": 120,
         "wires": [
             [
-                "6989d9d7ed54d28c",
-                "c700ab4f34ddb410"
+                "6989d9d7ed54d28c"
             ]
         ]
-    },
-    {
-        "id": "c700ab4f34ddb410",
-        "type": "debug",
-        "z": "8a2099e398e5d7dd",
-        "g": "9f1e98d4426d35e3",
-        "name": "debug 220",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 350,
-        "y": 120,
-        "wires": []
     },
     {
         "id": "0eae8461b0dc1b2a",
@@ -25101,6 +25105,85 @@
         "info": "# desc\n    import data dari smart-bucket by date kemudian \n    insert ke couchdb smart-timeseries yg mana 1 doc : 1 timestamp",
         "x": 640,
         "y": 220,
+        "wires": []
+    },
+    {
+        "id": "557a1e4f43561a80",
+        "type": "promptinput",
+        "z": "8a2099e398e5d7dd",
+        "g": "93d125404594bdb3",
+        "name": "",
+        "datatype": "str",
+        "prompt": "enter tracking date",
+        "property": "date",
+        "propertyType": "msg",
+        "x": 150,
+        "y": 400,
+        "wires": [
+            [
+                "b16a4b8417bb586d"
+            ]
+        ]
+    },
+    {
+        "id": "b16a4b8417bb586d",
+        "type": "function",
+        "z": "8a2099e398e5d7dd",
+        "g": "93d125404594bdb3",
+        "name": "get longlat & delayLoop",
+        "func": "const redisTS = global.get('redisTS');\nconst couchdb = global.get('couchdb');\n\ncouchdb.view('smart-libs', 'refs', 'by-topic', {\n    keys: ['wt-devices', 'wt-party-ident']\n}).then(res => {\n    let devices = res.data.rows[0].value.data;\n    let party = res.data.rows[1].value.data;\n    let identities = devices.map(x => {\n        return {\n            device: x.szDeviceID,\n            imei: x.szPhysicalNo1,\n            nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n        }\n    });\n    let rs = [];\n    identities.forEach(ident => {\n        let { device, imei } = ident;\n        couchdb.view('smart-timeseries', 'worker-tracker', 'by-date-imei', {\n            key: [msg.date, imei]\n        }).then(res => {\n            let docs = res.data.rows.map(x => x.value);\n            if (docs && docs.length > 0) {\n                let payload = docs.map(doc => {\n                    return {\n                        deviceID: device,\n                        deviceDatetime: doc.time,\n                        latitude: parseFloat(doc.lat),\n                        longitude: parseFloat(doc.lon),\n                        altitude: parseFloat(doc.alt),\n                        speed: Number(doc.speed),\n                        event: (doc.eventtype != \"alarm\") ? 0 : 1,\n                        battery: Number(doc.battery_percent),\n                        imei\n                    }\n                });\n                node.send({ payload });\n            }\n        }, (err) => { node.error(err) });\n    });\n}, (err) => { node.error(err) });\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 400,
+        "wires": [
+            [
+                "596ccc69fa7978cd"
+            ]
+        ]
+    },
+    {
+        "id": "452dd37c2852c2f2",
+        "type": "inject",
+        "z": "8a2099e398e5d7dd",
+        "g": "93d125404594bdb3",
+        "name": "",
+        "props": [
+            {
+                "p": "date",
+                "v": "2024-01-18",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 170,
+        "y": 440,
+        "wires": [
+            [
+                "b16a4b8417bb586d"
+            ]
+        ]
+    },
+    {
+        "id": "596ccc69fa7978cd",
+        "type": "amqp out",
+        "z": "8a2099e398e5d7dd",
+        "g": "93d125404594bdb3",
+        "name": "",
+        "routingkey": "",
+        "iotype": "4",
+        "ioname": "wt.csv.import",
+        "server": "e907ba5364e5896f",
+        "x": 650,
+        "y": 400,
         "wires": []
     }
 ]
