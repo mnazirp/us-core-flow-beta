@@ -200,6 +200,14 @@
         "env": []
     },
     {
+        "id": "75e462c5653d17e1",
+        "type": "tab",
+        "label": "publisher: vehicle-monitoring",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "77002254b872fa8e",
         "type": "subflow",
         "name": "algo: jwt-sign",
@@ -1319,7 +1327,7 @@
             "0eae8461b0dc1b2a"
         ],
         "x": 34,
-        "y": 39,
+        "y": 419,
         "w": 772,
         "h": 122
     },
@@ -1343,7 +1351,7 @@
             "7f66a0114336a27e"
         ],
         "x": 34,
-        "y": 199,
+        "y": 39,
         "w": 692,
         "h": 142
     },
@@ -1367,9 +1375,32 @@
             "596ccc69fa7978cd"
         ],
         "x": 34,
-        "y": 379,
-        "w": 712,
+        "y": 239,
+        "w": 872,
         "h": 122
+    },
+    {
+        "id": "0e692d4a74821e66",
+        "type": "group",
+        "z": "75e462c5653d17e1",
+        "name": "vm: smart-bucket to smart-timeseries",
+        "style": {
+            "stroke": "none",
+            "fill": "#e3f3d3",
+            "fill-opacity": "0.46",
+            "label": true,
+            "color": "#ff3f3f"
+        },
+        "nodes": [
+            "fed2379fa8448675",
+            "96f364787e60621d",
+            "72f980b3298f49a4",
+            "850008dec9093eba"
+        ],
+        "x": 34,
+        "y": 39,
+        "w": 512,
+        "h": 142
     },
     {
         "id": "784d89e62dfb5070",
@@ -19429,7 +19460,7 @@
         "type": "function",
         "z": "d13820078197e616",
         "name": "function 113",
-        "func": "const redisTS = await global.get('redisTS');\nlet rs = await redisTS.checkKey('*');\nlet vinAsset = msg.vinAsset;\n\ntry {\n     let vins = await rs.data.map(x => x.split(':')[0]);\n    let vinTracking = [...new Set(vins)];\n    let vinAssetNotInTracking = vinAsset.filter(x => !vinTracking.includes(x));\n    let vinTrackingNotInAsset = vinTracking.filter(x => !vinAsset.includes(x));\n    msg.payload = { vinAsset, vinTracking, vinAssetNotInTracking, vinTrackingNotInAsset }\n    node.send(msg);\n    return msg;\n} catch(e) {\n    msg.payload = {\n        message : \"something went wrong\"\n    };\n    return msg;\n}\n\n\n\n// rs.then(keys => {\n//     let vins = keys.map(x => x.split(':')[0]);\n//     let vinTracking = [...new Set(vins)];\n//     let vinAssetNotInTracking = vinAsset.filter(x => !vinTracking.includes(x));\n//     let vinTrackingNotInAsset = vinTracking.filter(x => !vinAsset.includes(x));\n//     msg.payload = { vinAsset, vinTracking, vinAssetNotInTracking, vinTrackingNotInAsset }\n//     node.send(msg);\n// })\n//     .catch(err => {\n//         msg.payload = msg;\n//         node.send(msg);\n//     });\n// msg.payload = msg.sub;\nreturn msg;",
+        "func": "const redisTS = await global.get('redisTS');\nlet rs = await redisTS.checkKey('*');\nlet vinAsset = msg.vinAsset;\n\ntry {\n     let vins = await rs.data.map(x => x.split(':')[0]);\n    let vinTracking = [...new Set(vins)];\n    let vinAssetNotInTracking = vinAsset.filter(x => !vinTracking.includes(x));\n    let vinTrackingNotInAsset = vinTracking.filter(x => !vinAsset.includes(x));\n    msg.payload = { vinAsset, vinTracking, vinAssetNotInTracking, vinTrackingNotInAsset }\n    node.send(msg);\n    return msg;\n} catch(e) {\n    msg.payload = {\n        message : \"something went wrong\"\n    };\n    return msg;\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -22875,7 +22906,7 @@
         "type": "function",
         "z": "b5ec5e315779d1ba",
         "name": "ADD data series",
-        "func": "const redisTS = global.get('redisTS');\nlet commands = msg.needToAdd.map(x => {\n    let { key, timestamp, value } = x;\n    return ['TS.ADD', key, timestamp, value];\n});\nredisTS.commands(commands).then(result => {\n    msg.payload = result;\n    node.send(msg);\n})\nreturn null;",
+        "func": "const redisTS = global.get('redisTS');\nlet commands = msg.needToAdd.map(x => {\n    let { key, timestamp, value } = x;\n    return ['TS.ADD', key, timestamp, value];\n});\nredisTS.commands(commands).then(result => {\n    msg.payload = result;\n    node.send(msg);\n}, err => node.error(err))\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -22935,7 +22966,7 @@
         "type": "function",
         "z": "b5ec5e315779d1ba",
         "name": "create keys series",
-        "func": "const redisTS = global.get('redisTS');\nlet existingKeys = msg.payload;\nlet payload = msg.ori;\nlet suffix = ['vehicleStatus', 'odometer', 'engineHours', 'longitude', 'latitude', 'altitude',\n    'heading', 'speed', 'positionDatetime', 'createdDatetime', 'printedTimezone'];\nlet vehicleStatusOptions = ['OFF', 'ON', 'MOVING', 'IDDLE'];\n\nlet needToCreate = [];\nlet needToAdd = [];\nfor (const rec of payload) {\n    if (needToCreate.length == 0 || needToCreate.some(x => x.vin != rec.vin)) {\n        needToCreate.push({\n            vin: `${rec.vin}`,\n            createPayload: suffix.map(suf => {\n                return {\n                    key: `${rec.vin}:${suf}`,\n                    retention: 0,\n                    duplicatePolicy: 'LAST',\n                    labels: ['type', 'vehicle-position', 'vin', rec.vin, 'topic', suf],\n                    encoding: 'UNCOMPRESSED'\n                }\n            })\n        });\n    }\n    needToAdd.push({\n        key: `${rec.vin}:vehicleStatus`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: vehicleStatusOptions.indexOf(rec.vehiclestatus).toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:odometer`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.odometer) ? parseFloat(rec.odometer).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:engineHours`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.enginehours) ? parseFloat(rec.enginehours).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:longitude`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: rec.longitude.toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:latitude`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: rec.latitude.toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:altitude`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.altitude) ? parseFloat(rec.altitude).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:heading`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.heading) ? parseFloat(rec.heading).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:speed`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.speed) ? parseFloat(rec.speed).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:positionDatetime`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: new Date(rec.positiondatetime).getTime().toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:createdDatetime`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: new Date(rec.createddatetime).getTime().toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:printedTimezone`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: new Date(rec.printed_timezone).getTime().toString()\n    });\n}\nlet keys = [].concat(needToCreate.map(x => x.createPayload)).flat().map(innerArray => innerArray);\nmsg.create = keys.filter(x => !existingKeys.includes(x.key));\nmsg.needToAdd = needToAdd;\nredisTS.tsCreate(msg.create).then(x => {\n    msg.payload = x;\n    node.send(msg);\n});\nreturn null;",
+        "func": "const redisTS = global.get('redisTS');\nlet existingKeys = msg.payload;\nlet payload = msg.ori;\nlet suffix = ['vehicleStatus', 'odometer', 'engineHours', 'longitude', 'latitude', 'altitude',\n    'heading', 'speed', 'positionDatetime', 'createdDatetime', 'printedTimezone'];\nlet vehicleStatusOptions = ['OFF', 'ON', 'MOVING', 'IDDLE'];\n\nlet needToCreate = [];\nlet needToAdd = [];\nfor (const rec of payload) {\n    if (needToCreate.length == 0 || needToCreate.some(x => x.vin != rec.vin)) {\n        needToCreate.push({\n            vin: `${rec.vin}`,\n            createPayload: suffix.map(suf => {\n                return {\n                    key: `${rec.vin}:${suf}`,\n                    retention: 0,\n                    duplicatePolicy: 'LAST',\n                    labels: ['type', 'vehicle-position', 'vin', rec.vin, 'topic', suf],\n                    encoding: 'UNCOMPRESSED'\n                }\n            })\n        });\n    }\n    needToAdd.push({\n        key: `${rec.vin}:vehicleStatus`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: vehicleStatusOptions.indexOf(rec.vehiclestatus).toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:odometer`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.odometer) ? parseFloat(rec.odometer).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:engineHours`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.enginehours) ? parseFloat(rec.enginehours).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:longitude`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: rec.longitude.toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:latitude`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: rec.latitude.toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:altitude`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.altitude) ? parseFloat(rec.altitude).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:heading`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.heading) ? parseFloat(rec.heading).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:speed`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: (rec.speed) ? parseFloat(rec.speed).toString() : null\n    });\n    needToAdd.push({\n        key: `${rec.vin}:positionDatetime`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: new Date(rec.positiondatetime).getTime().toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:createdDatetime`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: new Date(rec.createddatetime).getTime().toString()\n    });\n    needToAdd.push({\n        key: `${rec.vin}:printedTimezone`,\n        timestamp: new Date(rec.printed_timezone).getTime().toString(),\n        value: new Date(rec.printed_timezone).getTime().toString()\n    });\n}\nlet keys = [].concat(needToCreate.map(x => x.createPayload)).flat().map(innerArray => innerArray);\nmsg.create = keys.filter(x => !existingKeys.includes(x.key));\nmsg.needToAdd = needToAdd;\nredisTS.tsCreate(msg.create).then(x => {\n    msg.payload = x;\n    node.send(msg);\n}, err => node.error(err));\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -23840,7 +23871,7 @@
         "type": "function",
         "z": "ea807342102b869e",
         "name": "return",
-        "func": "let couchdb = global.get('couchdb');\nlet { startDate, endDate } = msg.payload;\n\nlet start = new Date(startDate);\nstart.setHours(0, 0, 0, 0);\nlet end = new Date(endDate);\nend.setHours(23, 59, 59, 999);\n\ncouchdb.view('transactions', 'data', 'by-date', {\n\tstartkey: start.toISOString().split('T')[0],\n\tendkey: end.toISOString().split('T')[0]\n}).then(res => {\n\tmsg.payload = res.data.rows?.map(x => {\n\t\tlet { _id, _rev, ...other } = x.value;\n\t\treturn other\n\t});\n\tnode.send(msg);\n}, (err) => {\n\tmsg.error = err;\n\tnode.send(msg);\n})\n\nreturn null;",
+        "func": "let couchdb = global.get('couchdb');\nlet { startDate, endDate } = msg.payload;\n\nlet start = new Date(startDate);\nstart.setHours(0, 0, 0, 0);\nlet end = new Date(endDate);\nend.setHours(23, 59, 59, 999);\n\ncouchdb.view('transactions', 'data', 'by-date', {\n\tstartkey: start.toISOString().split('T')[0],\n\tendkey: end.toISOString().split('T')[0]\n}).then(res => {\n\tmsg.payload = res.data.rows?.map(x => {\n\t\tlet { _id, _rev, ...other } = x.value;\n\t\treturn other\n\t});\n\tnode.send(msg);\n}, (err) => {\n\tmsg.error = err;\n\tnode.send(msg);\n}, err => node.error(err))\n\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -24975,7 +25006,7 @@
         "property": "date",
         "propertyType": "msg",
         "x": 150,
-        "y": 80,
+        "y": 460,
         "wires": [
             [
                 "6989d9d7ed54d28c"
@@ -24988,7 +25019,7 @@
         "z": "8a2099e398e5d7dd",
         "g": "9f1e98d4426d35e3",
         "name": "get longlat & delayLoop",
-        "func": "const redisTS = global.get('redisTS');\nconst couchdb = global.get('couchdb');\n\ncouchdb.view('smart-libs', 'refs', 'by-topic', {\n    keys: ['wt-devices', 'wt-party-ident']\n}).then(res => {\n    let devices = res.data.rows[0].value.data;\n    let party = res.data.rows[1].value.data;\n    let identities = devices.map(x => {\n        return {\n            device: x.szDeviceID,\n            imei: x.szPhysicalNo1,\n            nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n        }\n    });\n    let start = new Date(msg.date).setHours(0, 0, 0, 0);\n    let end = new Date(msg.date).setHours(23, 59, 59, 999);\n    let commands = [\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=longitude'],\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=latitude'],\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=event'],\n    ];\n    redisTS.commands(commands).then(res => {\n        let long = res.data[0].map(x => [x[0].split(':')[1], x[2]]);\n        let mapLong = new Map(long.map(([device, series]) => [device, series]));\n        let event = res.data[2].map(x => [x[0].split(':')[1], x[2]]);\n        let mapEvent = new Map(event.map(([device, series]) => [device, series]));\n        let lat = res.data[1].map(x => [x[0].split(':')[1], x[2]]);\n        let mapPerDevice = lat.map(([device, latitude]) => {\n            const longitude = mapLong.get(device);\n            const trackEvent = mapEvent.get(device);\n            return [device, [longitude, latitude, trackEvent]];\n        });\n        let rs = mapPerDevice.map(mPerDevice => {\n            let ident = identities.find(p => p.device == mPerDevice[0]);\n            let { device, imei, nik } = ident;\n            let dLong = mPerDevice[1][0];\n            let mapDeviceLong = new Map(dLong.map(([timestamp, longitude]) => [timestamp, longitude]));\n            let dEvent = mPerDevice[1][2];\n            let mapDeviceEvent = new Map(dEvent.map(([timestamp, event]) => [timestamp, event]));\n            let dLat = mPerDevice[1][1];\n            let mapResult = dLat.map(([timestamp, latitude]) => {\n                const longitude = mapDeviceLong.get(timestamp);\n                const e = mapDeviceEvent.get(timestamp);\n                return [timestamp, [longitude, latitude], e]\n            });\n            return [[nik, device, imei], mapResult];\n        });\n        rs.forEach(x => {\n            node.send({\n                payload: {\n                    date: msg.date,\n                    series: x,\n                }\n            });\n        })\n        /**rata rata perdevice makan waktu 3m jika point convert to tree circle */\n        // let index = 0;\n        // function delayLoop() {\n        //     if (index < rs.length) {\n        //         msg.tracking = rs[index];\n        //         index++;\n        //         node.send(msg);\n        //         setTimeout(delayLoop, 60 * 1000)\n        //     }\n        // }\n        // delayLoop();\n    });\n});\n\nreturn null;",
+        "func": "const redisTS = global.get('redisTS');\nconst couchdb = global.get('couchdb');\n\ncouchdb.view('smart-libs', 'refs', 'by-topic', {\n    keys: ['wt-devices', 'wt-party-ident']\n}).then(res => {\n    let devices = res.data.rows[0].value.data;\n    let party = res.data.rows[1].value.data;\n    let identities = devices.map(x => {\n        return {\n            device: x.szDeviceID,\n            imei: x.szPhysicalNo1,\n            nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n        }\n    });\n    let start = new Date(msg.date).setHours(0, 0, 0, 0);\n    let end = new Date(msg.date).setHours(23, 59, 59, 999);\n    let commands = [\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=longitude'],\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=latitude'],\n        ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', 'type=worker-tracker', 'topic=event'],\n    ];\n    redisTS.commands(commands).then(res => {\n        let long = res.data[0].map(x => [x[0].split(':')[1], x[2]]);\n        let mapLong = new Map(long.map(([device, series]) => [device, series]));\n        let event = res.data[2].map(x => [x[0].split(':')[1], x[2]]);\n        let mapEvent = new Map(event.map(([device, series]) => [device, series]));\n        let lat = res.data[1].map(x => [x[0].split(':')[1], x[2]]);\n        let mapPerDevice = lat.map(([device, latitude]) => {\n            const longitude = mapLong.get(device);\n            const trackEvent = mapEvent.get(device);\n            return [device, [longitude, latitude, trackEvent]];\n        });\n        let rs = mapPerDevice.map(mPerDevice => {\n            let ident = identities.find(p => p.device == mPerDevice[0]);\n            let { device, imei, nik } = ident;\n            let dLong = mPerDevice[1][0];\n            let mapDeviceLong = new Map(dLong.map(([timestamp, longitude]) => [timestamp, longitude]));\n            let dEvent = mPerDevice[1][2];\n            let mapDeviceEvent = new Map(dEvent.map(([timestamp, event]) => [timestamp, event]));\n            let dLat = mPerDevice[1][1];\n            let mapResult = dLat.map(([timestamp, latitude]) => {\n                const longitude = mapDeviceLong.get(timestamp);\n                const e = mapDeviceEvent.get(timestamp);\n                return [timestamp, [longitude, latitude], e]\n            });\n            return [[nik, device, imei], mapResult];\n        });\n        rs.forEach(x => {\n            node.send({\n                payload: {\n                    date: msg.date,\n                    series: x,\n                }\n            });\n        })\n        /**rata rata perdevice makan waktu 3m jika point convert to tree circle */\n        // let index = 0;\n        // function delayLoop() {\n        //     if (index < rs.length) {\n        //         msg.tracking = rs[index];\n        //         index++;\n        //         node.send(msg);\n        //         setTimeout(delayLoop, 60 * 1000)\n        //     }\n        // }\n        // delayLoop();\n    }, err => node.error(err));\n}, err => node.error(err));\n\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -24996,7 +25027,7 @@
         "finalize": "",
         "libs": [],
         "x": 390,
-        "y": 80,
+        "y": 460,
         "wires": [
             [
                 "0eae8461b0dc1b2a"
@@ -25022,7 +25053,7 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 170,
-        "y": 120,
+        "y": 500,
         "wires": [
             [
                 "6989d9d7ed54d28c"
@@ -25040,7 +25071,7 @@
         "ioname": "wt.tracking.perdevice",
         "server": "e907ba5364e5896f",
         "x": 680,
-        "y": 80,
+        "y": 460,
         "wires": []
     },
     {
@@ -25057,7 +25088,7 @@
         "finalize": "",
         "libs": [],
         "x": 390,
-        "y": 260,
+        "y": 100,
         "wires": [
             [
                 "f8c46e73185a6241"
@@ -25075,7 +25106,7 @@
         "property": "payload",
         "propertyType": "msg",
         "x": 150,
-        "y": 260,
+        "y": 100,
         "wires": [
             [
                 "a83669472413888b"
@@ -25090,10 +25121,10 @@
         "name": "",
         "routingkey": "",
         "iotype": "4",
-        "ioname": "wt.save.timeseries.to.couchdb",
+        "ioname": "wt.smartbucket.to.smarttimeseries",
         "server": "e907ba5364e5896f",
-        "x": 410,
-        "y": 300,
+        "x": 420,
+        "y": 140,
         "wires": []
     },
     {
@@ -25104,7 +25135,7 @@
         "name": "",
         "info": "# desc\n    import data dari smart-bucket by date kemudian \n    insert ke couchdb smart-timeseries yg mana 1 doc : 1 timestamp",
         "x": 640,
-        "y": 240,
+        "y": 80,
         "wires": []
     },
     {
@@ -25118,7 +25149,7 @@
         "property": "date",
         "propertyType": "msg",
         "x": 150,
-        "y": 420,
+        "y": 280,
         "wires": [
             [
                 "b16a4b8417bb586d"
@@ -25131,7 +25162,7 @@
         "z": "8a2099e398e5d7dd",
         "g": "93d125404594bdb3",
         "name": "get longlat & delayLoop",
-        "func": "const redisTS = global.get('redisTS');\nconst couchdb = global.get('couchdb');\n\ncouchdb.view('smart-libs', 'refs', 'by-topic', {\n    keys: ['wt-devices', 'wt-party-ident']\n}).then(res => {\n    let devices = res.data.rows[0].value.data;\n    let party = res.data.rows[1].value.data;\n    let identities = devices.map(x => {\n        return {\n            device: x.szDeviceID,\n            imei: x.szPhysicalNo1,\n            nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n        }\n    });\n    let rs = [];\n    identities.forEach(ident => {\n        let { device, imei } = ident;\n        couchdb.view('smart-timeseries', 'worker-tracker', 'by-date-imei', {\n            key: [msg.date, imei]\n        }).then(res => {\n            let docs = res.data.rows.map(x => x.value);\n            if (docs && docs.length > 0) {\n                let payload = docs.map(doc => {\n                    return {\n                        deviceID: device,\n                        deviceDatetime: doc.time,\n                        latitude: parseFloat(doc.lat),\n                        longitude: parseFloat(doc.lon),\n                        altitude: parseFloat(doc.alt),\n                        speed: Number(doc.speed),\n                        event: (doc.eventtype != \"alarm\") ? 0 : 1,\n                        battery: Number(doc.battery_percent),\n                        imei\n                    }\n                });\n                node.send({ payload });\n            }\n        }, (err) => { node.error(err) });\n    });\n}, (err) => { node.error(err) });\n\nreturn null;",
+        "func": "const redisTS = global.get('redisTS');\nconst couchdb = global.get('couchdb');\n\ncouchdb.view('smart-libs', 'refs', 'by-topic', {\n    keys: ['wt-devices', 'wt-party-ident']\n}).then(res => {\n    let devices = res.data.rows[0].value.data;\n    let party = res.data.rows[1].value.data;\n    let identities = devices.map(x => {\n        return {\n            device: x.szDeviceID,\n            imei: x.szPhysicalNo1,\n            nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n        }\n    });\n    identities.forEach(ident => {\n        let { device, imei } = ident;\n        couchdb.view('smart-timeseries', 'worker-tracker', 'by-date-imei', {\n            key: [msg.date, imei]\n        }).then(res => {\n            let docs = res.data.rows.map(x => x.value);\n            if (docs && docs.length > 0) {\n                let payload = docs.map(doc => {\n                    return {\n                        deviceID: device,\n                        deviceDatetime: doc.time,\n                        latitude: parseFloat(doc.lat),\n                        longitude: parseFloat(doc.lon),\n                        altitude: parseFloat(doc.alt),\n                        speed: Number(doc.speed),\n                        event: (doc.eventtype != \"alarm\") ? 0 : 1,\n                        battery: Number(doc.battery_percent),\n                        imei\n                    }\n                });\n                node.send({ payload });\n            }\n        }, (err) => { node.error(err) });\n    });\n}, (err) => { node.error(err) });\n\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -25139,7 +25170,7 @@
         "finalize": "",
         "libs": [],
         "x": 390,
-        "y": 420,
+        "y": 280,
         "wires": [
             [
                 "596ccc69fa7978cd"
@@ -25165,7 +25196,7 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 170,
-        "y": 460,
+        "y": 320,
         "wires": [
             [
                 "b16a4b8417bb586d"
@@ -25180,10 +25211,112 @@
         "name": "",
         "routingkey": "",
         "iotype": "4",
-        "ioname": "wt.csv.import",
+        "ioname": "wt.smarttimeseries.to.redistimeseries",
         "server": "e907ba5364e5896f",
-        "x": 650,
-        "y": 420,
+        "x": 730,
+        "y": 280,
         "wires": []
+    },
+    {
+        "id": "fed2379fa8448675",
+        "type": "inject",
+        "z": "75e462c5653d17e1",
+        "g": "0e692d4a74821e66",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 140,
+        "wires": [
+            [
+                "850008dec9093eba"
+            ]
+        ]
+    },
+    {
+        "id": "96f364787e60621d",
+        "type": "function",
+        "z": "75e462c5653d17e1",
+        "g": "0e692d4a74821e66",
+        "name": "create vm couchdb-timeseries",
+        "func": "const couchdb = global.get('couchdb');\n\ncouchdb.view('smart-bucket', 'position', 'by-cron-timestamp', {\n    descending: true,\n    limit: 1\n}).then(res => {\n    let bucket = res.data.rows[0].value;\n    let { _id, payload, createdAt } = bucket;\n    couchdb.view('smart-logs', 'cronjob', 'by-topic-tag', {\n        key: ['vehicle-monitoring', 'smartbucket.to.smarttimeseries']\n    }).then(res => {\n        let rows = res.data.rows;\n\n        if (rows.length == 0 || rows.some(r => r.value.log.source.docID != _id)) {\n            let doc = {\n                type: 'cronjob',\n                topic: 'vehicle-monitoring',\n                tag: 'smartbucket.to.smarttimeseries',\n                log: {\n                    cron: msg.payload,\n                    source: {\n                        database: 'smart-bucket',\n                        docID: _id\n                    }\n                }\n            }\n            couchdb.insert('smart-logs', doc).then(() => { }, err => node.error(err));\n            let newDocs = JSON.parse(payload).map(x => {\n                return {\n                    timestamp: new Date(x.printed_timezone).getTime(),\n                    topic: 'vm-tracking',\n                    source: {\n                        from: 'smart-bucket',\n                        docID: _id\n                    },\n                    ...x,\n                    createdAt: new Date(),\n                    createdBy: 'system'\n                }\n            });\n            couchdb.view('smart-timeseries', 'vehicle-tracker', 'by-timestamp-vin').then(res => {\n                let oldDocs = res.data.rows.map(x => {\n                    let { _id, _rev, timestamp, vin } = x.value;\n                    return { _id, _rev, timestamp, vin }\n                });\n                newDocs = newDocs.map(doc => {\n                    let exist = oldDocs\n                        .find(x => x.timestamp == doc.timestamp && x.vin == doc.vin);\n                    if (exist) {\n                        let { _id, _rev } = exist;\n                        doc = {\n                            _id, _rev, ...doc,\n                            updatedAt: new Date(),\n                            updatedBy: 'system'\n                        }\n                    }\n                    return doc\n                });\n                couchdb.bulk('smart-timeseries', newDocs).then(res => {\n                    node.warn(res.data);\n                }, err => node.error(err));\n            }, (err) => node.error(err));\n        } else {\n            node.warn(\"already\");\n        }\n    }, err => node.error(err));\n    // node.send({\n    //     payload: JSON.parse(bucket.payload)\n    // });\n});",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "72f980b3298f49a4",
+        "type": "cronplus",
+        "z": "75e462c5653d17e1",
+        "d": true,
+        "g": "0e692d4a74821e66",
+        "name": "",
+        "outputField": "payload",
+        "timeZone": "",
+        "persistDynamic": false,
+        "commandResponseMsgOutput": "output1",
+        "outputs": 1,
+        "options": [
+            {
+                "name": "schedule1",
+                "topic": "topic1",
+                "payloadType": "default",
+                "payload": "",
+                "expressionType": "cron",
+                "expression": "*/5 * * * * * *",
+                "location": "",
+                "offset": "0",
+                "solarType": "all",
+                "solarEvents": "sunrise,sunset"
+            }
+        ],
+        "x": 140,
+        "y": 80,
+        "wires": [
+            [
+                "96f364787e60621d"
+            ]
+        ]
+    },
+    {
+        "id": "850008dec9093eba",
+        "type": "function",
+        "z": "75e462c5653d17e1",
+        "g": "0e692d4a74821e66",
+        "name": "delete docs",
+        "func": "const couchdb = global.get('couchdb');\n\ncouchdb.view('smart-timeseries', 'vehicle-tracker', 'by-timestamp-vin').then(res => {\n    let data = res.data.rows.map(x => {\n        let { _id, _rev } = x.value;\n        return { _id, _rev, deleted: true }\n    });\n    couchdb.bulk('smart-timeseries', data).then(res => node.warn(res),\n        (err) => node.error(err));\n}, (err) => node.error(err));",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 140,
+        "wires": [
+            []
+        ]
     }
 ]
