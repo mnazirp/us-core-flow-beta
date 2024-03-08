@@ -1395,9 +1395,7 @@
             "850008dec9093eba"
         ],
         "x": 34,
-        "y": 39,
-        "w": 512,
-        "h": 142
+        "y": 39
     },
     {
         "id": "784d89e62dfb5070",
@@ -25213,6 +25211,172 @@
         "x": 430,
         "y": 340,
         "wires": []
+    },
+    {
+        "id": "f23db2d9e869aa26",
+        "type": "inject",
+        "z": "8a2099e398e5d7dd",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 820,
+        "y": 180,
+        "wires": [
+            [
+                "74dc0d56de796b31"
+            ]
+        ]
+    },
+    {
+        "id": "d5eb8f4941922f85",
+        "type": "function",
+        "z": "8a2099e398e5d7dd",
+        "name": "transactions",
+        "func": "const couchdb = global.get('couchdb');\n\ncouchdb.view('transactions', 'filter', 'by-harvester', {\n    key: \"SMSE-99022\"\n}).then(res => {\n    let data = res.data.rows.map(x => x.value)\n    node.warn(data.length);\n}, err => node.error(err))\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1030,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "85af61f2e2576352",
+        "type": "function",
+        "z": "8a2099e398e5d7dd",
+        "name": "redisTS",
+        "func": "const redisTS = global.get('redisTS');\n\n// redisTS.commands([\n//     ['TS.MRANGE', '-', '+', 'FILTER', 'type=worker-tracker', 'topic=event']\n// ]).then(res => {\n//     let event = res.data[0].map(x => [x[0].split(':')[1], x[2]]);\n//     let mapEvent = new Map(event.map(([device, series]) => [device, series]));\n//     node.warn(mapEvent.get('wt0005').filter(x => Number(x[1]) > 1));\n// })\n\nredisTS.commands([\n    ['TS.MRANGE', '1705424400000', '1705510799999', 'FILTER', 'deviceID=wt0027', 'topic=event']\n]).then(res => {\n    let event = res.data[0].map(x => [x[0].split(':')[1], x[2]]);\n    let mapEvent = new Map(event.map(([device, series]) => [device, series]));\n    node.warn(mapEvent.get('wt0027').map(x => Number(x[1])).reduce((acc, num) => {\n        return acc + num\n    }));\n})\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "74dc0d56de796b31",
+        "type": "function",
+        "z": "8a2099e398e5d7dd",
+        "name": "temp02",
+        "func": "const couchdb = global.get('couchdb');\n\n// couchdb.list('temp').then(res => {\n//     let docs = res.data.rows.map(x => x.doc);\n//     let rs = [];\n//     docs.forEach(doc => {\n//         if (doc.payload.geofencing) rs.push(...doc.payload.geofencing)\n//     });\n//     node.warn(rs);\n// }, err => node.error(err))\n\n// couchdb.view('temp02', 'list', 'event-by-nik-tree', {\n//     key: [\"SMSE-99001\", \"ec82a4c118a0bc418298a4bf0b2a43e8\"]\n// }).then((res) => {\n//     let docs = res.data.rows;\n//     node.warn(docs.filter(x => Number(x.value) > 1));\n// }, err => node.error(err));\n\n// couchdb.view('temp02', 'list', 'by-nik-block', {\n//     key: [\"SMSE-99022\", \"D-57\"]\n// }).then((res) => {\n//     let docs = res.data.rows.map(x => x.value);\n//     node.warn(docs);\n// }, err => node.error(err));\n\ncouchdb.view('temp02', 'list', 'by-nik', {\n    key: \"SMSE-99022\"\n}).then((res) => {\n    let docs = res.data.rows.map(x => x.value);\n    node.warn(docs.filter(x => Number(x.event) > 0));\n}, err => node.error(err));\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8e7fc7ac1b9429f8",
+        "type": "function",
+        "z": "8a2099e398e5d7dd",
+        "name": "smart-timeseries",
+        "func": "const couchdb = global.get('couchdb');\n\ncouchdb.view('smart-timeseries', 'worker-tracker', 'by-date-imei', {\n    key: [\"2024-01-17\", \"350317171475407\"]\n}).then(res => {\n    let data = res.data.rows.map(x => x.value)\n    node.warn(data.filter(x => x.eventtype == \"alarm\").length);\n}, err => node.error(err))\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1040,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8380057a8d298c27",
+        "type": "function",
+        "z": "8a2099e398e5d7dd",
+        "name": "smart-bucket",
+        "func": "const couchdb = global.get('couchdb');\n\ncouchdb.view('smart-bucket', 'set-manual', 'worker-tracker', {\n    key: [\"17012024\"],\n    limit: 1\n}).then(res => {\n    let _id = res.data?.rows[0]?.value;\n    if (_id) {\n        couchdb.openByID('smart-bucket', _id).then(res => {\n            let utc8 = res.data.payload;\n            let data = csvBufferToJson(utc8);\n            node.warn(data.filter(x => x.imei == \"350317171475407\" && x.eventtype == \"alarm\").length);\n        })\n    }\n});\nreturn msg;\n\n\nfunction csvBufferToJson(csvBuffer) {\n    // Convert the CSV buffer to a string\n    const csvString = csvBuffer.toString('utf8');\n\n    // Split the CSV string into lines\n    const lines = csvString.split('\\n');\n\n    // Extract header (assuming the first line is the header)\n    const headers = lines[0].trim().split(',');\n\n    // Initialize an array to store the JSON objects\n    const jsonArray = [];\n\n    // Iterate over each line (starting from the second line) to create JSON objects\n    for (let i = 1; i < lines.length; i++) {\n        const values = lines[i].trim().split(',');\n        const jsonObject = {};\n\n        // Populate the JSON object with key-value pairs\n        for (let j = 0; j < headers.length; j++) {\n            jsonObject[headers[j].replace(/\"/g, '')] = (values[j]) ? values[j].replace(/\"/g, '') : \"\";\n        }\n\n        // Add the JSON object to the array\n        jsonArray.push(jsonObject);\n    }\n\n    return jsonArray;\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1030,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4c8cf52361dd7470",
+        "type": "inject",
+        "z": "8a2099e398e5d7dd",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 800,
+        "y": 420,
+        "wires": [
+            [
+                "3153decd1fda954f"
+            ]
+        ]
+    },
+    {
+        "id": "3153decd1fda954f",
+        "type": "function",
+        "z": "8a2099e398e5d7dd",
+        "name": "geometry tree",
+        "func": "const couchdb = global.get('couchdb');\nconst turf = global.get('turf');\n\n// couchdb.view('smart-geojson', 'tree', 'geometry', {\n//     limit: 1000\n// }).then((res) => {\n//     let trees = res.data.rows.map(x => turf.getCoord(x.value));\n//     let circles = trees.map(t => {\n//         return turf.circle(t, 4, {units: 'meters', steps: 18})\n//     });\n//     node.warn(circles);\n// }, err => node.error(err));\n\ncouchdb.view('smart-geojson', 'tree', 'geo-by-block', {\n    key: [\"PSM 2\", \"SMSE\", \"DIVISI 1\", \"D-59\"]\n}).then((res) => {\n    try {\n        let trees = {\n            type: \"FeatureCollection\",\n            features: res.data.rows.map(x => {\n                let { properties } = x.value;\n                let circle = turf.circle(turf.getCoord(x.value), 4, {units: 'meters', steps: 18})\n                circle.properties = properties;\n                return circle;\n            })\n        }\n\n        node.warn(trees);\n    } catch (err) {\n        node.error(err)\n    }\n}, err => node.error(err));\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 420,
+        "wires": [
+            []
+        ]
     },
     {
         "id": "fed2379fa8448675",
