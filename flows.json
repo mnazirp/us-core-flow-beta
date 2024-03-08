@@ -1389,7 +1389,9 @@
             "850008dec9093eba"
         ],
         "x": 34,
-        "y": 39
+        "y": 39,
+        "w": 512,
+        "h": 142
     },
     {
         "id": "784d89e62dfb5070",
@@ -21180,6 +21182,154 @@
         ]
     },
     {
+        "id": "69d85fde8e99d92e",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "name": "",
+        "statusCode": "500",
+        "headers": {},
+        "x": 1040,
+        "y": 3860,
+        "wires": []
+    },
+    {
+        "id": "1de2c16ef0eebac1",
+        "type": "change",
+        "z": "d13820078197e616",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "query failed",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 860,
+        "y": 3860,
+        "wires": [
+            [
+                "69d85fde8e99d92e"
+            ]
+        ]
+    },
+    {
+        "id": "cbfac4fe8e40c9a5",
+        "type": "switch",
+        "z": "d13820078197e616",
+        "name": "",
+        "property": "sub.rows",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nnull"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 690,
+        "y": 3820,
+        "wires": [
+            [
+                "625f88ad8335806c"
+            ],
+            [
+                "1de2c16ef0eebac1"
+            ]
+        ]
+    },
+    {
+        "id": "383b6f142e3d4a8a",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "name": "",
+        "x": 480,
+        "y": 3780,
+        "wires": [
+            [
+                "cbfac4fe8e40c9a5"
+            ]
+        ]
+    },
+    {
+        "id": "625f88ad8335806c",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "function 133",
+        "func": "let { vin } = msg.params;\nlet rows = msg.sub.rows.map(x => JSON.parse(x.value.payload));\nmsg.payload = [].concat(...rows).filter((x) => x.vin == vin);\n// msg.payload = rows.map((x) => );\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 870,
+        "y": 3780,
+        "wires": [
+            [
+                "bcd5f68f5f9ccffb"
+            ]
+        ]
+    },
+    {
+        "id": "720ce5917b2d01ec",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "smart-bucket hino position",
+        "func": "let { date,vin } = msg.payload;\nmsg.params = {\n    date,\n    vin\n}\nmsg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'hino',\n    key: [date]\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 3740,
+        "wires": [
+            [
+                "383b6f142e3d4a8a"
+            ]
+        ]
+    },
+    {
+        "id": "bcd5f68f5f9ccffb",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 1040,
+        "y": 3780,
+        "wires": []
+    },
+    {
+        "id": "4802a53f774bab0a",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "name": "",
+        "url": "/api/tracking/position-couchdb/by-date",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 3700,
+        "wires": [
+            [
+                "720ce5917b2d01ec"
+            ]
+        ]
+    },
+    {
         "id": "bc39f3d827ecdc09",
         "type": "function",
         "z": "a40781dc17a39203",
@@ -25639,103 +25789,6 @@
         "y": 140,
         "wires": [
             []
-        ]
-    },
-    {
-        "id": "2802433caeafb3bf",
-        "type": "inject",
-        "z": "75e462c5653d17e1",
-        "name": "import smart bucket to timeseries by date",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "{\"date\":\"2024-02-24\"}",
-        "payloadType": "json",
-        "x": 240,
-        "y": 220,
-        "wires": [
-            [
-                "e1a1fcbb39df1a5d"
-            ]
-        ]
-    },
-    {
-        "id": "e1a1fcbb39df1a5d",
-        "type": "function",
-        "z": "75e462c5653d17e1",
-        "name": "create vm couchdb-timeseries",
-        "func": "const couchdb = global.get('couchdb');\n\ncouchdb.view('smart-bucket', 'position', 'hino', {\n    key: [msg.payload.date]\n}).then(res => {\nlet buckets = res.data.rows.map((x) => x.value);\n        buckets.forEach((bucket) => {\n            setTimeout(() => {\n                node.send({\n                payload: bucket\n            });\n            } , 2000)\n        })   \n});",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 550,
-        "y": 220,
-        "wires": [
-            [
-                "023a7fb2fef384d4"
-            ]
-        ]
-    },
-    {
-        "id": "023a7fb2fef384d4",
-        "type": "amqp out",
-        "z": "75e462c5653d17e1",
-        "name": "",
-        "routingkey": "",
-        "iotype": "4",
-        "ioname": "vehicle.smartbucket.to.smarttimeseries",
-        "server": "e907ba5364e5896f",
-        "x": 860,
-        "y": 260,
-        "wires": []
-    },
-    {
-        "id": "e81850cffcb7d4c2",
-        "type": "function",
-        "z": "75e462c5653d17e1",
-        "name": "create vm couchdb-timeseries",
-        "func": "const couchdb = global.get('couchdb');\nlet { _id, payload, createdAt } = msg.payload;\ncouchdb.view('smart-logs', 'cronjob', 'by-topic-tag', {\n    key: ['vehicle-monitoring', 'smartbucket.to.smarttimeseries']\n}).then(res => {\n    let rows = res.data.rows;\n\n    if (rows.length == 0 || rows.some(r => r.value.log.source.docID != _id)) {\n        let doc = {\n            type: 'cronjob',\n            topic: 'vehicle-monitoring',\n            tag: 'smartbucket.to.smarttimeseries',\n            log: {\n                cron: msg.payload,\n                source: {\n                    database: 'smart-bucket',\n                    docID: _id\n                }\n            }\n        }\n        couchdb.insert('smart-logs', doc).then(() => { }, err => node.error(err));\n        let newDocs = JSON.parse(payload).map(x => {\n            return {\n                timestamp: new Date(x.printed_timezone).getTime(),\n                topic: 'vm-tracking',\n                source: {\n                    from: 'smart-bucket',\n                    docID: _id\n                },\n                ...x,\n                createdAt: new Date(),\n                createdBy: 'system'\n            }\n        });\n        couchdb.view('smart-timeseries', 'vehicle-tracker', 'by-timestamp-vin').then(res => {\n            let oldDocs = res.data.rows.map(x => {\n                let { _id, _rev, timestamp, vin } = x.value;\n                return { _id, _rev, timestamp, vin }\n            });\n            newDocs = newDocs.map(doc => {\n                let exist = oldDocs\n                    .find(x => x.timestamp == doc.timestamp && x.vin == doc.vin);\n                if (exist) {\n                    let { _id, _rev } = exist;\n                    doc = {\n                        _id, _rev, ...doc,\n                        updatedAt: new Date(),\n                        updatedBy: 'system'\n                    }\n                }\n                return doc\n            });\n            couchdb.bulk('smart-timeseries', newDocs).then(res => {\n                node.warn(res.data);\n            }, err => node.error(err));\n        }, (err) => node.error(err));\n    } else {\n        node.warn(\"already\");\n    }\n}, err => node.error(err));\n    // node.send({\n    //     payload: JSON.parse(bucket.payload)\n    // });",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 550,
-        "y": 360,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "84d7bc14fb16177f",
-        "type": "amqp in",
-        "z": "75e462c5653d17e1",
-        "name": "",
-        "topic": "",
-        "iotype": "4",
-        "ioname": "vehicle.smartbucket.to.smarttimeseries",
-        "server": "70620c4aa929b5d8",
-        "x": 240,
-        "y": 320,
-        "wires": [
-            [
-                "e81850cffcb7d4c2"
-            ]
         ]
     }
 ]
