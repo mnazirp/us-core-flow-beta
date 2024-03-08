@@ -1441,6 +1441,43 @@
         "optionsType": "env"
     },
     {
+        "id": "70620c4aa929b5d8",
+        "type": "amqp-server",
+        "host": "${BROKER_DOMAIN}",
+        "port": "${BROKER_PORT}",
+        "vhost": "",
+        "keepalive": "30",
+        "usetls": false,
+        "verifyservercert": true,
+        "useca": false,
+        "ca": "",
+        "usetopology": false,
+        "topology": "{\n\t\"exchanges\": [\n\t\t{\"name\": \"exchange1\", \"type\": \"direct\", \"options\": {\"durable\": false}},\n\t\t{\"name\": \"exchange2\"}\n\t],\n\t\"queues\": [\n\t\t{\"name\": \"queue1\", \"options\": {\"messageTtl\": 60000}},\n\t\t{\"name\": \"queue2\"}\n\t],\n\t\"bindings\": [\n\t\t{\"source\": \"exchange1\", \"queue\": \"queue1\", \"pattern\": \"debug\", \"args\": {}},\n\t\t{\"source\": \"exchange1\", \"exchange\": \"exchange2\", \"pattern\": \"error\"},\n\t\t{\"source\": \"exchange2\", \"queue\": \"queue2\"}\n\t]\n}",
+        "prefetch": false,
+        "prefetchvalue": "1",
+        "prefetchack": false,
+        "prefetchvalueack": "10"
+    },
+    {
+        "id": "60b254c433dfc6f4",
+        "type": "amqp-server",
+        "z": "75e462c5653d17e1",
+        "host": "${BROKER_DOMAIN}",
+        "port": "${BROKER_PORT}",
+        "vhost": "",
+        "keepalive": "30",
+        "usetls": false,
+        "verifyservercert": true,
+        "useca": false,
+        "ca": "",
+        "usetopology": false,
+        "topology": "{\n\t\"exchanges\": [\n\t\t{\"name\": \"exchange1\", \"type\": \"direct\", \"options\": {\"durable\": false}},\n\t\t{\"name\": \"exchange2\"}\n\t],\n\t\"queues\": [\n\t\t{\"name\": \"queue1\", \"options\": {\"messageTtl\": 60000}},\n\t\t{\"name\": \"queue2\"}\n\t],\n\t\"bindings\": [\n\t\t{\"source\": \"exchange1\", \"queue\": \"queue1\", \"pattern\": \"debug\", \"args\": {}},\n\t\t{\"source\": \"exchange1\", \"exchange\": \"exchange2\", \"pattern\": \"error\"},\n\t\t{\"source\": \"exchange2\", \"queue\": \"queue2\"}\n\t]\n}",
+        "prefetch": true,
+        "prefetchvalue": "1",
+        "prefetchack": true,
+        "prefetchvalueack": "30000"
+    },
+    {
         "id": "156f4bd7081013b2",
         "type": "function",
         "z": "77002254b872fa8e",
@@ -20854,6 +20891,222 @@
         ]
     },
     {
+        "id": "593e691d54ede0d6",
+        "type": "inject",
+        "z": "d13820078197e616",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"unittransport\":[5017,5018],\"numDays\":7}",
+        "payloadType": "json",
+        "x": 190,
+        "y": 3140,
+        "wires": [
+            [
+                "05a70a10a02a8b9c"
+            ]
+        ]
+    },
+    {
+        "id": "8c6883bcc23538a4",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "function 132",
+        "func": "let { numDays } = msg.ori;\nlet { startDate, endDate } = msg.lastDate;\nconst couchdb = global.get('couchdb');\nlet filterKeys = [];\nlet vinAsset = msg.vinAsset;\n\ngetDates(startDate,endDate).forEach((x) => {\n    vinAsset.forEach((vin) => {\n        filterKeys.push([x,vin]);\n    })\n})\n\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date-vin',{\nkeys: filterKeys \n}).then((x) => {\n    let rows = x.data.rows.map((r) => r.value);\n    let payload = [];\n    msg.vinAsset.forEach((m) => {\n        let row = {\n            vin : m,\n            series : []\n        }\n        let keys = ['altitude',\n         'createdDatetime', \n            'engineHours', 'heading', 'latitude', 'longitude', 'odometer', 'positionDatetime', 'speed', 'vehicleStatus', 'province_name','printed_timezone'];\n        \n        let filterByVin = rows.filter((tracking) => tracking.vin === m);\n        keys.forEach((key) => {\n            let value = {\n                key,\n                data : filterByVin.map((p0) => [p0.timestamp,p0[key.toLocaleLowerCase()]])\n            }\n            row.series.push(value);\n        })\n        \n        payload.push(row);  \n    })\n    msg.payload = payload;\n    node.send(msg);\n})\nreturn null;\n\n\nfunction getDates(start, end) {\n  const dates = [];\n  \n  let endDate = new Date(end);\n  let startDate = new Date(start);\n\n  while (endDate <= startDate) {\n\n    const year = endDate.getFullYear();\n    const month = String(endDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based\n    const day = String(endDate.getDate()).padStart(2, '0');\n    dates.push(`${year}-${month}-${day}`);\n    endDate.setDate(endDate.getDate() + 1);\n  }\n\n  return dates;\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 750,
+        "y": 3320,
+        "wires": [
+            [
+                "8111cf95efee4056",
+                "b2d669a706222f4e"
+            ]
+        ]
+    },
+    {
+        "id": "8111cf95efee4056",
+        "type": "debug",
+        "z": "d13820078197e616",
+        "name": "debug 222",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 930,
+        "y": 3320,
+        "wires": []
+    },
+    {
+        "id": "05a70a10a02a8b9c",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "get vin by unit-transport",
+        "func": "msg.ori = msg.payload;\nlet { unittransport } = msg.ori;\nmsg.sub = {\n    database: 'smart-asset',\n    design: 'truck',\n    view: 'by-unitID',\n    keys: unittransport.map(x => `[${x}]`),\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 530,
+        "y": 3140,
+        "wires": [
+            [
+                "52f87f20a381ac1f"
+            ]
+        ]
+    },
+    {
+        "id": "52f87f20a381ac1f",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "name": "",
+        "x": 540,
+        "y": 3200,
+        "wires": [
+            [
+                "032b974f7875d18c"
+            ]
+        ]
+    },
+    {
+        "id": "032b974f7875d18c",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "msg.vinAsset",
+        "func": "msg.vinAsset = msg.sub.rows.filter(x => x.value != \"\").map(x => x.value.vin);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 3260,
+        "wires": [
+            [
+                "abd06dbfb1225e56"
+            ]
+        ]
+    },
+    {
+        "id": "5ef2da835fe7b568",
+        "type": "inject",
+        "z": "d13820078197e616",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 580,
+        "y": 3380,
+        "wires": [
+            [
+                "8c6883bcc23538a4"
+            ]
+        ]
+    },
+    {
+        "id": "abd06dbfb1225e56",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "get last date of vin tracking",
+        "func": "let { numDays } = msg.ori;\nconst couchdb = global.get('couchdb');\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date-vin',{\n    limit: 1,\n    descending : true\n}).then((x) => {\n\n    // ** if using timestamp\n\n    // const timestamp = x.data.rows.map((r) => r.value.timestamp)[0];\n    // const sevenDaysInMilliseconds = 7 * 24 * 60 * 60 * 1000;\n    // const newTimestamp = timestamp + sevenDaysInMilliseconds;\n\n    //** if using printedTimezone */\n    let startDate = x.data.rows.map((r) => r.value.printed_timezone)[0].split(' ')[0];\n    let newLastDate = new Date(startDate);\n    newLastDate.setDate(newLastDate.getDate() - numDays);\n\n    const year = newLastDate.getFullYear();\n    const month = String(newLastDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based\n    const day = String(newLastDate.getDate()).padStart(2, '0');\n\n    let endDate = `${year}-${month}-${day}`;\n    msg.lastDate = {\n        startDate : startDate,\n        endDate : endDate\n    }\n    node.send(msg);\n})\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 3320,
+        "wires": [
+            [
+                "8c6883bcc23538a4"
+            ]
+        ]
+    },
+    {
+        "id": "eb9842e0adbc1c62",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "name": "",
+        "url": "/api/test/tracking",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 140,
+        "y": 3100,
+        "wires": [
+            [
+                "222ef59e6e76b1fc"
+            ]
+        ]
+    },
+    {
+        "id": "b2d669a706222f4e",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 920,
+        "y": 3280,
+        "wires": []
+    },
+    {
+        "id": "222ef59e6e76b1fc",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "validated",
+        "func": "let valid = false;\nlet { unittransport, numDays, allUnit } = msg.payload;\nif (\n    numDays\n    && typeof numDays == 'number'\n) {\n    if (unittransport\n        && allUnit == undefined\n        && Array.isArray(unittransport)\n        && unittransport.length > 0) {\n        msg.ori = msg.payload;\n        msg.redisKey = `cache:tracking:${unittransport.join(';')}`\n        valid = true;\n    }\n\n    if (\n        allUnit != undefined\n        && unittransport == undefined\n        && typeof allUnit == 'boolean'\n    ) {\n        msg.ori = msg.payload;\n        msg.redisKey = `cache:tracking:all-unit`\n        valid = true;\n    }\n}\nmsg.valid = valid;\nif (!valid) {\n    msg.payload = \"parameter is not valid\"\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 3100,
+        "wires": [
+            [
+                "05a70a10a02a8b9c"
+            ]
+        ]
+    },
+    {
         "id": "bc39f3d827ecdc09",
         "type": "function",
         "z": "a40781dc17a39203",
@@ -25314,6 +25567,103 @@
         "y": 140,
         "wires": [
             []
+        ]
+    },
+    {
+        "id": "2802433caeafb3bf",
+        "type": "inject",
+        "z": "75e462c5653d17e1",
+        "name": "import smart bucket to timeseries by date",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"date\":\"2024-02-24\"}",
+        "payloadType": "json",
+        "x": 240,
+        "y": 220,
+        "wires": [
+            [
+                "e1a1fcbb39df1a5d"
+            ]
+        ]
+    },
+    {
+        "id": "e1a1fcbb39df1a5d",
+        "type": "function",
+        "z": "75e462c5653d17e1",
+        "name": "create vm couchdb-timeseries",
+        "func": "const couchdb = global.get('couchdb');\n\ncouchdb.view('smart-bucket', 'position', 'hino', {\n    key: [msg.payload.date]\n}).then(res => {\nlet buckets = res.data.rows.map((x) => x.value);\n        buckets.forEach((bucket) => {\n            setTimeout(() => {\n                node.send({\n                payload: bucket\n            });\n            } , 2000)\n        })   \n});",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 550,
+        "y": 220,
+        "wires": [
+            [
+                "023a7fb2fef384d4"
+            ]
+        ]
+    },
+    {
+        "id": "023a7fb2fef384d4",
+        "type": "amqp out",
+        "z": "75e462c5653d17e1",
+        "name": "",
+        "routingkey": "",
+        "iotype": "4",
+        "ioname": "vehicle.smartbucket.to.smarttimeseries",
+        "server": "e907ba5364e5896f",
+        "x": 860,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "e81850cffcb7d4c2",
+        "type": "function",
+        "z": "75e462c5653d17e1",
+        "name": "create vm couchdb-timeseries",
+        "func": "const couchdb = global.get('couchdb');\nlet { _id, payload, createdAt } = msg.payload;\ncouchdb.view('smart-logs', 'cronjob', 'by-topic-tag', {\n    key: ['vehicle-monitoring', 'smartbucket.to.smarttimeseries']\n}).then(res => {\n    let rows = res.data.rows;\n\n    if (rows.length == 0 || rows.some(r => r.value.log.source.docID != _id)) {\n        let doc = {\n            type: 'cronjob',\n            topic: 'vehicle-monitoring',\n            tag: 'smartbucket.to.smarttimeseries',\n            log: {\n                cron: msg.payload,\n                source: {\n                    database: 'smart-bucket',\n                    docID: _id\n                }\n            }\n        }\n        couchdb.insert('smart-logs', doc).then(() => { }, err => node.error(err));\n        let newDocs = JSON.parse(payload).map(x => {\n            return {\n                timestamp: new Date(x.printed_timezone).getTime(),\n                topic: 'vm-tracking',\n                source: {\n                    from: 'smart-bucket',\n                    docID: _id\n                },\n                ...x,\n                createdAt: new Date(),\n                createdBy: 'system'\n            }\n        });\n        couchdb.view('smart-timeseries', 'vehicle-tracker', 'by-timestamp-vin').then(res => {\n            let oldDocs = res.data.rows.map(x => {\n                let { _id, _rev, timestamp, vin } = x.value;\n                return { _id, _rev, timestamp, vin }\n            });\n            newDocs = newDocs.map(doc => {\n                let exist = oldDocs\n                    .find(x => x.timestamp == doc.timestamp && x.vin == doc.vin);\n                if (exist) {\n                    let { _id, _rev } = exist;\n                    doc = {\n                        _id, _rev, ...doc,\n                        updatedAt: new Date(),\n                        updatedBy: 'system'\n                    }\n                }\n                return doc\n            });\n            couchdb.bulk('smart-timeseries', newDocs).then(res => {\n                node.warn(res.data);\n            }, err => node.error(err));\n        }, (err) => node.error(err));\n    } else {\n        node.warn(\"already\");\n    }\n}, err => node.error(err));\n    // node.send({\n    //     payload: JSON.parse(bucket.payload)\n    // });",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 550,
+        "y": 360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "84d7bc14fb16177f",
+        "type": "amqp in",
+        "z": "75e462c5653d17e1",
+        "name": "",
+        "topic": "",
+        "iotype": "4",
+        "ioname": "vehicle.smartbucket.to.smarttimeseries",
+        "server": "70620c4aa929b5d8",
+        "x": 240,
+        "y": 320,
+        "wires": [
+            [
+                "e81850cffcb7d4c2"
+            ]
         ]
     }
 ]
