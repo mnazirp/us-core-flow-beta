@@ -1389,9 +1389,7 @@
             "850008dec9093eba"
         ],
         "x": 34,
-        "y": 39,
-        "w": 512,
-        "h": 142
+        "y": 39
     },
     {
         "id": "784d89e62dfb5070",
@@ -21097,6 +21095,87 @@
         "wires": [
             [
                 "05a70a10a02a8b9c"
+            ]
+        ]
+    },
+    {
+        "id": "afa03ddb2e32c516",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 790,
+        "y": 3580,
+        "wires": []
+    },
+    {
+        "id": "293558a6d0954b57",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "function 132",
+        "func": "try {\n    let raw = msg.sub.rows[0].value.payload;\n    let createdAt = msg.sub.rows[0].value.createdAt;\n    let data = JSON.parse(raw);\n    msg.payload = data.map((x) => {\n        // let { vin, vehiclestatus, longitude, latitude, province_name, speed, printed_timezone } = x;\n        return x;\n    })\n    msg.statusCode = 200;\n    node.send(msg);\n} catch (err) {\n    msg.statusCode = 500;\n    msg.payload = {\n        error: err\n    }\n    node.send(msg);\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 3580,
+        "wires": [
+            [
+                "afa03ddb2e32c516"
+            ]
+        ]
+    },
+    {
+        "id": "c99943c51f9d24e0",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "name": "",
+        "x": 540,
+        "y": 3540,
+        "wires": [
+            [
+                "293558a6d0954b57"
+            ]
+        ]
+    },
+    {
+        "id": "71469376ae9e509d",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "by-cron-timestamp",
+        "func": "msg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'by-cron-timestamp',\n    limit: 1,\n    descending: true\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 530,
+        "y": 3500,
+        "wires": [
+            [
+                "c99943c51f9d24e0"
+            ]
+        ]
+    },
+    {
+        "id": "6c2dd5a06824f4de",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "name": "",
+        "url": "/api/tracking/last-position-couchdb/all",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 3500,
+        "wires": [
+            [
+                "71469376ae9e509d"
             ]
         ]
     },
