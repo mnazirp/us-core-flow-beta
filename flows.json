@@ -1389,9 +1389,7 @@
             "850008dec9093eba"
         ],
         "x": 34,
-        "y": 39,
-        "w": 512,
-        "h": 142
+        "y": 39
     },
     {
         "id": "784d89e62dfb5070",
@@ -21294,7 +21292,7 @@
         ]
     },
     {
-        "id": "ca2a2b46.c3b33",
+        "id": "dbfd61be817af48e",
         "type": "http response",
         "z": "d13820078197e616",
         "name": "Download",
@@ -21303,12 +21301,12 @@
             "Content-Disposition": "attachment; filename=\"data.json\"",
             "Content-Type": "application/json"
         },
-        "x": 640,
-        "y": 4020,
+        "x": 1000,
+        "y": 4220,
         "wires": []
     },
     {
-        "id": "70e76daa.943088",
+        "id": "8c80e8afa89f4706",
         "type": "file",
         "z": "d13820078197e616",
         "name": "",
@@ -21318,50 +21316,171 @@
         "createDir": true,
         "overwriteFile": "true",
         "encoding": "none",
-        "x": 460,
-        "y": 4020,
+        "x": 860,
+        "y": 4220,
         "wires": [
             [
-                "ca2a2b46.c3b33"
+                "dbfd61be817af48e"
             ]
         ]
     },
     {
-        "id": "ef5b12f2.67863",
+        "id": "2a0b89d2d52396f2",
         "type": "function",
         "z": "d13820078197e616",
         "name": "Generate JSON",
-        "func": "//get data from smart-bucket \nconst couchdb = global.get('couchdb');\ncouchdb.view('smart-bucket','position','hino', {\n    key: [\"2024-02-25\"]\n}).then((res) => {\n    let jsonData = res.data.rows;\n    // Generate JSON data\n// let jsonData = {\n//     name: 'John Doe',\n//     age: 30,\n//     city: 'New York'\n// };\n\n// Convert JSON data to string\nlet jsonString = JSON.stringify(jsonData, null, 2);\n\n// Specify file name\nlet fileName = 'data.json';\n\n// Write JSON data to file\nmsg.payload = jsonString;\nmsg.filename = fileName;\nnode.send(msg);\nreturn null;\n})\n",
+        "func": "let data = msg.payload;\nlet jsonData = data.rows.map((x) => x.value).map((k) => {\n    let { _rev,_id, ...other } = k;\n    return other;\n})\n\n// Convert JSON data to string\nlet jsonString = JSON.stringify(jsonData, null, 2);\n\n// Specify file name\nlet fileName = 'data.json';\n\n// Write JSON data to file\nmsg.payload = jsonString;\nmsg.filename = fileName;\nnode.send(msg);\nreturn null;\n",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 270,
-        "y": 4020,
+        "x": 680,
+        "y": 4220,
         "wires": [
             [
-                "70e76daa.943088"
+                "8c80e8afa89f4706"
             ]
         ]
     },
     {
-        "id": "88f583d2.9613c",
+        "id": "7edbe7b49e150765",
         "type": "http in",
         "z": "d13820078197e616",
         "name": "Trigger",
-        "url": "/download-json",
+        "url": "/api/tracking/download-smart-bucket",
         "method": "get",
         "upload": false,
         "swaggerDoc": "",
-        "x": 100,
-        "y": 4020,
+        "x": 110,
+        "y": 4120,
         "wires": [
             [
-                "ef5b12f2.67863"
+                "3301d0eff2f287ac"
             ]
         ]
+    },
+    {
+        "id": "3301d0eff2f287ac",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "by-cron-timestamp",
+        "func": "let { date } = msg.payload;\nmsg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'hino',\n    key: [date]\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 4120,
+        "wires": [
+            [
+                "7455f8aef9b90243"
+            ]
+        ]
+    },
+    {
+        "id": "7455f8aef9b90243",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "name": "",
+        "x": 300,
+        "y": 4160,
+        "wires": [
+            [
+                "e697159bd0cd8e63"
+            ]
+        ]
+    },
+    {
+        "id": "e697159bd0cd8e63",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "function 140",
+        "func": "msg.payload = msg.sub;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 4220,
+        "wires": [
+            [
+                "2a0b89d2d52396f2"
+            ]
+        ]
+    },
+    {
+        "id": "6cc767b9b61d2544",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "function 141",
+        "func": "let { docID } = msg.payload;\nconst couchdb = global.get('couchdb');\ncouchdb.openByID('smart-bucket',docID).then((x) => {\n    msg.payload = {\n        bucket : x.data\n    };\n    node.send(msg);\n})\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 230,
+        "y": 4340,
+        "wires": [
+            [
+                "073a6d5eb5890303"
+            ]
+        ]
+    },
+    {
+        "id": "073a6d5eb5890303",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "create vm couchdb-timeseries",
+        "func": "let { bucket } = msg.payload;\nconst couchdb = global.get('couchdb');\n\nlet { _id, payload, createdAt } = bucket;\ncouchdb.view('smart-logs', 'cronjob', 'by-topic-tag', {\n    key: ['vehicle-monitoring', 'smartbucket.to.smarttimeseries']\n}).then(res => {\n    let rows = res.data.rows;\n    node.warn(_id);\n    let filterId = rows.filter((r) => r.value.log.source.docID === _id);\n    if (filterId.length == 0 && rows.some(r => r.value.log.source.docID !== _id)) {\n        let doc = {\n            type: 'cronjob',\n            topic: 'vehicle-monitoring',\n            tag: 'smartbucket.to.smarttimeseries',\n            log: {\n                cron: msg.payload,\n                source: {\n                    database: 'smart-bucket',\n                    docID: _id\n                }\n            }\n        }\n        couchdb.insert('smart-logs', doc).then(() => { }, err => node.error(err));\n        let newDocs = JSON.parse(payload).map(x => {\n            return {\n                timestamp: new Date(x.printed_timezone).getTime(),\n                topic: 'vm-tracking',\n                source: {\n                    from: 'smart-bucket',\n                    docID: _id\n                },\n                ...x,\n                createdAt: new Date(),\n                createdBy: 'system'\n            }\n        });\n        couchdb.view('smart-timeseries', 'vehicle-tracker', 'by-timestamp-vin').then(res => {\n            let oldDocs = res.data.rows.map(x => {\n                let { _id, _rev, timestamp, vin } = x.value;\n                return { _id, _rev, timestamp, vin }\n            });\n            newDocs = newDocs.map(doc => {\n                let exist = oldDocs\n                    .find(x => x.timestamp == doc.timestamp && x.vin == doc.vin);\n                if (exist) {\n                    let { _id, _rev } = exist;\n                    doc = {\n                        _id, _rev, ...doc,\n                        updatedAt: new Date(),\n                        updatedBy: 'system'\n                    }\n                }\n                return doc\n            });\n            couchdb.bulk('smart-timeseries', newDocs).then(res => {\n                node.warn(res.data);\n            }, err => node.error(err));\n        }, (err) => node.error(err));\n    } else {\n        node.warn(\"already\");\n    }\n}, err => node.error(err));;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 4340,
+        "wires": [
+            [
+                "fd33707df09a6fe3"
+            ]
+        ]
+    },
+    {
+        "id": "b127f669d4a7abde",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "name": "",
+        "url": "/api/tracking/import/bucket",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 4280,
+        "wires": [
+            [
+                "6cc767b9b61d2544"
+            ]
+        ]
+    },
+    {
+        "id": "fd33707df09a6fe3",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 670,
+        "y": 4400,
+        "wires": []
     },
     {
         "id": "bc39f3d827ecdc09",
