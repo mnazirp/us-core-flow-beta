@@ -1389,7 +1389,9 @@
             "850008dec9093eba"
         ],
         "x": 34,
-        "y": 39
+        "y": 39,
+        "w": 512,
+        "h": 142
     },
     {
         "id": "784d89e62dfb5070",
@@ -21348,6 +21350,7 @@
         "id": "7edbe7b49e150765",
         "type": "http in",
         "z": "d13820078197e616",
+        "d": true,
         "name": "Trigger",
         "url": "/api/tracking/download-smart-bucket",
         "method": "get",
@@ -21458,6 +21461,7 @@
         "id": "b127f669d4a7abde",
         "type": "http in",
         "z": "d13820078197e616",
+        "d": true,
         "name": "",
         "url": "/api/tracking/import/bucket",
         "method": "get",
@@ -25879,7 +25883,7 @@
         "z": "75e462c5653d17e1",
         "g": "0e692d4a74821e66",
         "name": "create vm couchdb-timeseries",
-        "func": "const couchdb = global.get('couchdb');\n\ncouchdb.view('smart-bucket', 'position', 'by-cron-timestamp', {\n    descending: true,\n    limit: 1\n}).then(res => {\n    let bucket = res.data.rows[0].value;\n    let { _id, payload, createdAt } = bucket;\n    couchdb.view('smart-logs', 'cronjob', 'by-topic-tag', {\n        key: ['vehicle-monitoring', 'smartbucket.to.smarttimeseries']\n    }).then(res => {\n        let rows = res.data.rows;\n\n        if (rows.length == 0 || rows.some(r => r.value.log.source.docID != _id)) {\n            let doc = {\n                type: 'cronjob',\n                topic: 'vehicle-monitoring',\n                tag: 'smartbucket.to.smarttimeseries',\n                log: {\n                    cron: msg.payload,\n                    source: {\n                        database: 'smart-bucket',\n                        docID: _id\n                    }\n                }\n            }\n            couchdb.insert('smart-logs', doc).then(() => { }, err => node.error(err));\n            let newDocs = JSON.parse(payload).map(x => {\n                return {\n                    timestamp: new Date(x.printed_timezone).getTime(),\n                    topic: 'vm-tracking',\n                    source: {\n                        from: 'smart-bucket',\n                        docID: _id\n                    },\n                    ...x,\n                    createdAt: new Date(),\n                    createdBy: 'system'\n                }\n            });\n            couchdb.view('smart-timeseries', 'vehicle-tracker', 'by-timestamp-vin').then(res => {\n                let oldDocs = res.data.rows.map(x => {\n                    let { _id, _rev, timestamp, vin } = x.value;\n                    return { _id, _rev, timestamp, vin }\n                });\n                newDocs = newDocs.map(doc => {\n                    let exist = oldDocs\n                        .find(x => x.timestamp == doc.timestamp && x.vin == doc.vin);\n                    if (exist) {\n                        let { _id, _rev } = exist;\n                        doc = {\n                            _id, _rev, ...doc,\n                            updatedAt: new Date(),\n                            updatedBy: 'system'\n                        }\n                    }\n                    return doc\n                });\n                couchdb.bulk('smart-timeseries', newDocs).then(res => {\n                }, err => node.error(err));\n            }, (err) => node.error(err));\n        } else {\n            //already on docs\n            // node.warn(\"already\");\n        }\n    }, err => node.error(err));\n    // node.send({\n    //     payload: JSON.parse(bucket.payload)\n    // });\n});",
+        "func": "const couchdb = global.get('couchdb');\n\ncouchdb.view('smart-bucket', 'position', 'by-cron-timestamp', {\n    descending: true,\n    limit: 1\n}).then(res => {\n    let bucket = res.data.rows[0].value;\n    let { _id, payload, createdAt } = bucket;\n    couchdb.view('smart-logs', 'cronjob', 'by-topic-tag', {\n        key: ['vehicle-monitoring', 'smartbucket.to.smarttimeseries']\n    }).then(res => {\n        let rows = res.data.rows;\n\n        if (rows.length == 0 || rows.some(r => r.value.log.source.docID != _id)) {\n            let doc = {\n                type: 'cronjob',\n                topic: 'vehicle-monitoring',\n                tag: 'smartbucket.to.smarttimeseries',\n                log: {\n                    cron: msg.payload,\n                    source: {\n                        database: 'smart-bucket',\n                        docID: _id\n                    }\n                }\n            }\n            couchdb.insert('smart-logs', doc).then(() => { }, err => node.error(err));\n            let newDocs = JSON.parse(payload).map(x => {\n                return {\n                    timestamp: new Date(x.printed_timezone).getTime(),\n                    topic: 'vm-tracking',\n                    source: {\n                        from: 'smart-bucket',\n                        docID: _id\n                    },\n                    ...x,\n                    createdAt: new Date(),\n                    createdBy: 'system'\n                }\n            });\n            couchdb.bulk('smart-timeseries', newDocs).then(res => {\n                }, err => node.error(err));\n        } else {\n            //already on docs\n            \n        }\n    }, err => node.error(err));\n    // node.send({\n    //     payload: JSON.parse(bucket.payload)\n    // });\n});",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -25896,7 +25900,6 @@
         "id": "72f980b3298f49a4",
         "type": "cronplus",
         "z": "75e462c5653d17e1",
-        "d": true,
         "g": "0e692d4a74821e66",
         "name": "",
         "outputField": "payload",
@@ -25944,128 +25947,5 @@
         "wires": [
             []
         ]
-    },
-    {
-        "id": "5f1508d1347f1e8b",
-        "type": "amqp in",
-        "z": "75e462c5653d17e1",
-        "name": "",
-        "topic": "",
-        "iotype": "4",
-        "ioname": "vm.tracking.import.to.smart.series",
-        "server": "e907ba5364e5896f",
-        "x": 200,
-        "y": 320,
-        "wires": [
-            [
-                "3ee8995d40f0d570"
-            ]
-        ]
-    },
-    {
-        "id": "3ee8995d40f0d570",
-        "type": "function",
-        "z": "75e462c5653d17e1",
-        "name": "function 143",
-        "func": "let { docID } = msg.payload;\nconst couchdb = global.get('couchdb');\ncouchdb.openByID('smart-bucket',docID).then((x) => {\n    msg.payload = {\n        bucket : x.data\n    };\n    node.send(msg);\n})\nreturn null;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 450,
-        "y": 320,
-        "wires": [
-            [
-                "244094145ccd0f88"
-            ]
-        ]
-    },
-    {
-        "id": "244094145ccd0f88",
-        "type": "function",
-        "z": "75e462c5653d17e1",
-        "name": "create vm couchdb-timeseries",
-        "func": "let { bucket } = msg.payload;\nconst couchdb = global.get('couchdb');\n\nlet { _id, payload, createdAt } = bucket;\ncouchdb.view('smart-logs', 'cronjob', 'by-topic-tag', {\n    key: ['vehicle-monitoring', 'smartbucket.to.smarttimeseries']\n}).then(res => {\n    let rows = res.data.rows;\n    let filterId = rows.filter((r) => r.value.log.source.docID === _id);\n    if (filterId.length == 0 && rows.some(r => r.value.log.source.docID !== _id)) {\n        let doc = {\n            type: 'cronjob',\n            topic: 'vehicle-monitoring',\n            tag: 'smartbucket.to.smarttimeseries',\n            log: {\n                cron: msg.payload,\n                source: {\n                    database: 'smart-bucket',\n                    docID: _id\n                }\n            }\n        }\n        couchdb.insert('smart-logs', doc).then(() => { }, err => node.error(err));\n        let newDocs = JSON.parse(payload).map(x => {\n            return {\n                timestamp: new Date(x.printed_timezone).getTime(),\n                topic: 'vm-tracking',\n                source: {\n                    from: 'smart-bucket',\n                    docID: _id\n                },\n                ...x,\n                createdAt: new Date(),\n                createdBy: 'system'\n            }\n        });\n        couchdb.view('smart-timeseries', 'vehicle-tracker', 'by-timestamp-vin').then(res => {\n            let oldDocs = res.data.rows.map(x => {\n                let { _id, _rev, timestamp, vin } = x.value;\n                return { _id, _rev, timestamp, vin }\n            });\n            newDocs = newDocs.map(doc => {\n                let exist = oldDocs\n                    .find(x => x.timestamp == doc.timestamp && x.vin == doc.vin);\n                if (exist) {\n                    let { _id, _rev } = exist;\n                    doc = {\n                        _id, _rev, ...doc,\n                        updatedAt: new Date(),\n                        updatedBy: 'system'\n                    }\n                }\n                return doc\n            });\n            couchdb.bulk('smart-timeseries', newDocs).then(res => {\n                node.warn('create');\n            }, err => node.error(err));\n        }, (err) => node.error(err));\n    } else {\n        node.warn(\"already\");\n    }\n}, err => node.error(err));;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 690,
-        "y": 320,
-        "wires": [
-            [
-                "1c5fbf13048445ab"
-            ]
-        ]
-    },
-    {
-        "id": "1c5fbf13048445ab",
-        "type": "debug",
-        "z": "75e462c5653d17e1",
-        "name": "debug 230",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 930,
-        "y": 320,
-        "wires": []
-    },
-    {
-        "id": "18890c88cba3de72",
-        "type": "function",
-        "z": "75e462c5653d17e1",
-        "name": "getDocID",
-        "func": "let date = msg.payload;\nconst couchdb = global.get('couchdb');\ncouchdb.view('smart-bucket','position','hino', {\n    key:[date]\n}).then((res) => {\n    let data = res.data.rows.map((x) => x.id);\n    data.forEach((k) => {\n        setTimeout(() => {\n            msg.payload = {\n                docID : k\n            }\n            node.send(msg);\n        },2000);\n    })\n});\nreturn null;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 360,
-        "y": 260,
-        "wires": [
-            [
-                "de800c5bbae90bf0"
-            ]
-        ]
-    },
-    {
-        "id": "b1d92f895c36b80f",
-        "type": "promptinput",
-        "z": "75e462c5653d17e1",
-        "name": "import smart bucket",
-        "datatype": "str",
-        "prompt": "Tanggal YYYY-MM-DD",
-        "property": "payload",
-        "propertyType": "msg",
-        "x": 150,
-        "y": 260,
-        "wires": [
-            [
-                "18890c88cba3de72"
-            ]
-        ]
-    },
-    {
-        "id": "de800c5bbae90bf0",
-        "type": "amqp out",
-        "z": "75e462c5653d17e1",
-        "name": "",
-        "routingkey": "",
-        "iotype": "4",
-        "ioname": "vm.tracking.import.to.smart.series",
-        "server": "e907ba5364e5896f",
-        "x": 600,
-        "y": 260,
-        "wires": []
     }
 ]
