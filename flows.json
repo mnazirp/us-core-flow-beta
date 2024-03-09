@@ -1389,7 +1389,9 @@
             "850008dec9093eba"
         ],
         "x": 34,
-        "y": 39
+        "y": 39,
+        "w": 512,
+        "h": 142
     },
     {
         "id": "784d89e62dfb5070",
@@ -1419,10 +1421,10 @@
         "ca": "",
         "usetopology": false,
         "topology": "{\n\t\"exchanges\": [\n\t\t{\"name\": \"exchange1\", \"type\": \"direct\", \"options\": {\"durable\": false}},\n\t\t{\"name\": \"exchange2\"}\n\t],\n\t\"queues\": [\n\t\t{\"name\": \"queue1\", \"options\": {\"messageTtl\": 60000}},\n\t\t{\"name\": \"queue2\"}\n\t],\n\t\"bindings\": [\n\t\t{\"source\": \"exchange1\", \"queue\": \"queue1\", \"pattern\": \"debug\", \"args\": {}},\n\t\t{\"source\": \"exchange1\", \"exchange\": \"exchange2\", \"pattern\": \"error\"},\n\t\t{\"source\": \"exchange2\", \"queue\": \"queue2\"}\n\t]\n}",
-        "prefetch": false,
+        "prefetch": true,
         "prefetchvalue": "1",
-        "prefetchack": false,
-        "prefetchvalueack": "1"
+        "prefetchack": true,
+        "prefetchvalueack": "5000"
     },
     {
         "id": "8ca322e6bc2d554c",
@@ -1431,43 +1433,6 @@
         "options": "REDIS_TS_URL",
         "cluster": false,
         "optionsType": "env"
-    },
-    {
-        "id": "70620c4aa929b5d8",
-        "type": "amqp-server",
-        "host": "${BROKER_DOMAIN}",
-        "port": "${BROKER_PORT}",
-        "vhost": "",
-        "keepalive": "30",
-        "usetls": false,
-        "verifyservercert": true,
-        "useca": false,
-        "ca": "",
-        "usetopology": false,
-        "topology": "{\n\t\"exchanges\": [\n\t\t{\"name\": \"exchange1\", \"type\": \"direct\", \"options\": {\"durable\": false}},\n\t\t{\"name\": \"exchange2\"}\n\t],\n\t\"queues\": [\n\t\t{\"name\": \"queue1\", \"options\": {\"messageTtl\": 60000}},\n\t\t{\"name\": \"queue2\"}\n\t],\n\t\"bindings\": [\n\t\t{\"source\": \"exchange1\", \"queue\": \"queue1\", \"pattern\": \"debug\", \"args\": {}},\n\t\t{\"source\": \"exchange1\", \"exchange\": \"exchange2\", \"pattern\": \"error\"},\n\t\t{\"source\": \"exchange2\", \"queue\": \"queue2\"}\n\t]\n}",
-        "prefetch": false,
-        "prefetchvalue": "1",
-        "prefetchack": false,
-        "prefetchvalueack": "10"
-    },
-    {
-        "id": "60b254c433dfc6f4",
-        "type": "amqp-server",
-        "z": "75e462c5653d17e1",
-        "host": "${BROKER_DOMAIN}",
-        "port": "${BROKER_PORT}",
-        "vhost": "",
-        "keepalive": "30",
-        "usetls": false,
-        "verifyservercert": true,
-        "useca": false,
-        "ca": "",
-        "usetopology": false,
-        "topology": "{\n\t\"exchanges\": [\n\t\t{\"name\": \"exchange1\", \"type\": \"direct\", \"options\": {\"durable\": false}},\n\t\t{\"name\": \"exchange2\"}\n\t],\n\t\"queues\": [\n\t\t{\"name\": \"queue1\", \"options\": {\"messageTtl\": 60000}},\n\t\t{\"name\": \"queue2\"}\n\t],\n\t\"bindings\": [\n\t\t{\"source\": \"exchange1\", \"queue\": \"queue1\", \"pattern\": \"debug\", \"args\": {}},\n\t\t{\"source\": \"exchange1\", \"exchange\": \"exchange2\", \"pattern\": \"error\"},\n\t\t{\"source\": \"exchange2\", \"queue\": \"queue2\"}\n\t]\n}",
-        "prefetch": true,
-        "prefetchvalue": "1",
-        "prefetchack": true,
-        "prefetchvalueack": "30000"
     },
     {
         "id": "156f4bd7081013b2",
@@ -20917,7 +20882,7 @@
         "type": "function",
         "z": "d13820078197e616",
         "name": "function 132",
-        "func": "let { numDays } = msg.ori;\nlet { startDate, endDate } = msg.lastDate;\nconst couchdb = global.get('couchdb');\nlet filterKeys = [];\nlet vinAsset = msg.vinAsset;\n\ngetDates(startDate,endDate).forEach((x) => {\n    vinAsset.forEach((vin) => {\n        filterKeys.push([x,vin]);\n    })\n})\n\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date-vin',{\nkeys: filterKeys \n}).then((x) => {\n    let rows = x.data.rows.map((r) => r.value);\n    let payload = [];\n    msg.vinAsset.forEach((m) => {\n        let row = {\n            vin : m,\n            series : []\n        }\n        let keys = ['altitude',\n         'createdDatetime', \n            'engineHours', 'heading', 'latitude', 'longitude', 'odometer', 'positionDatetime', 'speed', 'vehicleStatus', 'province_name','printed_timezone'];\n        \n        let filterByVin = rows.filter((tracking) => tracking.vin === m);\n        keys.forEach((key) => {\n            let value = {\n                key,\n                data : filterByVin.map((p0) => [p0.timestamp,p0[key.toLocaleLowerCase()]])\n            }\n            row.series.push(value);\n        })\n        \n        payload.push(row);  \n    })\n    msg.payload = payload;\n    node.send(msg);\n})\nreturn null;\n\n\nfunction getDates(start, end) {\n  const dates = [];\n  \n  let endDate = new Date(end);\n  let startDate = new Date(start);\n\n  while (endDate <= startDate) {\n\n    const year = endDate.getFullYear();\n    const month = String(endDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based\n    const day = String(endDate.getDate()).padStart(2, '0');\n    dates.push(`${year}-${month}-${day}`);\n    endDate.setDate(endDate.getDate() + 1);\n  }\n\n  return dates;\n}",
+        "func": "let { numDays } = msg.ori;\nlet { startDate, endDate } = msg.lastDate;\nconst couchdb = global.get('couchdb');\nlet filterKeys = [];\nlet vinAsset = msg.vinAsset;\n\ngetDates(startDate,endDate).forEach((x) => {\n    vinAsset.forEach((vin) => {\n        filterKeys.push([x,vin]);\n    })\n})\n\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date-vin',{\nkeys: filterKeys \n}).then((x) => {\n    let rows = x.data.rows.map((r) => r.value);\n    node.warn(rows);\n    // let payload = [];\n    // msg.vinAsset.forEach((m) => {\n    //     let row = {\n    //         vin : m,\n    //         series : []\n    //     }\n    //     let keys = ['altitude',\n    //      'createdDatetime', \n    //         'engineHours', 'heading', 'latitude', 'longitude', 'odometer', 'positionDatetime', 'speed', 'vehicleStatus', 'province_name','printed_timezone'];\n        \n    //     let filterByVin = rows.filter((tracking) => tracking.vin === m);\n    //     keys.forEach((key) => {\n    //         let value = {\n    //             key,\n    //             data : filterByVin.map((p0) => [p0.timestamp,p0[key.toLocaleLowerCase()]])\n    //         }\n    //         row.series.push(value);\n    //     })\n        \n    //     payload.push(row);  \n    // })\n    // msg.payload = payload;\n    node.send(msg);\n})\nreturn null;\n\n\nfunction getDates(start, end) {\n  const dates = [];\n  \n  let endDate = new Date(end);\n  let startDate = new Date(start);\n\n  while (endDate <= startDate) {\n\n    const year = endDate.getFullYear();\n    const month = String(endDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based\n    const day = String(endDate.getDate()).padStart(2, '0');\n    dates.push(`${year}-${month}-${day}`);\n    endDate.setDate(endDate.getDate() + 1);\n  }\n\n  return dates;\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -21325,6 +21290,76 @@
         "wires": [
             [
                 "720ce5917b2d01ec"
+            ]
+        ]
+    },
+    {
+        "id": "ca2a2b46.c3b33",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "name": "Download",
+        "statusCode": "",
+        "headers": {
+            "Content-Disposition": "attachment; filename=\"data.json\"",
+            "Content-Type": "application/json"
+        },
+        "x": 640,
+        "y": 4020,
+        "wires": []
+    },
+    {
+        "id": "70e76daa.943088",
+        "type": "file",
+        "z": "d13820078197e616",
+        "name": "",
+        "filename": "filename",
+        "filenameType": "msg",
+        "appendNewline": false,
+        "createDir": true,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 460,
+        "y": 4020,
+        "wires": [
+            [
+                "ca2a2b46.c3b33"
+            ]
+        ]
+    },
+    {
+        "id": "ef5b12f2.67863",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "Generate JSON",
+        "func": "//get data from smart-bucket \nconst couchdb = global.get('couchdb');\ncouchdb.view('smart-bucket','position','hino', {\n    key: [\"2024-02-25\"]\n}).then((res) => {\n    let jsonData = res.data.rows;\n    // Generate JSON data\n// let jsonData = {\n//     name: 'John Doe',\n//     age: 30,\n//     city: 'New York'\n// };\n\n// Convert JSON data to string\nlet jsonString = JSON.stringify(jsonData, null, 2);\n\n// Specify file name\nlet fileName = 'data.json';\n\n// Write JSON data to file\nmsg.payload = jsonString;\nmsg.filename = fileName;\nnode.send(msg);\nreturn null;\n})\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 270,
+        "y": 4020,
+        "wires": [
+            [
+                "70e76daa.943088"
+            ]
+        ]
+    },
+    {
+        "id": "88f583d2.9613c",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "name": "Trigger",
+        "url": "/download-json",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 100,
+        "y": 4020,
+        "wires": [
+            [
+                "ef5b12f2.67863"
             ]
         ]
     },
@@ -23569,7 +23604,7 @@
         "z": "ebd3eb3a630da0d4",
         "g": "d68d7a5bd488e2d7",
         "name": "validation",
-        "func": "let payload = JSON.parse(msg.payload);\nmsg.isValid = false;\nif (payload.data) {\n    msg.isValid = true;\n    msg.payload = payload.data;\n    let buffer = Buffer.from(msg.payload);\n    msg.payloadSize = buffer.length / 2014; // in kilobyte\n}\nreturn msg;",
+        "func": "node.warn(msg.payload);\nlet payload = JSON.parse(msg.payload);\nmsg.isValid = false;\nif (payload.data) {\n    msg.isValid = true;\n    msg.payload = payload.data;\n    let buffer = Buffer.from(msg.payload);\n    msg.payloadSize = buffer.length / 2014; // in kilobyte\n}\nreturn msg;",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
@@ -25725,7 +25760,7 @@
         "z": "75e462c5653d17e1",
         "g": "0e692d4a74821e66",
         "name": "create vm couchdb-timeseries",
-        "func": "const couchdb = global.get('couchdb');\n\ncouchdb.view('smart-bucket', 'position', 'by-cron-timestamp', {\n    descending: true,\n    limit: 1\n}).then(res => {\n    let bucket = res.data.rows[0].value;\n    let { _id, payload, createdAt } = bucket;\n    couchdb.view('smart-logs', 'cronjob', 'by-topic-tag', {\n        key: ['vehicle-monitoring', 'smartbucket.to.smarttimeseries']\n    }).then(res => {\n        let rows = res.data.rows;\n\n        if (rows.length == 0 || rows.some(r => r.value.log.source.docID != _id)) {\n            let doc = {\n                type: 'cronjob',\n                topic: 'vehicle-monitoring',\n                tag: 'smartbucket.to.smarttimeseries',\n                log: {\n                    cron: msg.payload,\n                    source: {\n                        database: 'smart-bucket',\n                        docID: _id\n                    }\n                }\n            }\n            couchdb.insert('smart-logs', doc).then(() => { }, err => node.error(err));\n            let newDocs = JSON.parse(payload).map(x => {\n                return {\n                    timestamp: new Date(x.printed_timezone).getTime(),\n                    topic: 'vm-tracking',\n                    source: {\n                        from: 'smart-bucket',\n                        docID: _id\n                    },\n                    ...x,\n                    createdAt: new Date(),\n                    createdBy: 'system'\n                }\n            });\n            couchdb.view('smart-timeseries', 'vehicle-tracker', 'by-timestamp-vin').then(res => {\n                let oldDocs = res.data.rows.map(x => {\n                    let { _id, _rev, timestamp, vin } = x.value;\n                    return { _id, _rev, timestamp, vin }\n                });\n                newDocs = newDocs.map(doc => {\n                    let exist = oldDocs\n                        .find(x => x.timestamp == doc.timestamp && x.vin == doc.vin);\n                    if (exist) {\n                        let { _id, _rev } = exist;\n                        doc = {\n                            _id, _rev, ...doc,\n                            updatedAt: new Date(),\n                            updatedBy: 'system'\n                        }\n                    }\n                    return doc\n                });\n                couchdb.bulk('smart-timeseries', newDocs).then(res => {\n                    node.warn(res.data);\n                }, err => node.error(err));\n            }, (err) => node.error(err));\n        } else {\n            //already on docs\n            // node.warn(\"already\");\n        }\n    }, err => node.error(err));\n    // node.send({\n    //     payload: JSON.parse(bucket.payload)\n    // });\n});",
+        "func": "const couchdb = global.get('couchdb');\n\ncouchdb.view('smart-bucket', 'position', 'by-cron-timestamp', {\n    descending: true,\n    limit: 1\n}).then(res => {\n    let bucket = res.data.rows[0].value;\n    let { _id, payload, createdAt } = bucket;\n    couchdb.view('smart-logs', 'cronjob', 'by-topic-tag', {\n        key: ['vehicle-monitoring', 'smartbucket.to.smarttimeseries']\n    }).then(res => {\n        let rows = res.data.rows;\n\n        if (rows.length == 0 || rows.some(r => r.value.log.source.docID != _id)) {\n            let doc = {\n                type: 'cronjob',\n                topic: 'vehicle-monitoring',\n                tag: 'smartbucket.to.smarttimeseries',\n                log: {\n                    cron: msg.payload,\n                    source: {\n                        database: 'smart-bucket',\n                        docID: _id\n                    }\n                }\n            }\n            couchdb.insert('smart-logs', doc).then(() => { }, err => node.error(err));\n            let newDocs = JSON.parse(payload).map(x => {\n                return {\n                    timestamp: new Date(x.printed_timezone).getTime(),\n                    topic: 'vm-tracking',\n                    source: {\n                        from: 'smart-bucket',\n                        docID: _id\n                    },\n                    ...x,\n                    createdAt: new Date(),\n                    createdBy: 'system'\n                }\n            });\n            couchdb.view('smart-timeseries', 'vehicle-tracker', 'by-timestamp-vin').then(res => {\n                let oldDocs = res.data.rows.map(x => {\n                    let { _id, _rev, timestamp, vin } = x.value;\n                    return { _id, _rev, timestamp, vin }\n                });\n                newDocs = newDocs.map(doc => {\n                    let exist = oldDocs\n                        .find(x => x.timestamp == doc.timestamp && x.vin == doc.vin);\n                    if (exist) {\n                        let { _id, _rev } = exist;\n                        doc = {\n                            _id, _rev, ...doc,\n                            updatedAt: new Date(),\n                            updatedBy: 'system'\n                        }\n                    }\n                    return doc\n                });\n                couchdb.bulk('smart-timeseries', newDocs).then(res => {\n                }, err => node.error(err));\n            }, (err) => node.error(err));\n        } else {\n            //already on docs\n            // node.warn(\"already\");\n        }\n    }, err => node.error(err));\n    // node.send({\n    //     payload: JSON.parse(bucket.payload)\n    // });\n});",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -25742,6 +25777,7 @@
         "id": "72f980b3298f49a4",
         "type": "cronplus",
         "z": "75e462c5653d17e1",
+        "d": true,
         "g": "0e692d4a74821e66",
         "name": "",
         "outputField": "payload",
@@ -25789,5 +25825,128 @@
         "wires": [
             []
         ]
+    },
+    {
+        "id": "5f1508d1347f1e8b",
+        "type": "amqp in",
+        "z": "75e462c5653d17e1",
+        "name": "",
+        "topic": "",
+        "iotype": "4",
+        "ioname": "vm.tracking.import.to.smart.series",
+        "server": "e907ba5364e5896f",
+        "x": 200,
+        "y": 320,
+        "wires": [
+            [
+                "3ee8995d40f0d570"
+            ]
+        ]
+    },
+    {
+        "id": "3ee8995d40f0d570",
+        "type": "function",
+        "z": "75e462c5653d17e1",
+        "name": "function 143",
+        "func": "let { docID } = msg.payload;\nconst couchdb = global.get('couchdb');\ncouchdb.openByID('smart-bucket',docID).then((x) => {\n    msg.payload = {\n        bucket : x.data\n    };\n    node.send(msg);\n})\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 320,
+        "wires": [
+            [
+                "244094145ccd0f88"
+            ]
+        ]
+    },
+    {
+        "id": "244094145ccd0f88",
+        "type": "function",
+        "z": "75e462c5653d17e1",
+        "name": "create vm couchdb-timeseries",
+        "func": "let { bucket } = msg.payload;\nconst couchdb = global.get('couchdb');\n\nlet { _id, payload, createdAt } = bucket;\ncouchdb.view('smart-logs', 'cronjob', 'by-topic-tag', {\n    key: ['vehicle-monitoring', 'smartbucket.to.smarttimeseries']\n}).then(res => {\n    let rows = res.data.rows;\n    let filterId = rows.filter((r) => r.value.log.source.docID === _id);\n    if (filterId.length == 0 && rows.some(r => r.value.log.source.docID !== _id)) {\n        let doc = {\n            type: 'cronjob',\n            topic: 'vehicle-monitoring',\n            tag: 'smartbucket.to.smarttimeseries',\n            log: {\n                cron: msg.payload,\n                source: {\n                    database: 'smart-bucket',\n                    docID: _id\n                }\n            }\n        }\n        couchdb.insert('smart-logs', doc).then(() => { }, err => node.error(err));\n        let newDocs = JSON.parse(payload).map(x => {\n            return {\n                timestamp: new Date(x.printed_timezone).getTime(),\n                topic: 'vm-tracking',\n                source: {\n                    from: 'smart-bucket',\n                    docID: _id\n                },\n                ...x,\n                createdAt: new Date(),\n                createdBy: 'system'\n            }\n        });\n        couchdb.view('smart-timeseries', 'vehicle-tracker', 'by-timestamp-vin').then(res => {\n            let oldDocs = res.data.rows.map(x => {\n                let { _id, _rev, timestamp, vin } = x.value;\n                return { _id, _rev, timestamp, vin }\n            });\n            newDocs = newDocs.map(doc => {\n                let exist = oldDocs\n                    .find(x => x.timestamp == doc.timestamp && x.vin == doc.vin);\n                if (exist) {\n                    let { _id, _rev } = exist;\n                    doc = {\n                        _id, _rev, ...doc,\n                        updatedAt: new Date(),\n                        updatedBy: 'system'\n                    }\n                }\n                return doc\n            });\n            couchdb.bulk('smart-timeseries', newDocs).then(res => {\n                node.warn('create');\n            }, err => node.error(err));\n        }, (err) => node.error(err));\n    } else {\n        node.warn(\"already\");\n    }\n}, err => node.error(err));;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 690,
+        "y": 320,
+        "wires": [
+            [
+                "1c5fbf13048445ab"
+            ]
+        ]
+    },
+    {
+        "id": "1c5fbf13048445ab",
+        "type": "debug",
+        "z": "75e462c5653d17e1",
+        "name": "debug 230",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 930,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "18890c88cba3de72",
+        "type": "function",
+        "z": "75e462c5653d17e1",
+        "name": "getDocID",
+        "func": "let date = msg.payload;\nconst couchdb = global.get('couchdb');\ncouchdb.view('smart-bucket','position','hino', {\n    key:[date]\n}).then((res) => {\n    let data = res.data.rows.map((x) => x.id);\n    data.forEach((k) => {\n        setTimeout(() => {\n            msg.payload = {\n                docID : k\n            }\n            node.send(msg);\n        },2000);\n    })\n});\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 260,
+        "wires": [
+            [
+                "de800c5bbae90bf0"
+            ]
+        ]
+    },
+    {
+        "id": "b1d92f895c36b80f",
+        "type": "promptinput",
+        "z": "75e462c5653d17e1",
+        "name": "import smart bucket",
+        "datatype": "str",
+        "prompt": "Tanggal YYYY-MM-DD",
+        "property": "payload",
+        "propertyType": "msg",
+        "x": 150,
+        "y": 260,
+        "wires": [
+            [
+                "18890c88cba3de72"
+            ]
+        ]
+    },
+    {
+        "id": "de800c5bbae90bf0",
+        "type": "amqp out",
+        "z": "75e462c5653d17e1",
+        "name": "",
+        "routingkey": "",
+        "iotype": "4",
+        "ioname": "vm.tracking.import.to.smart.series",
+        "server": "e907ba5364e5896f",
+        "x": 600,
+        "y": 260,
+        "wires": []
     }
 ]
