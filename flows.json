@@ -1389,9 +1389,45 @@
             "850008dec9093eba"
         ],
         "x": 34,
-        "y": 39,
-        "w": 512,
-        "h": 142
+        "y": 39
+    },
+    {
+        "id": "0c3d5d23d5b1c898",
+        "type": "group",
+        "z": "d13820078197e616",
+        "name": "new vm endpoint",
+        "style": {
+            "fill": "#ffff00",
+            "label": true,
+            "fill-opacity": "0.26"
+        },
+        "nodes": [
+            "83d7c8cd8470900c",
+            "e73cce7965ceb288",
+            "6f2babbeb15d4008",
+            "bc8e534611b9435e",
+            "092b68da1a720736",
+            "dd1da4ade411844f",
+            "e9c706145b1fd830",
+            "43286ca3b2c5fb3a",
+            "b65868e3f1699a70",
+            "fa48c764d736d636",
+            "58ec3765f3df4628",
+            "fefa1b57f968b850",
+            "856762dbf818d7f4",
+            "55bc919271568e04",
+            "d4e0b948d5c41ebe",
+            "4331404839e0c751",
+            "d81d2e1546f6f04f",
+            "45e9e96c98036b2d",
+            "f50b9b253937ba13",
+            "ee663dfcd8b6b6be",
+            "c8da9e03ebb83e55"
+        ],
+        "x": 14,
+        "y": 4479,
+        "w": 1172,
+        "h": 662
     },
     {
         "id": "784d89e62dfb5070",
@@ -2481,7 +2517,7 @@
         "type": "function",
         "z": "d7ccf53b2b9fe097",
         "name": "read sub",
-        "func": "msg.backup = msg.payload;\n\nlet {\n    database,\n    design,\n    view,\n    key,\n    keys,\n    startkey,\n    endkey,\n    limit,\n    descending,\n    group\n} = msg.sub;\n\nlet url = `${env.get('DOC_MASTER_DOMAIN')}/${database}/_design/${design}/_view/${view}?`;\nif (key) {\n    let keyStr = (Array.isArray(key)) ? `[${key.map(x => `\"${x}\"`).join(',')}]` : `\"${key}\"`;\n    url = `${url}key=${keyStr}`;\n} else if (keys && Array.isArray(keys)) {\n    url = `${url}keys=[${keys}]`;\n} else if (startkey && endkey) {\n    if (Array.isArray(startkey) && Array.isArray(endkey)) {\n        url = `${url}startkey=[${startkey.map(x => {\n            if (typeof x === 'string') return `\"${x}\"`;\n            if (typeof x === 'object') return `{}`;\n            return `${x}`;\n        })}]&endkey=[${endkey.map(x => {\n            if (typeof x === 'string') return `\"${x}\"`;\n            if (typeof x === 'object') return `{}`;\n            return `${x}`;\n        })}]`;\n    } else {\n        url = `${url}startkey=\"${startkey}\"&endkey=\"${endkey}\"`;\n    }\n}\n\nif (group === true && !key && !startkey && !endkey) url = `${url}group=true`;\nelse if (group === true) url = `${url}&group=true`;\n\nif (limit && typeof limit == 'number') {\n    url = `${url}&limit=${limit}`\n}\nif (descending !== undefined) {\n    url = `${url}&descending=${descending}`;\n}\n\nmsg.url = url;\n// node.warn(url);\nmsg.headers = {\n    \"Authorization\": \"Basic \" +\n        Buffer.from(`${env.get('DOCS_MASTER_USER')}:${env.get('DOCS_MASTER_PASSWORD')}`).toString(\"base64\"),\n    \"Content-Type\": \"application/json; charset=utf-8\"\n}\n\n\n\nreturn msg;",
+        "func": "msg.backup = msg.payload;\n\nlet {\n    database,\n    design,\n    view,\n    key,\n    keys,\n    startkey,\n    endkey,\n    limit,\n    descending,\n    group\n} = msg.sub;\n\nlet url = `${env.get('DOC_MASTER_DOMAIN')}/${database}/_design/${design}/_view/${view}?`;\nif (key) {\n    let keyStr = (Array.isArray(key)) ? `[${key.map(x => `\"${x}\"`).join(',')}]` : `\"${key}\"`;\n    url = `${url}key=${keyStr}`;\n} else if (keys && Array.isArray(keys)) {\n    url = `${url}keys=[${keys}]`;\n} else if (startkey && endkey) {\n    if (Array.isArray(startkey) && Array.isArray(endkey)) {\n        url = `${url}startkey=[${startkey.map(x => {\n            if (typeof x === 'string') return `\"${x}\"`;\n            if (typeof x === 'object') return `{}`;\n            return `${x}`;\n        })}]&endkey=[${endkey.map(x => {\n            if (typeof x === 'string') return `\"${x}\"`;\n            if (typeof x === 'object') return `{}`;\n            return `${x}`;\n        })}]`;\n    } else {\n        url = `${url}startkey=\"${startkey}\"&endkey=\"${endkey}\"`;\n    }\n}\n\nif (group === true && !key && !startkey && !endkey) url = `${url}group=true`;\nelse if (group === true) url = `${url}&group=true`;\n\nif (limit && typeof limit == 'number') {\n    url = `${url}&limit=${limit}`\n}\nif (descending !== undefined) {\n    url = `${url}&descending=${descending}`;\n}\n\nmsg.url = url;\nmsg.headers = {\n    \"Authorization\": \"Basic \" +\n        Buffer.from(`${env.get('DOCS_MASTER_USER')}:${env.get('DOCS_MASTER_PASSWORD')}`).toString(\"base64\"),\n    \"Content-Type\": \"application/json; charset=utf-8\"\n}\n\n\n\nreturn msg;",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
@@ -18143,6 +18179,7 @@
         "id": "e196a92911d08688",
         "type": "http in",
         "z": "d13820078197e616",
+        "d": true,
         "name": "",
         "url": "/api/tracking/last-position",
         "method": "get",
@@ -21483,6 +21520,383 @@
         "x": 670,
         "y": 4400,
         "wires": []
+    },
+    {
+        "id": "e73cce7965ceb288",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 1110,
+        "y": 4700,
+        "wires": []
+    },
+    {
+        "id": "6f2babbeb15d4008",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "mapping",
+        "func": "try {\n    let raw = msg.sub.rows[0].value.payload;\n    let createdAt = msg.sub.rows[0].value.createdAt;\n    let data = JSON.parse(raw);\n    msg.payload = data.map((x) => {\n        return x;\n    }).filter((x) => {\n        return msg.vinAsset.includes(x.vin)\n    })\n    // msg.payload = msg.vinAsset;\n    msg.statusCode = 200;\n    node.send(msg);\n} catch (err) {\n    msg.statusCode = 500;\n    msg.payload = {\n        error: err\n    }\n    node.send(msg);\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 980,
+        "y": 4700,
+        "wires": [
+            [
+                "e73cce7965ceb288"
+            ]
+        ]
+    },
+    {
+        "id": "bc8e534611b9435e",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "x": 800,
+        "y": 4700,
+        "wires": [
+            [
+                "6f2babbeb15d4008"
+            ]
+        ]
+    },
+    {
+        "id": "092b68da1a720736",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "by-cron-timestamp",
+        "func": "msg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'by-cron-timestamp',\n    limit: 1,\n    descending: true\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 4700,
+        "wires": [
+            [
+                "bc8e534611b9435e"
+            ]
+        ]
+    },
+    {
+        "id": "83d7c8cd8470900c",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "url": "/api/tracking/last-positions",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 4520,
+        "wires": [
+            [
+                "b65868e3f1699a70"
+            ]
+        ]
+    },
+    {
+        "id": "b65868e3f1699a70",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "validated",
+        "func": "let valid = false;\nlet { unittransport, numDays, allUnit } = msg.payload;\nif (\n    numDays\n    && typeof numDays == 'number'\n) {\n    if (unittransport\n        && allUnit == undefined\n        && Array.isArray(unittransport)\n        && unittransport.length > 0) {\n        msg.ori = msg.payload;\n        msg.redisKey = `cache:tracking:${unittransport.join(';')}`\n        valid = true;\n    }\n\n    if (\n        allUnit != undefined\n        && unittransport == undefined\n        && typeof allUnit == 'boolean'\n    ) {\n        msg.ori = msg.payload;\n        msg.redisKey = `cache:tracking:all-unit`\n        valid = true;\n    }\n}\nmsg.valid = valid;\nif (!valid) {\n    msg.payload = \"parameter is not valid\"\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 4520,
+        "wires": [
+            [
+                "43286ca3b2c5fb3a"
+            ]
+        ]
+    },
+    {
+        "id": "43286ca3b2c5fb3a",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "get vin by unit-transport",
+        "func": "msg.ori = msg.payload;\nlet { unittransport } = msg.ori;\nmsg.sub = {\n    database: 'smart-asset',\n    design: 'truck',\n    view: 'by-unitID',\n    keys: unittransport.map(x => `[${x}]`),\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 4520,
+        "wires": [
+            [
+                "e9c706145b1fd830"
+            ]
+        ]
+    },
+    {
+        "id": "e9c706145b1fd830",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "x": 580,
+        "y": 4580,
+        "wires": [
+            [
+                "dd1da4ade411844f"
+            ]
+        ]
+    },
+    {
+        "id": "dd1da4ade411844f",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "msg.vinAsset",
+        "func": "msg.vinAsset = msg.sub.rows.filter(x => x.value != \"\").map(x => x.value.vin);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 4640,
+        "wires": [
+            [
+                "092b68da1a720736"
+            ]
+        ]
+    },
+    {
+        "id": "d4e0b948d5c41ebe",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "url": "/api/tracking/histories",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 160,
+        "y": 4780,
+        "wires": [
+            [
+                "55bc919271568e04"
+            ]
+        ]
+    },
+    {
+        "id": "55bc919271568e04",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "validated",
+        "func": "let valid = false;\nlet { vin, date } = msg.payload;\n\nif (\n    vin\n    && typeof vin == 'string') {\n   valid = true \n}\n\nif(date && Array.isArray(date)) {\n    valid = true\n}\n\nmsg.valid = valid;\nif (!valid) {\n    msg.payload = \"parameter is not valid\"\n}\n\nnode.warn(msg.payload)\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 4780,
+        "wires": [
+            [
+                "856762dbf818d7f4"
+            ]
+        ]
+    },
+    {
+        "id": "856762dbf818d7f4",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "get vin by date",
+        "func": "msg.ori = msg.payload;\nlet { vin, date } = msg.ori;\nmsg.sub = {\n    database: 'smart-timeseries',\n    design: 'vehicle-tracker',\n    view: 'by-date-vin',\n    keys: date.map((x) => `[\"${x}\", \"${vin}\"]`),\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 4780,
+        "wires": [
+            [
+                "fefa1b57f968b850"
+            ]
+        ]
+    },
+    {
+        "id": "fefa1b57f968b850",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "x": 580,
+        "y": 4840,
+        "wires": [
+            [
+                "58ec3765f3df4628"
+            ]
+        ]
+    },
+    {
+        "id": "58ec3765f3df4628",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "function 142",
+        "func": "msg.payload = msg.sub.rows.map((x) => x.value).map((x) => {\n    let { _id, _rev, timestamp, topic, source, ...others } = x;\n    return others\n});\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 4900,
+        "wires": [
+            [
+                "fa48c764d736d636"
+            ]
+        ]
+    },
+    {
+        "id": "fa48c764d736d636",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 780,
+        "y": 4900,
+        "wires": []
+    },
+    {
+        "id": "4331404839e0c751",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 780,
+        "y": 5100,
+        "wires": []
+    },
+    {
+        "id": "d81d2e1546f6f04f",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "function 143",
+        "func": "msg.payload = msg.sub.rows.map((x) => x.value).map((x) => {\n    let { _id, _rev, timestamp, topic, source, ...others } = x;\n    return others\n});\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 5100,
+        "wires": [
+            [
+                "4331404839e0c751"
+            ]
+        ]
+    },
+    {
+        "id": "45e9e96c98036b2d",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "x": 580,
+        "y": 5040,
+        "wires": [
+            [
+                "d81d2e1546f6f04f"
+            ]
+        ]
+    },
+    {
+        "id": "f50b9b253937ba13",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "get vin by date",
+        "func": "msg.ori = msg.payload;\nlet { vin, date } = msg.ori;\nmsg.sub = {\n    database: 'smart-timeseries',\n    design: 'vehicle-tracker',\n    view: 'by-date-vin',\n    keys: date.map((x) => `[\"${x}\", \"${vin}\"]`),\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 4980,
+        "wires": [
+            [
+                "45e9e96c98036b2d"
+            ]
+        ]
+    },
+    {
+        "id": "ee663dfcd8b6b6be",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "validated",
+        "func": "let valid = false;\nlet { vin, date } = msg.payload;\n\nif (\n    vin\n    && typeof vin == 'string') {\n   valid = true \n}\n\nif(date && Array.isArray(date)) {\n    valid = true\n}\n\nmsg.valid = valid;\nif (!valid) {\n    msg.payload = \"parameter is not valid\"\n}\n\nnode.warn(msg.payload)\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 4980,
+        "wires": [
+            [
+                "f50b9b253937ba13"
+            ]
+        ]
+    },
+    {
+        "id": "c8da9e03ebb83e55",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "url": "/api/tracking/journey",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 150,
+        "y": 4980,
+        "wires": [
+            [
+                "ee663dfcd8b6b6be"
+            ]
+        ]
     },
     {
         "id": "bc39f3d827ecdc09",
