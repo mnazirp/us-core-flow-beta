@@ -1364,7 +1364,6 @@
         "nodes": [
             "557a1e4f43561a80",
             "b16a4b8417bb586d",
-            "452dd37c2852c2f2",
             "596ccc69fa7978cd"
         ],
         "x": 34,
@@ -1390,6 +1389,44 @@
         ],
         "x": 34,
         "y": 39
+    },
+    {
+        "id": "0c3d5d23d5b1c898",
+        "type": "group",
+        "z": "d13820078197e616",
+        "name": "new vm endpoint",
+        "style": {
+            "fill": "#ffff00",
+            "label": true,
+            "fill-opacity": "0.26"
+        },
+        "nodes": [
+            "83d7c8cd8470900c",
+            "e73cce7965ceb288",
+            "6f2babbeb15d4008",
+            "bc8e534611b9435e",
+            "092b68da1a720736",
+            "dd1da4ade411844f",
+            "e9c706145b1fd830",
+            "43286ca3b2c5fb3a",
+            "b65868e3f1699a70",
+            "fa48c764d736d636",
+            "58ec3765f3df4628",
+            "fefa1b57f968b850",
+            "856762dbf818d7f4",
+            "55bc919271568e04",
+            "d4e0b948d5c41ebe",
+            "4331404839e0c751",
+            "d81d2e1546f6f04f",
+            "45e9e96c98036b2d",
+            "f50b9b253937ba13",
+            "ee663dfcd8b6b6be",
+            "c8da9e03ebb83e55"
+        ],
+        "x": 14,
+        "y": 4479,
+        "w": 1172,
+        "h": 662
     },
     {
         "id": "784d89e62dfb5070",
@@ -20848,6 +20885,1019 @@
         ]
     },
     {
+        "id": "593e691d54ede0d6",
+        "type": "inject",
+        "z": "d13820078197e616",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"unittransport\":[5017,5018],\"numDays\":7}",
+        "payloadType": "json",
+        "x": 370,
+        "y": 3140,
+        "wires": [
+            [
+                "05a70a10a02a8b9c"
+            ]
+        ]
+    },
+    {
+        "id": "8c6883bcc23538a4",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "function 132",
+        "func": "let { numDays } = msg.ori;\nlet { startDate, endDate } = msg.lastDate;\nconst couchdb = global.get('couchdb');\nlet filterKeys = [];\nlet vinAsset = msg.vinAsset;\n\ngetDates(startDate,endDate).forEach((x) => {\n    vinAsset.forEach((vin) => {\n        filterKeys.push([x,vin]);\n    })\n})\n\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date-vin',{\nkeys: filterKeys \n}).then((x) => {\n    let rows = x.data.rows.map((r) => r.value);\n    let payload = [];\n    msg.vinAsset.forEach((m) => {\n        let row = {\n            vin : m,\n            series : []\n        }\n        let keys = ['altitude',\n         'createdDatetime', \n            'engineHours', 'heading', 'latitude', 'longitude', 'odometer', 'positionDatetime', 'speed', 'vehicleStatus', 'province_name','printed_timezone'];\n        \n        let filterByVin = rows.filter((tracking) => tracking.vin === m);\n        keys.forEach((key) => {\n            let value = {\n                key,\n                data : filterByVin.map((p0) => [p0.timestamp,p0[key.toLocaleLowerCase()]])\n            }\n            row.series.push(value);\n        })\n        \n        payload.push(row);  \n    })\n    msg.payload = payload;\n    node.send(msg);\n})\nreturn null;\n\n\nfunction getDates(start, end) {\n  const dates = [];\n  \n  let endDate = new Date(end);\n  let startDate = new Date(start);\n\n  while (endDate <= startDate) {\n\n    const year = endDate.getFullYear();\n    const month = String(endDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based\n    const day = String(endDate.getDate()).padStart(2, '0');\n    dates.push(`${year}-${month}-${day}`);\n    endDate.setDate(endDate.getDate() + 1);\n  }\n\n  return dates;\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 810,
+        "y": 3320,
+        "wires": [
+            [
+                "8111cf95efee4056",
+                "b2d669a706222f4e"
+            ]
+        ]
+    },
+    {
+        "id": "8111cf95efee4056",
+        "type": "debug",
+        "z": "d13820078197e616",
+        "name": "debug 222",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1010,
+        "y": 3320,
+        "wires": []
+    },
+    {
+        "id": "05a70a10a02a8b9c",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "get vin by unit-transport",
+        "func": "msg.ori = msg.payload;\nlet { unittransport } = msg.ori;\nmsg.sub = {\n    database: 'smart-asset',\n    design: 'truck',\n    view: 'by-unitID',\n    keys: unittransport.map(x => `[${x}]`),\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 3140,
+        "wires": [
+            [
+                "52f87f20a381ac1f"
+            ]
+        ]
+    },
+    {
+        "id": "52f87f20a381ac1f",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "name": "",
+        "x": 580,
+        "y": 3200,
+        "wires": [
+            [
+                "032b974f7875d18c"
+            ]
+        ]
+    },
+    {
+        "id": "032b974f7875d18c",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "msg.vinAsset",
+        "func": "msg.vinAsset = msg.sub.rows.filter(x => x.value != \"\").map(x => x.value.vin);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 3260,
+        "wires": [
+            [
+                "abd06dbfb1225e56"
+            ]
+        ]
+    },
+    {
+        "id": "5ef2da835fe7b568",
+        "type": "inject",
+        "z": "d13820078197e616",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 620,
+        "y": 3380,
+        "wires": [
+            [
+                "8c6883bcc23538a4"
+            ]
+        ]
+    },
+    {
+        "id": "abd06dbfb1225e56",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "get last date of vin tracking",
+        "func": "let { numDays } = msg.ori;\nconst couchdb = global.get('couchdb');\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date-vin',{\n    limit: 1,\n    descending : true\n}).then((x) => {\n\n    // ** if using timestamp\n\n    // const timestamp = x.data.rows.map((r) => r.value.timestamp)[0];\n    // const sevenDaysInMilliseconds = 7 * 24 * 60 * 60 * 1000;\n    // const newTimestamp = timestamp + sevenDaysInMilliseconds;\n\n    //** if using printedTimezone */\n    let startDate = x.data.rows.map((r) => r.value.printed_timezone)[0].split(' ')[0];\n    let newLastDate = new Date(startDate);\n    newLastDate.setDate(newLastDate.getDate() - numDays);\n\n    const year = newLastDate.getFullYear();\n    const month = String(newLastDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based\n    const day = String(newLastDate.getDate()).padStart(2, '0');\n\n    let endDate = `${year}-${month}-${day}`;\n    msg.lastDate = {\n        startDate : startDate,\n        endDate : endDate\n    }\n    node.send(msg);\n})\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 3320,
+        "wires": [
+            [
+                "8c6883bcc23538a4"
+            ]
+        ]
+    },
+    {
+        "id": "eb9842e0adbc1c62",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "name": "",
+        "url": "/api/tracking/n-days",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 150,
+        "y": 3100,
+        "wires": [
+            [
+                "222ef59e6e76b1fc"
+            ]
+        ]
+    },
+    {
+        "id": "b2d669a706222f4e",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 1000,
+        "y": 3280,
+        "wires": []
+    },
+    {
+        "id": "222ef59e6e76b1fc",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "validated",
+        "func": "let valid = false;\nlet { unittransport, numDays, allUnit } = msg.payload;\nif (\n    numDays\n    && typeof numDays == 'number'\n) {\n    if (unittransport\n        && allUnit == undefined\n        && Array.isArray(unittransport)\n        && unittransport.length > 0) {\n        msg.ori = msg.payload;\n        msg.redisKey = `cache:tracking:${unittransport.join(';')}`\n        valid = true;\n    }\n\n    if (\n        allUnit != undefined\n        && unittransport == undefined\n        && typeof allUnit == 'boolean'\n    ) {\n        msg.ori = msg.payload;\n        msg.redisKey = `cache:tracking:all-unit`\n        valid = true;\n    }\n}\nmsg.valid = valid;\nif (!valid) {\n    msg.payload = \"parameter is not valid\"\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 3100,
+        "wires": [
+            [
+                "05a70a10a02a8b9c"
+            ]
+        ]
+    },
+    {
+        "id": "afa03ddb2e32c516",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 790,
+        "y": 3580,
+        "wires": []
+    },
+    {
+        "id": "293558a6d0954b57",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "function 132",
+        "func": "try {\n    let raw = msg.sub.rows[0].value.payload;\n    let createdAt = msg.sub.rows[0].value.createdAt;\n    let data = JSON.parse(raw);\n    msg.payload = data.map((x) => {\n        // let { vin, vehiclestatus, longitude, latitude, province_name, speed, printed_timezone } = x;\n        return x;\n    })\n    msg.statusCode = 200;\n    node.send(msg);\n} catch (err) {\n    msg.statusCode = 500;\n    msg.payload = {\n        error: err\n    }\n    node.send(msg);\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 3580,
+        "wires": [
+            [
+                "afa03ddb2e32c516"
+            ]
+        ]
+    },
+    {
+        "id": "c99943c51f9d24e0",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "name": "",
+        "x": 540,
+        "y": 3540,
+        "wires": [
+            [
+                "293558a6d0954b57"
+            ]
+        ]
+    },
+    {
+        "id": "71469376ae9e509d",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "by-cron-timestamp",
+        "func": "msg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'by-cron-timestamp',\n    limit: 1,\n    descending: true\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 530,
+        "y": 3500,
+        "wires": [
+            [
+                "c99943c51f9d24e0"
+            ]
+        ]
+    },
+    {
+        "id": "6c2dd5a06824f4de",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "name": "",
+        "url": "/api/tracking/last-position-couchdb/all",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 3500,
+        "wires": [
+            [
+                "71469376ae9e509d"
+            ]
+        ]
+    },
+    {
+        "id": "69d85fde8e99d92e",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "name": "",
+        "statusCode": "500",
+        "headers": {},
+        "x": 1040,
+        "y": 3860,
+        "wires": []
+    },
+    {
+        "id": "1de2c16ef0eebac1",
+        "type": "change",
+        "z": "d13820078197e616",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "query failed",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 860,
+        "y": 3860,
+        "wires": [
+            [
+                "69d85fde8e99d92e"
+            ]
+        ]
+    },
+    {
+        "id": "cbfac4fe8e40c9a5",
+        "type": "switch",
+        "z": "d13820078197e616",
+        "name": "",
+        "property": "sub.rows",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nnull"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 690,
+        "y": 3820,
+        "wires": [
+            [
+                "625f88ad8335806c"
+            ],
+            [
+                "1de2c16ef0eebac1"
+            ]
+        ]
+    },
+    {
+        "id": "383b6f142e3d4a8a",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "name": "",
+        "x": 480,
+        "y": 3780,
+        "wires": [
+            [
+                "cbfac4fe8e40c9a5"
+            ]
+        ]
+    },
+    {
+        "id": "625f88ad8335806c",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "function 133",
+        "func": "let { vin } = msg.params;\nlet rows = msg.sub.rows.map(x => JSON.parse(x.value.payload));\nmsg.payload = [].concat(...rows).filter((x) => x.vin == vin);\n// msg.payload = rows.map((x) => );\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 870,
+        "y": 3780,
+        "wires": [
+            [
+                "bcd5f68f5f9ccffb"
+            ]
+        ]
+    },
+    {
+        "id": "720ce5917b2d01ec",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "smart-bucket hino position",
+        "func": "let { date,vin } = msg.payload;\nmsg.params = {\n    date,\n    vin\n}\nmsg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'hino',\n    key: [date]\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 3740,
+        "wires": [
+            [
+                "383b6f142e3d4a8a"
+            ]
+        ]
+    },
+    {
+        "id": "bcd5f68f5f9ccffb",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 1040,
+        "y": 3780,
+        "wires": []
+    },
+    {
+        "id": "4802a53f774bab0a",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "name": "",
+        "url": "/api/tracking/position-couchdb/by-date",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 3700,
+        "wires": [
+            [
+                "720ce5917b2d01ec"
+            ]
+        ]
+    },
+    {
+        "id": "dbfd61be817af48e",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "name": "Download",
+        "statusCode": "",
+        "headers": {
+            "Content-Disposition": "attachment; filename=\"data.json\"",
+            "Content-Type": "application/json"
+        },
+        "x": 1000,
+        "y": 4220,
+        "wires": []
+    },
+    {
+        "id": "8c80e8afa89f4706",
+        "type": "file",
+        "z": "d13820078197e616",
+        "name": "",
+        "filename": "filename",
+        "filenameType": "msg",
+        "appendNewline": false,
+        "createDir": true,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 860,
+        "y": 4220,
+        "wires": [
+            [
+                "dbfd61be817af48e"
+            ]
+        ]
+    },
+    {
+        "id": "2a0b89d2d52396f2",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "Generate JSON",
+        "func": "let data = msg.payload;\nlet jsonData = data.rows.map((x) => x.value).map((k) => {\n    let { _rev, ...other } = k;\n    return other;\n})\n\n// Convert JSON data to string\nlet jsonString = JSON.stringify(jsonData, null, 2);\n\n// Specify file name\nlet fileName = 'data.json';\n\n// Write JSON data to file\nmsg.payload = jsonString;\nmsg.filename = fileName;\nnode.send(msg);\nreturn null;\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 680,
+        "y": 4220,
+        "wires": [
+            [
+                "8c80e8afa89f4706"
+            ]
+        ]
+    },
+    {
+        "id": "7edbe7b49e150765",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "name": "Trigger",
+        "url": "/api/tracking/download-smart-bucket",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 110,
+        "y": 4120,
+        "wires": [
+            [
+                "3301d0eff2f287ac"
+            ]
+        ]
+    },
+    {
+        "id": "3301d0eff2f287ac",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "by-cron-timestamp",
+        "func": "let { date } = msg.payload;\nmsg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'hino',\n    key: [date]\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 4120,
+        "wires": [
+            [
+                "7455f8aef9b90243"
+            ]
+        ]
+    },
+    {
+        "id": "7455f8aef9b90243",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "name": "",
+        "x": 300,
+        "y": 4160,
+        "wires": [
+            [
+                "e697159bd0cd8e63"
+            ]
+        ]
+    },
+    {
+        "id": "e697159bd0cd8e63",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "function 140",
+        "func": "msg.payload = msg.sub;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 4220,
+        "wires": [
+            [
+                "2a0b89d2d52396f2"
+            ]
+        ]
+    },
+    {
+        "id": "6cc767b9b61d2544",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "function 141",
+        "func": "let { docID } = msg.payload;\nconst couchdb = global.get('couchdb');\ncouchdb.openByID('smart-bucket',docID).then((x) => {\n    msg.payload = {\n        bucket : x.data\n    };\n    node.send(msg);\n})\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 230,
+        "y": 4340,
+        "wires": [
+            [
+                "073a6d5eb5890303"
+            ]
+        ]
+    },
+    {
+        "id": "073a6d5eb5890303",
+        "type": "function",
+        "z": "d13820078197e616",
+        "name": "create vm couchdb-timeseries",
+        "func": "let { bucket } = msg.payload;\nconst couchdb = global.get('couchdb');\n\nlet { _id, payload, createdAt } = bucket;\ncouchdb.view('smart-logs', 'cronjob', 'by-topic-tag', {\n    key: ['vehicle-monitoring', 'smartbucket.to.smarttimeseries']\n}).then(res => {\n    let rows = res.data.rows;\n    node.warn(_id);\n    let filterId = rows.filter((r) => r.value.log.source.docID === _id);\n    if (filterId.length == 0 && rows.some(r => r.value.log.source.docID !== _id)) {\n        let doc = {\n            type: 'cronjob',\n            topic: 'vehicle-monitoring',\n            tag: 'smartbucket.to.smarttimeseries',\n            log: {\n                cron: msg.payload,\n                source: {\n                    database: 'smart-bucket',\n                    docID: _id\n                }\n            }\n        }\n        couchdb.insert('smart-logs', doc).then(() => { }, err => node.error(err));\n        let newDocs = JSON.parse(payload).map(x => {\n            return {\n                timestamp: new Date(x.printed_timezone).getTime(),\n                topic: 'vm-tracking',\n                source: {\n                    from: 'smart-bucket',\n                    docID: _id\n                },\n                ...x,\n                createdAt: new Date(),\n                createdBy: 'system'\n            }\n        });\n        couchdb.bulk('smart-timeseries', newDocs).then(res => {\n            msg.payload = {\n                message: 'success'\n            }\n            node.send(msg);\n        }, err => node.error(err));\n    } else {\n        msg.payload = {\n            message : 'already'\n        }\n        node.send(msg);\n    }\n}, err => node.error(err));\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 4340,
+        "wires": [
+            [
+                "fd33707df09a6fe3"
+            ]
+        ]
+    },
+    {
+        "id": "b127f669d4a7abde",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "name": "",
+        "url": "/api/tracking/import/bucket",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 4280,
+        "wires": [
+            [
+                "6cc767b9b61d2544"
+            ]
+        ]
+    },
+    {
+        "id": "fd33707df09a6fe3",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 670,
+        "y": 4400,
+        "wires": []
+    },
+    {
+        "id": "e73cce7965ceb288",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 1110,
+        "y": 4700,
+        "wires": []
+    },
+    {
+        "id": "6f2babbeb15d4008",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "mapping",
+        "func": "try {\n    let raw = msg.sub.rows[0].value.payload;\n    let createdAt = msg.sub.rows[0].value.createdAt;\n    let data = JSON.parse(raw);\n    msg.payload = data.map((x) => {\n        let { vehiclestatus, enginehours, positiondatetime, createddatetime , province_name, printed_timezone, ...others } = x;\n        \n        return {\n            vehicleStatus: vehiclestatus,\n            engineHours: enginehours,\n            positionDatetime: positiondatetime,\n            createdDatetime: createddatetime,\n            provinceName: province_name,\n            printedTimezone: printed_timezone,\n            ...others\n        };\n    }).filter((x) => {\n        return msg.vinAsset.includes(x.vin)\n    })\n    msg.statusCode = 200;\n    node.send(msg);\n} catch (err) {\n    msg.statusCode = 500;\n    msg.payload = {\n        error: err\n    }\n    node.send(msg);\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 980,
+        "y": 4700,
+        "wires": [
+            [
+                "e73cce7965ceb288"
+            ]
+        ]
+    },
+    {
+        "id": "bc8e534611b9435e",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "x": 800,
+        "y": 4700,
+        "wires": [
+            [
+                "6f2babbeb15d4008"
+            ]
+        ]
+    },
+    {
+        "id": "092b68da1a720736",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "by-cron-timestamp",
+        "func": "msg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'by-cron-timestamp',\n    limit: 1,\n    descending: true\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 4700,
+        "wires": [
+            [
+                "bc8e534611b9435e"
+            ]
+        ]
+    },
+    {
+        "id": "83d7c8cd8470900c",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "url": "/api/tracking/last-positions",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 4520,
+        "wires": [
+            [
+                "b65868e3f1699a70"
+            ]
+        ]
+    },
+    {
+        "id": "b65868e3f1699a70",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "validated",
+        "func": "let valid = false;\nlet { unittransport, numDays, allUnit } = msg.payload;\nif (\n    numDays\n    && typeof numDays == 'number'\n) {\n    if (unittransport\n        && allUnit == undefined\n        && Array.isArray(unittransport)\n        && unittransport.length > 0) {\n        msg.ori = msg.payload;\n        msg.redisKey = `cache:tracking:${unittransport.join(';')}`\n        valid = true;\n    }\n\n    if (\n        allUnit != undefined\n        && unittransport == undefined\n        && typeof allUnit == 'boolean'\n    ) {\n        msg.ori = msg.payload;\n        msg.redisKey = `cache:tracking:all-unit`\n        valid = true;\n    }\n}\nmsg.valid = valid;\nif (!valid) {\n    msg.payload = \"parameter is not valid\"\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 4520,
+        "wires": [
+            [
+                "43286ca3b2c5fb3a"
+            ]
+        ]
+    },
+    {
+        "id": "43286ca3b2c5fb3a",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "get vin by unit-transport",
+        "func": "msg.ori = msg.payload;\nlet { unittransport } = msg.ori;\nmsg.sub = {\n    database: 'smart-asset',\n    design: 'truck',\n    view: 'by-unitID',\n    keys: unittransport.map(x => `[${x}]`),\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 4520,
+        "wires": [
+            [
+                "e9c706145b1fd830"
+            ]
+        ]
+    },
+    {
+        "id": "e9c706145b1fd830",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "x": 580,
+        "y": 4580,
+        "wires": [
+            [
+                "dd1da4ade411844f"
+            ]
+        ]
+    },
+    {
+        "id": "dd1da4ade411844f",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "msg.vinAsset",
+        "func": "msg.vinAsset = msg.sub.rows.filter(x => x.value != \"\").map(x => x.value.vin);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 4640,
+        "wires": [
+            [
+                "092b68da1a720736"
+            ]
+        ]
+    },
+    {
+        "id": "d4e0b948d5c41ebe",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "url": "/api/tracking/histories",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 160,
+        "y": 4780,
+        "wires": [
+            [
+                "55bc919271568e04"
+            ]
+        ]
+    },
+    {
+        "id": "55bc919271568e04",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "validated",
+        "func": "let valid = false;\nlet { vin, date } = msg.payload;\n\nif (\n    vin\n    && typeof vin == 'string') {\n   valid = true \n}\n\nif(date && Array.isArray(date)) {\n    valid = true\n}\n\nmsg.valid = valid;\nif (!valid) {\n    msg.payload = \"parameter is not valid\"\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 4780,
+        "wires": [
+            [
+                "856762dbf818d7f4"
+            ]
+        ]
+    },
+    {
+        "id": "856762dbf818d7f4",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "get vin by date",
+        "func": "msg.ori = msg.payload;\nlet { vin, date } = msg.ori;\nmsg.sub = {\n    database: 'smart-timeseries',\n    design: 'vehicle-tracker',\n    view: 'by-date-vin',\n    keys: date.map((x) => `[\"${x}\", \"${vin}\"]`),\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 4780,
+        "wires": [
+            [
+                "fefa1b57f968b850"
+            ]
+        ]
+    },
+    {
+        "id": "fefa1b57f968b850",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "x": 580,
+        "y": 4840,
+        "wires": [
+            [
+                "58ec3765f3df4628"
+            ]
+        ]
+    },
+    {
+        "id": "58ec3765f3df4628",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "function 142",
+        "func": "msg.payload = msg.sub.rows.map((x) => x.value).map((x) => {\n    let { _id, _rev, timestamp, topic, source, ...others } = x;\n    let { vehiclestatus, enginehours, positiondatetime, createddatetime , province_name, printed_timezone, ...other } = others;\n    \n    return {\n            vehicleStatus: vehiclestatus,\n            engineHours: enginehours,\n            positionDatetime: positiondatetime,\n            createdDatetime: createddatetime,\n            provinceName: province_name,\n            printedTimezone: printed_timezone,\n            ...other\n    }   \n});\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 4900,
+        "wires": [
+            [
+                "fa48c764d736d636"
+            ]
+        ]
+    },
+    {
+        "id": "fa48c764d736d636",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 780,
+        "y": 4900,
+        "wires": []
+    },
+    {
+        "id": "4331404839e0c751",
+        "type": "http response",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 780,
+        "y": 5100,
+        "wires": []
+    },
+    {
+        "id": "d81d2e1546f6f04f",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "function 143",
+        "func": "msg.payload = msg.sub.rows.map((x) => x.value).map((x) => {\n    let { _id, _rev, timestamp, topic, source, ...others } = x;\n    let { vehiclestatus, enginehours, positiondatetime, createddatetime , province_name, printed_timezone, ...other } = others;\n    \n    return {\n            vehicleStatus: vehiclestatus,\n            engineHours: enginehours,\n            positionDatetime: positiondatetime,\n            createdDatetime: createddatetime,\n            provinceName: province_name,\n            printedTimezone: printed_timezone,\n            ...other\n    }  \n});\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 5100,
+        "wires": [
+            [
+                "4331404839e0c751"
+            ]
+        ]
+    },
+    {
+        "id": "45e9e96c98036b2d",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "x": 580,
+        "y": 5040,
+        "wires": [
+            [
+                "d81d2e1546f6f04f"
+            ]
+        ]
+    },
+    {
+        "id": "f50b9b253937ba13",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "get vin by date",
+        "func": "msg.ori = msg.payload;\nlet { vin, date } = msg.ori;\nmsg.sub = {\n    database: 'smart-timeseries',\n    design: 'vehicle-tracker',\n    view: 'by-date-vin',\n    keys: date.map((x) => `[\"${x}\", \"${vin}\"]`),\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 4980,
+        "wires": [
+            [
+                "45e9e96c98036b2d"
+            ]
+        ]
+    },
+    {
+        "id": "ee663dfcd8b6b6be",
+        "type": "function",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "validated",
+        "func": "let valid = false;\nlet { vin, date } = msg.payload;\n\nif (\n    vin\n    && typeof vin == 'string') {\n   valid = true \n}\n\nif(date && Array.isArray(date)) {\n    valid = true\n}\n\nmsg.valid = valid;\nif (!valid) {\n    msg.payload = \"parameter is not valid\"\n}\n\nnode.warn(msg.payload)\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 4980,
+        "wires": [
+            [
+                "f50b9b253937ba13"
+            ]
+        ]
+    },
+    {
+        "id": "c8da9e03ebb83e55",
+        "type": "http in",
+        "z": "d13820078197e616",
+        "g": "0c3d5d23d5b1c898",
+        "name": "",
+        "url": "/api/tracking/journey",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 150,
+        "y": 4980,
+        "wires": [
+            [
+                "ee663dfcd8b6b6be"
+            ]
+        ]
+    },
+    {
         "id": "bc39f3d827ecdc09",
         "type": "function",
         "z": "a40781dc17a39203",
@@ -25308,1057 +26358,6 @@
         "y": 140,
         "wires": [
             []
-        ]
-    },
-    {
-        "id": "0c3d5d23d5b1c898",
-        "type": "group",
-        "z": "d13820078197e616",
-        "name": "new vm endpoint",
-        "style": {
-            "fill": "#ffff00",
-            "label": true,
-            "fill-opacity": "0.26"
-        },
-        "nodes": [
-            "83d7c8cd8470900c",
-            "e73cce7965ceb288",
-            "6f2babbeb15d4008",
-            "bc8e534611b9435e",
-            "092b68da1a720736",
-            "dd1da4ade411844f",
-            "e9c706145b1fd830",
-            "43286ca3b2c5fb3a",
-            "b65868e3f1699a70",
-            "fa48c764d736d636",
-            "58ec3765f3df4628",
-            "fefa1b57f968b850",
-            "856762dbf818d7f4",
-            "55bc919271568e04",
-            "d4e0b948d5c41ebe",
-            "4331404839e0c751",
-            "d81d2e1546f6f04f",
-            "45e9e96c98036b2d",
-            "f50b9b253937ba13",
-            "ee663dfcd8b6b6be",
-            "c8da9e03ebb83e55"
-        ],
-        "x": 14,
-        "y": 4479,
-        "w": 1172,
-        "h": 662
-    },
-    {
-        "id": "593e691d54ede0d6",
-        "type": "inject",
-        "z": "d13820078197e616",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "{\"unittransport\":[5017,5018],\"numDays\":7}",
-        "payloadType": "json",
-        "x": 370,
-        "y": 3140,
-        "wires": [
-            [
-                "05a70a10a02a8b9c"
-            ]
-        ]
-    },
-    {
-        "id": "8c6883bcc23538a4",
-        "type": "function",
-        "z": "d13820078197e616",
-        "name": "function 132",
-        "func": "let { numDays } = msg.ori;\nlet { startDate, endDate } = msg.lastDate;\nconst couchdb = global.get('couchdb');\nlet filterKeys = [];\nlet vinAsset = msg.vinAsset;\n\ngetDates(startDate,endDate).forEach((x) => {\n    vinAsset.forEach((vin) => {\n        filterKeys.push([x,vin]);\n    })\n})\n\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date-vin',{\nkeys: filterKeys \n}).then((x) => {\n    let rows = x.data.rows.map((r) => r.value);\n    let payload = [];\n    msg.vinAsset.forEach((m) => {\n        let row = {\n            vin : m,\n            series : []\n        }\n        let keys = ['altitude',\n         'createdDatetime', \n            'engineHours', 'heading', 'latitude', 'longitude', 'odometer', 'positionDatetime', 'speed', 'vehicleStatus', 'province_name','printed_timezone'];\n        \n        let filterByVin = rows.filter((tracking) => tracking.vin === m);\n        keys.forEach((key) => {\n            let value = {\n                key,\n                data : filterByVin.map((p0) => [p0.timestamp,p0[key.toLocaleLowerCase()]])\n            }\n            row.series.push(value);\n        })\n        \n        payload.push(row);  \n    })\n    msg.payload = payload;\n    node.send(msg);\n})\nreturn null;\n\n\nfunction getDates(start, end) {\n  const dates = [];\n  \n  let endDate = new Date(end);\n  let startDate = new Date(start);\n\n  while (endDate <= startDate) {\n\n    const year = endDate.getFullYear();\n    const month = String(endDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based\n    const day = String(endDate.getDate()).padStart(2, '0');\n    dates.push(`${year}-${month}-${day}`);\n    endDate.setDate(endDate.getDate() + 1);\n  }\n\n  return dates;\n}",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 810,
-        "y": 3320,
-        "wires": [
-            [
-                "8111cf95efee4056",
-                "b2d669a706222f4e"
-            ]
-        ]
-    },
-    {
-        "id": "8111cf95efee4056",
-        "type": "debug",
-        "z": "d13820078197e616",
-        "name": "debug 222",
-        "active": false,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1010,
-        "y": 3320,
-        "wires": []
-    },
-    {
-        "id": "05a70a10a02a8b9c",
-        "type": "function",
-        "z": "d13820078197e616",
-        "name": "get vin by unit-transport",
-        "func": "msg.ori = msg.payload;\nlet { unittransport } = msg.ori;\nmsg.sub = {\n    database: 'smart-asset',\n    design: 'truck',\n    view: 'by-unitID',\n    keys: unittransport.map(x => `[${x}]`),\n}\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 570,
-        "y": 3140,
-        "wires": [
-            [
-                "52f87f20a381ac1f"
-            ]
-        ]
-    },
-    {
-        "id": "52f87f20a381ac1f",
-        "type": "subflow:d7ccf53b2b9fe097",
-        "z": "d13820078197e616",
-        "name": "",
-        "x": 580,
-        "y": 3200,
-        "wires": [
-            [
-                "032b974f7875d18c"
-            ]
-        ]
-    },
-    {
-        "id": "032b974f7875d18c",
-        "type": "function",
-        "z": "d13820078197e616",
-        "name": "msg.vinAsset",
-        "func": "msg.vinAsset = msg.sub.rows.filter(x => x.value != \"\").map(x => x.value.vin);\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 600,
-        "y": 3260,
-        "wires": [
-            [
-                "abd06dbfb1225e56"
-            ]
-        ]
-    },
-    {
-        "id": "5ef2da835fe7b568",
-        "type": "inject",
-        "z": "d13820078197e616",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 620,
-        "y": 3380,
-        "wires": [
-            [
-                "8c6883bcc23538a4"
-            ]
-        ]
-    },
-    {
-        "id": "abd06dbfb1225e56",
-        "type": "function",
-        "z": "d13820078197e616",
-        "name": "get last date of vin tracking",
-        "func": "let { numDays } = msg.ori;\nconst couchdb = global.get('couchdb');\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date-vin',{\n    limit: 1,\n    descending : true\n}).then((x) => {\n\n    // ** if using timestamp\n\n    // const timestamp = x.data.rows.map((r) => r.value.timestamp)[0];\n    // const sevenDaysInMilliseconds = 7 * 24 * 60 * 60 * 1000;\n    // const newTimestamp = timestamp + sevenDaysInMilliseconds;\n\n    //** if using printedTimezone */\n    let startDate = x.data.rows.map((r) => r.value.printed_timezone)[0].split(' ')[0];\n    let newLastDate = new Date(startDate);\n    newLastDate.setDate(newLastDate.getDate() - numDays);\n\n    const year = newLastDate.getFullYear();\n    const month = String(newLastDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based\n    const day = String(newLastDate.getDate()).padStart(2, '0');\n\n    let endDate = `${year}-${month}-${day}`;\n    msg.lastDate = {\n        startDate : startDate,\n        endDate : endDate\n    }\n    node.send(msg);\n})\nreturn null;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 560,
-        "y": 3320,
-        "wires": [
-            [
-                "8c6883bcc23538a4"
-            ]
-        ]
-    },
-    {
-        "id": "eb9842e0adbc1c62",
-        "type": "http in",
-        "z": "d13820078197e616",
-        "name": "",
-        "url": "/api/tracking/n-days",
-        "method": "post",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 150,
-        "y": 3100,
-        "wires": [
-            [
-                "222ef59e6e76b1fc"
-            ]
-        ]
-    },
-    {
-        "id": "b2d669a706222f4e",
-        "type": "http response",
-        "z": "d13820078197e616",
-        "name": "",
-        "statusCode": "200",
-        "headers": {},
-        "x": 1000,
-        "y": 3280,
-        "wires": []
-    },
-    {
-        "id": "222ef59e6e76b1fc",
-        "type": "function",
-        "z": "d13820078197e616",
-        "name": "validated",
-        "func": "let valid = false;\nlet { unittransport, numDays, allUnit } = msg.payload;\nif (\n    numDays\n    && typeof numDays == 'number'\n) {\n    if (unittransport\n        && allUnit == undefined\n        && Array.isArray(unittransport)\n        && unittransport.length > 0) {\n        msg.ori = msg.payload;\n        msg.redisKey = `cache:tracking:${unittransport.join(';')}`\n        valid = true;\n    }\n\n    if (\n        allUnit != undefined\n        && unittransport == undefined\n        && typeof allUnit == 'boolean'\n    ) {\n        msg.ori = msg.payload;\n        msg.redisKey = `cache:tracking:all-unit`\n        valid = true;\n    }\n}\nmsg.valid = valid;\nif (!valid) {\n    msg.payload = \"parameter is not valid\"\n}\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 360,
-        "y": 3100,
-        "wires": [
-            [
-                "05a70a10a02a8b9c"
-            ]
-        ]
-    },
-    {
-        "id": "afa03ddb2e32c516",
-        "type": "http response",
-        "z": "d13820078197e616",
-        "name": "",
-        "statusCode": "",
-        "headers": {},
-        "x": 790,
-        "y": 3580,
-        "wires": []
-    },
-    {
-        "id": "293558a6d0954b57",
-        "type": "function",
-        "z": "d13820078197e616",
-        "name": "function 132",
-        "func": "try {\n    let raw = msg.sub.rows[0].value.payload;\n    let createdAt = msg.sub.rows[0].value.createdAt;\n    let data = JSON.parse(raw);\n    msg.payload = data.map((x) => {\n        // let { vin, vehiclestatus, longitude, latitude, province_name, speed, printed_timezone } = x;\n        return x;\n    })\n    msg.statusCode = 200;\n    node.send(msg);\n} catch (err) {\n    msg.statusCode = 500;\n    msg.payload = {\n        error: err\n    }\n    node.send(msg);\n}",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 510,
-        "y": 3580,
-        "wires": [
-            [
-                "afa03ddb2e32c516"
-            ]
-        ]
-    },
-    {
-        "id": "c99943c51f9d24e0",
-        "type": "subflow:d7ccf53b2b9fe097",
-        "z": "d13820078197e616",
-        "name": "",
-        "x": 540,
-        "y": 3540,
-        "wires": [
-            [
-                "293558a6d0954b57"
-            ]
-        ]
-    },
-    {
-        "id": "71469376ae9e509d",
-        "type": "function",
-        "z": "d13820078197e616",
-        "name": "by-cron-timestamp",
-        "func": "msg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'by-cron-timestamp',\n    limit: 1,\n    descending: true\n}\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 530,
-        "y": 3500,
-        "wires": [
-            [
-                "c99943c51f9d24e0"
-            ]
-        ]
-    },
-    {
-        "id": "6c2dd5a06824f4de",
-        "type": "http in",
-        "z": "d13820078197e616",
-        "name": "",
-        "url": "/api/tracking/last-position-couchdb/all",
-        "method": "get",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 230,
-        "y": 3500,
-        "wires": [
-            [
-                "71469376ae9e509d"
-            ]
-        ]
-    },
-    {
-        "id": "69d85fde8e99d92e",
-        "type": "http response",
-        "z": "d13820078197e616",
-        "name": "",
-        "statusCode": "500",
-        "headers": {},
-        "x": 1040,
-        "y": 3860,
-        "wires": []
-    },
-    {
-        "id": "1de2c16ef0eebac1",
-        "type": "change",
-        "z": "d13820078197e616",
-        "name": "",
-        "rules": [
-            {
-                "t": "set",
-                "p": "payload",
-                "pt": "msg",
-                "to": "query failed",
-                "tot": "str"
-            }
-        ],
-        "action": "",
-        "property": "",
-        "from": "",
-        "to": "",
-        "reg": false,
-        "x": 860,
-        "y": 3860,
-        "wires": [
-            [
-                "69d85fde8e99d92e"
-            ]
-        ]
-    },
-    {
-        "id": "cbfac4fe8e40c9a5",
-        "type": "switch",
-        "z": "d13820078197e616",
-        "name": "",
-        "property": "sub.rows",
-        "propertyType": "msg",
-        "rules": [
-            {
-                "t": "nnull"
-            },
-            {
-                "t": "else"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 2,
-        "x": 690,
-        "y": 3820,
-        "wires": [
-            [
-                "625f88ad8335806c"
-            ],
-            [
-                "1de2c16ef0eebac1"
-            ]
-        ]
-    },
-    {
-        "id": "383b6f142e3d4a8a",
-        "type": "subflow:d7ccf53b2b9fe097",
-        "z": "d13820078197e616",
-        "name": "",
-        "x": 480,
-        "y": 3780,
-        "wires": [
-            [
-                "cbfac4fe8e40c9a5"
-            ]
-        ]
-    },
-    {
-        "id": "625f88ad8335806c",
-        "type": "function",
-        "z": "d13820078197e616",
-        "name": "function 133",
-        "func": "let { vin } = msg.params;\nlet rows = msg.sub.rows.map(x => JSON.parse(x.value.payload));\nmsg.payload = [].concat(...rows).filter((x) => x.vin == vin);\n// msg.payload = rows.map((x) => );\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 870,
-        "y": 3780,
-        "wires": [
-            [
-                "bcd5f68f5f9ccffb"
-            ]
-        ]
-    },
-    {
-        "id": "720ce5917b2d01ec",
-        "type": "function",
-        "z": "d13820078197e616",
-        "name": "smart-bucket hino position",
-        "func": "let { date,vin } = msg.payload;\nmsg.params = {\n    date,\n    vin\n}\nmsg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'hino',\n    key: [date]\n}\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 510,
-        "y": 3740,
-        "wires": [
-            [
-                "383b6f142e3d4a8a"
-            ]
-        ]
-    },
-    {
-        "id": "bcd5f68f5f9ccffb",
-        "type": "http response",
-        "z": "d13820078197e616",
-        "name": "",
-        "statusCode": "200",
-        "headers": {},
-        "x": 1040,
-        "y": 3780,
-        "wires": []
-    },
-    {
-        "id": "4802a53f774bab0a",
-        "type": "http in",
-        "z": "d13820078197e616",
-        "name": "",
-        "url": "/api/tracking/position-couchdb/by-date",
-        "method": "post",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 230,
-        "y": 3700,
-        "wires": [
-            [
-                "720ce5917b2d01ec"
-            ]
-        ]
-    },
-    {
-        "id": "dbfd61be817af48e",
-        "type": "http response",
-        "z": "d13820078197e616",
-        "name": "Download",
-        "statusCode": "",
-        "headers": {
-            "Content-Disposition": "attachment; filename=\"data.json\"",
-            "Content-Type": "application/json"
-        },
-        "x": 1000,
-        "y": 4220,
-        "wires": []
-    },
-    {
-        "id": "8c80e8afa89f4706",
-        "type": "file",
-        "z": "d13820078197e616",
-        "name": "",
-        "filename": "filename",
-        "filenameType": "msg",
-        "appendNewline": false,
-        "createDir": true,
-        "overwriteFile": "true",
-        "encoding": "none",
-        "x": 860,
-        "y": 4220,
-        "wires": [
-            [
-                "dbfd61be817af48e"
-            ]
-        ]
-    },
-    {
-        "id": "2a0b89d2d52396f2",
-        "type": "function",
-        "z": "d13820078197e616",
-        "name": "Generate JSON",
-        "func": "let data = msg.payload;\nlet jsonData = data.rows.map((x) => x.value).map((k) => {\n    let { _rev, ...other } = k;\n    return other;\n})\n\n// Convert JSON data to string\nlet jsonString = JSON.stringify(jsonData, null, 2);\n\n// Specify file name\nlet fileName = 'data.json';\n\n// Write JSON data to file\nmsg.payload = jsonString;\nmsg.filename = fileName;\nnode.send(msg);\nreturn null;\n",
-        "outputs": 1,
-        "timeout": "",
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 680,
-        "y": 4220,
-        "wires": [
-            [
-                "8c80e8afa89f4706"
-            ]
-        ]
-    },
-    {
-        "id": "7edbe7b49e150765",
-        "type": "http in",
-        "z": "d13820078197e616",
-        "name": "Trigger",
-        "url": "/api/tracking/download-smart-bucket",
-        "method": "get",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 110,
-        "y": 4120,
-        "wires": [
-            [
-                "3301d0eff2f287ac"
-            ]
-        ]
-    },
-    {
-        "id": "3301d0eff2f287ac",
-        "type": "function",
-        "z": "d13820078197e616",
-        "name": "by-cron-timestamp",
-        "func": "let { date } = msg.payload;\nmsg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'hino',\n    key: [date]\n}\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 310,
-        "y": 4120,
-        "wires": [
-            [
-                "7455f8aef9b90243"
-            ]
-        ]
-    },
-    {
-        "id": "7455f8aef9b90243",
-        "type": "subflow:d7ccf53b2b9fe097",
-        "z": "d13820078197e616",
-        "name": "",
-        "x": 300,
-        "y": 4160,
-        "wires": [
-            [
-                "e697159bd0cd8e63"
-            ]
-        ]
-    },
-    {
-        "id": "e697159bd0cd8e63",
-        "type": "function",
-        "z": "d13820078197e616",
-        "name": "function 140",
-        "func": "msg.payload = msg.sub;\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 490,
-        "y": 4220,
-        "wires": [
-            [
-                "2a0b89d2d52396f2"
-            ]
-        ]
-    },
-    {
-        "id": "6cc767b9b61d2544",
-        "type": "function",
-        "z": "d13820078197e616",
-        "name": "function 141",
-        "func": "let { docID } = msg.payload;\nconst couchdb = global.get('couchdb');\ncouchdb.openByID('smart-bucket',docID).then((x) => {\n    msg.payload = {\n        bucket : x.data\n    };\n    node.send(msg);\n})\nreturn null;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 230,
-        "y": 4340,
-        "wires": [
-            [
-                "073a6d5eb5890303"
-            ]
-        ]
-    },
-    {
-        "id": "073a6d5eb5890303",
-        "type": "function",
-        "z": "d13820078197e616",
-        "name": "create vm couchdb-timeseries",
-        "func": "let { bucket } = msg.payload;\nconst couchdb = global.get('couchdb');\n\nlet { _id, payload, createdAt } = bucket;\ncouchdb.view('smart-logs', 'cronjob', 'by-topic-tag', {\n    key: ['vehicle-monitoring', 'smartbucket.to.smarttimeseries']\n}).then(res => {\n    let rows = res.data.rows;\n    node.warn(_id);\n    let filterId = rows.filter((r) => r.value.log.source.docID === _id);\n    if (filterId.length == 0 && rows.some(r => r.value.log.source.docID !== _id)) {\n        let doc = {\n            type: 'cronjob',\n            topic: 'vehicle-monitoring',\n            tag: 'smartbucket.to.smarttimeseries',\n            log: {\n                cron: msg.payload,\n                source: {\n                    database: 'smart-bucket',\n                    docID: _id\n                }\n            }\n        }\n        couchdb.insert('smart-logs', doc).then(() => { }, err => node.error(err));\n        let newDocs = JSON.parse(payload).map(x => {\n            return {\n                timestamp: new Date(x.printed_timezone).getTime(),\n                topic: 'vm-tracking',\n                source: {\n                    from: 'smart-bucket',\n                    docID: _id\n                },\n                ...x,\n                createdAt: new Date(),\n                createdBy: 'system'\n            }\n        });\n        couchdb.bulk('smart-timeseries', newDocs).then(res => {\n            msg.payload = {\n                message: 'success'\n            }\n            node.send(msg);\n        }, err => node.error(err));\n    } else {\n        msg.payload = {\n            message : 'already'\n        }\n        node.send(msg);\n    }\n}, err => node.error(err));\n\nreturn null;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 470,
-        "y": 4340,
-        "wires": [
-            [
-                "fd33707df09a6fe3"
-            ]
-        ]
-    },
-    {
-        "id": "b127f669d4a7abde",
-        "type": "http in",
-        "z": "d13820078197e616",
-        "name": "",
-        "url": "/api/tracking/import/bucket",
-        "method": "get",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 170,
-        "y": 4280,
-        "wires": [
-            [
-                "6cc767b9b61d2544"
-            ]
-        ]
-    },
-    {
-        "id": "fd33707df09a6fe3",
-        "type": "http response",
-        "z": "d13820078197e616",
-        "name": "",
-        "statusCode": "200",
-        "headers": {},
-        "x": 670,
-        "y": 4400,
-        "wires": []
-    },
-    {
-        "id": "e73cce7965ceb288",
-        "type": "http response",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "",
-        "statusCode": "",
-        "headers": {},
-        "x": 1110,
-        "y": 4700,
-        "wires": []
-    },
-    {
-        "id": "6f2babbeb15d4008",
-        "type": "function",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "mapping",
-        "func": "try {\n    let raw = msg.sub.rows[0].value.payload;\n    let createdAt = msg.sub.rows[0].value.createdAt;\n    let data = JSON.parse(raw);\n    msg.payload = data.map((x) => {\n        return x;\n    }).filter((x) => {\n        return msg.vinAsset.includes(x.vin)\n    })\n    // msg.payload = msg.vinAsset;\n    msg.statusCode = 200;\n    node.send(msg);\n} catch (err) {\n    msg.statusCode = 500;\n    msg.payload = {\n        error: err\n    }\n    node.send(msg);\n}",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 980,
-        "y": 4700,
-        "wires": [
-            [
-                "e73cce7965ceb288"
-            ]
-        ]
-    },
-    {
-        "id": "bc8e534611b9435e",
-        "type": "subflow:d7ccf53b2b9fe097",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "",
-        "x": 800,
-        "y": 4700,
-        "wires": [
-            [
-                "6f2babbeb15d4008"
-            ]
-        ]
-    },
-    {
-        "id": "092b68da1a720736",
-        "type": "function",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "by-cron-timestamp",
-        "func": "msg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'by-cron-timestamp',\n    limit: 1,\n    descending: true\n}\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 590,
-        "y": 4700,
-        "wires": [
-            [
-                "bc8e534611b9435e"
-            ]
-        ]
-    },
-    {
-        "id": "83d7c8cd8470900c",
-        "type": "http in",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "",
-        "url": "/api/tracking/last-positions",
-        "method": "post",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 170,
-        "y": 4520,
-        "wires": [
-            [
-                "b65868e3f1699a70"
-            ]
-        ]
-    },
-    {
-        "id": "b65868e3f1699a70",
-        "type": "function",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "validated",
-        "func": "let valid = false;\nlet { unittransport, numDays, allUnit } = msg.payload;\nif (\n    numDays\n    && typeof numDays == 'number'\n) {\n    if (unittransport\n        && allUnit == undefined\n        && Array.isArray(unittransport)\n        && unittransport.length > 0) {\n        msg.ori = msg.payload;\n        msg.redisKey = `cache:tracking:${unittransport.join(';')}`\n        valid = true;\n    }\n\n    if (\n        allUnit != undefined\n        && unittransport == undefined\n        && typeof allUnit == 'boolean'\n    ) {\n        msg.ori = msg.payload;\n        msg.redisKey = `cache:tracking:all-unit`\n        valid = true;\n    }\n}\nmsg.valid = valid;\nif (!valid) {\n    msg.payload = \"parameter is not valid\"\n}\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 380,
-        "y": 4520,
-        "wires": [
-            [
-                "43286ca3b2c5fb3a"
-            ]
-        ]
-    },
-    {
-        "id": "43286ca3b2c5fb3a",
-        "type": "function",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "get vin by unit-transport",
-        "func": "msg.ori = msg.payload;\nlet { unittransport } = msg.ori;\nmsg.sub = {\n    database: 'smart-asset',\n    design: 'truck',\n    view: 'by-unitID',\n    keys: unittransport.map(x => `[${x}]`),\n}\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 570,
-        "y": 4520,
-        "wires": [
-            [
-                "e9c706145b1fd830"
-            ]
-        ]
-    },
-    {
-        "id": "e9c706145b1fd830",
-        "type": "subflow:d7ccf53b2b9fe097",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "",
-        "x": 580,
-        "y": 4580,
-        "wires": [
-            [
-                "dd1da4ade411844f"
-            ]
-        ]
-    },
-    {
-        "id": "dd1da4ade411844f",
-        "type": "function",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "msg.vinAsset",
-        "func": "msg.vinAsset = msg.sub.rows.filter(x => x.value != \"\").map(x => x.value.vin);\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 600,
-        "y": 4640,
-        "wires": [
-            [
-                "092b68da1a720736"
-            ]
-        ]
-    },
-    {
-        "id": "d4e0b948d5c41ebe",
-        "type": "http in",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "",
-        "url": "/api/tracking/histories",
-        "method": "post",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 160,
-        "y": 4780,
-        "wires": [
-            [
-                "55bc919271568e04"
-            ]
-        ]
-    },
-    {
-        "id": "55bc919271568e04",
-        "type": "function",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "validated",
-        "func": "let valid = false;\nlet { vin, date } = msg.payload;\n\nif (\n    vin\n    && typeof vin == 'string') {\n   valid = true \n}\n\nif(date && Array.isArray(date)) {\n    valid = true\n}\n\nmsg.valid = valid;\nif (!valid) {\n    msg.payload = \"parameter is not valid\"\n}\n\nnode.warn(msg.payload)\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 380,
-        "y": 4780,
-        "wires": [
-            [
-                "856762dbf818d7f4"
-            ]
-        ]
-    },
-    {
-        "id": "856762dbf818d7f4",
-        "type": "function",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "get vin by date",
-        "func": "msg.ori = msg.payload;\nlet { vin, date } = msg.ori;\nmsg.sub = {\n    database: 'smart-timeseries',\n    design: 'vehicle-tracker',\n    view: 'by-date-vin',\n    keys: date.map((x) => `[\"${x}\", \"${vin}\"]`),\n}\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 600,
-        "y": 4780,
-        "wires": [
-            [
-                "fefa1b57f968b850"
-            ]
-        ]
-    },
-    {
-        "id": "fefa1b57f968b850",
-        "type": "subflow:d7ccf53b2b9fe097",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "",
-        "x": 580,
-        "y": 4840,
-        "wires": [
-            [
-                "58ec3765f3df4628"
-            ]
-        ]
-    },
-    {
-        "id": "58ec3765f3df4628",
-        "type": "function",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "function 142",
-        "func": "msg.payload = msg.sub.rows.map((x) => x.value).map((x) => {\n    let { _id, _rev, timestamp, topic, source, ...others } = x;\n    return others\n});\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 610,
-        "y": 4900,
-        "wires": [
-            [
-                "fa48c764d736d636"
-            ]
-        ]
-    },
-    {
-        "id": "fa48c764d736d636",
-        "type": "http response",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "",
-        "statusCode": "200",
-        "headers": {},
-        "x": 780,
-        "y": 4900,
-        "wires": []
-    },
-    {
-        "id": "4331404839e0c751",
-        "type": "http response",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "",
-        "statusCode": "200",
-        "headers": {},
-        "x": 780,
-        "y": 5100,
-        "wires": []
-    },
-    {
-        "id": "d81d2e1546f6f04f",
-        "type": "function",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "function 143",
-        "func": "msg.payload = msg.sub.rows.map((x) => x.value).map((x) => {\n    let { _id, _rev, timestamp, topic, source, ...others } = x;\n    return others\n});\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 610,
-        "y": 5100,
-        "wires": [
-            [
-                "4331404839e0c751"
-            ]
-        ]
-    },
-    {
-        "id": "45e9e96c98036b2d",
-        "type": "subflow:d7ccf53b2b9fe097",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "",
-        "x": 580,
-        "y": 5040,
-        "wires": [
-            [
-                "d81d2e1546f6f04f"
-            ]
-        ]
-    },
-    {
-        "id": "f50b9b253937ba13",
-        "type": "function",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "get vin by date",
-        "func": "msg.ori = msg.payload;\nlet { vin, date } = msg.ori;\nmsg.sub = {\n    database: 'smart-timeseries',\n    design: 'vehicle-tracker',\n    view: 'by-date-vin',\n    keys: date.map((x) => `[\"${x}\", \"${vin}\"]`),\n}\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 600,
-        "y": 4980,
-        "wires": [
-            [
-                "45e9e96c98036b2d"
-            ]
-        ]
-    },
-    {
-        "id": "ee663dfcd8b6b6be",
-        "type": "function",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "validated",
-        "func": "let valid = false;\nlet { vin, date } = msg.payload;\n\nif (\n    vin\n    && typeof vin == 'string') {\n   valid = true \n}\n\nif(date && Array.isArray(date)) {\n    valid = true\n}\n\nmsg.valid = valid;\nif (!valid) {\n    msg.payload = \"parameter is not valid\"\n}\n\nnode.warn(msg.payload)\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 380,
-        "y": 4980,
-        "wires": [
-            [
-                "f50b9b253937ba13"
-            ]
-        ]
-    },
-    {
-        "id": "c8da9e03ebb83e55",
-        "type": "http in",
-        "z": "d13820078197e616",
-        "g": "0c3d5d23d5b1c898",
-        "name": "",
-        "url": "/api/tracking/journey",
-        "method": "post",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 150,
-        "y": 4980,
-        "wires": [
-            [
-                "ee663dfcd8b6b6be"
-            ]
         ]
     }
 ]
