@@ -208,6 +208,22 @@
         "env": []
     },
     {
+        "id": "20b7dc2960f39878",
+        "type": "tab",
+        "label": "Smart Interface Cron : Configuration",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "4d3d7e544f2e9296",
+        "type": "tab",
+        "label": "Cron Interface : Plant Maintenance",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "77002254b872fa8e",
         "type": "subflow",
         "name": "algo: jwt-sign",
@@ -1425,9 +1441,7 @@
             "c8da9e03ebb83e55"
         ],
         "x": 14,
-        "y": 4479,
-        "w": 1172,
-        "h": 662
+        "y": 4479
     },
     {
         "id": "784d89e62dfb5070",
@@ -26523,6 +26537,799 @@
         "libs": [],
         "x": 330,
         "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "122a9f1d19257f1d",
+        "type": "inject",
+        "z": "20b7dc2960f39878",
+        "name": "start",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "1",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 500,
+        "wires": [
+            [
+                "62265988b9119678"
+            ]
+        ]
+    },
+    {
+        "id": "62265988b9119678",
+        "type": "function",
+        "z": "20b7dc2960f39878",
+        "name": "get cron schedules",
+        "func": "msg.sub = {\n    database: 'smart-configs',\n    design: 'smart-cron',\n    view: 'by-code'\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 500,
+        "wires": [
+            [
+                "256a735a93b26071"
+            ]
+        ]
+    },
+    {
+        "id": "256a735a93b26071",
+        "type": "subflow:d7ccf53b2b9fe097",
+        "z": "20b7dc2960f39878",
+        "name": "",
+        "x": 340,
+        "y": 540,
+        "wires": [
+            [
+                "b6046f1c874a6a4e"
+            ]
+        ]
+    },
+    {
+        "id": "b6046f1c874a6a4e",
+        "type": "function",
+        "z": "20b7dc2960f39878",
+        "name": "loop cron schedules",
+        "func": "\nif(msg.sub.rows.length > 0){\n    let rows = msg.sub.rows.map(x => {\n        let { _id, _rev,  ...data } = x.value;\n        return data;\n    });\n    rows.forEach(function(row) {\n        node.send(row);\n    });\n}else {\n    node.error(\"Data not found\", msg);\n}\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 580,
+        "wires": [
+            [
+                "32229572d80e6efc"
+            ]
+        ]
+    },
+    {
+        "id": "2d7b55595c62a05a",
+        "type": "function",
+        "z": "20b7dc2960f39878",
+        "name": "convert format cron",
+        "func": "\nfunction convertFormatCron(uom,interval,start=null,end=null)\n{\n    let output = '';\n    let secondsCron = '0'\n    let minutesCron = '*'\n    let hourCron = '*'\n    let dayCron = '*'\n    let monthCron = '*'\n    let dayOfWeekCron = '*'\n    if (uom === 'second'){\n        secondsCron = '*/'+interval\n    }\n    if (uom === 'minute'){\n        minutesCron += '/'+interval\n    }\n    if (uom === 'daily') {\n        minutesCron = '0'\n    }\n    if(start && end){\n        start = start.substring(0,2)\n        end = end.substring(0,2)\n        hourCron = start+'-'+end\n    }\n    if(uom == 'hour'){\n        minutesCron += '/'+interval\n    }\n    output = secondsCron+' '+minutesCron+' '+hourCron+' '+dayCron+' '+monthCron+' '+dayOfWeekCron;\n    return output\n}\n\nlet payloadData = []\nlet {code,name,endPoint,credentials} = msg;\ncredentials['passwordDecrypt'] = msg.sub\nlet payloadCron = {\n    code:code,\n    name: name,\n    endPoint: endPoint,\n    credentials: credentials\n}\n\nif(msg.schedules){\n    msg.schedules.forEach(function(schedule) {\n        let cronExpression = convertFormatCron(schedule.UoMInterval, schedule.interval, schedule.start, schedule.end)\n        payloadData.push(\n            {\n                \"command\": \"add\",\n                \"topic\" : msg.code,\n                \"name\": msg.code+'-'+schedule.name,\n                \"expression\": cronExpression,\n                \"expressionType\": \"cron\",\n                \"payloadType\": \"default\",\n                \"payload\": payloadCron,\n                ...(schedule.limit !== undefined && { \"limit\": schedule.limit })\n            }\n        )\n    });\n}\nmsg.schedules = payloadData\n\ndelete msg.sub\nmsg.payload = {...msg}\ndelete msg.payload._msgid\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 580,
+        "wires": [
+            [
+                "c3ca5668d69f050f"
+            ]
+        ]
+    },
+    {
+        "id": "00f19e8dd6d968b5",
+        "type": "subflow:c2f437acbbab02bd",
+        "z": "20b7dc2960f39878",
+        "name": "",
+        "x": 640,
+        "y": 540,
+        "wires": [
+            [
+                "2d7b55595c62a05a"
+            ]
+        ]
+    },
+    {
+        "id": "32229572d80e6efc",
+        "type": "function",
+        "z": "20b7dc2960f39878",
+        "name": "decrypt password",
+        "func": "\nmsg.sub = msg.credentials.password\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 630,
+        "y": 500,
+        "wires": [
+            [
+                "00f19e8dd6d968b5"
+            ]
+        ]
+    },
+    {
+        "id": "aa72e5310109b8c7",
+        "type": "amqp out",
+        "z": "20b7dc2960f39878",
+        "name": "",
+        "routingkey": "",
+        "iotype": "4",
+        "ioname": "cron.plant.maintenance",
+        "server": "e907ba5364e5896f",
+        "x": 1110,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "c3ca5668d69f050f",
+        "type": "switch",
+        "z": "20b7dc2960f39878",
+        "name": "divide per topic",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "plant-maintenance",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 880,
+        "y": 580,
+        "wires": [
+            [
+                "aa72e5310109b8c7"
+            ]
+        ]
+    },
+    {
+        "id": "284bc059de346962",
+        "type": "amqp in",
+        "z": "4d3d7e544f2e9296",
+        "name": "",
+        "topic": "",
+        "iotype": "4",
+        "ioname": "cron.plant.maintenance",
+        "server": "e907ba5364e5896f",
+        "x": 150,
+        "y": 380,
+        "wires": [
+            [
+                "b2849803ee201187"
+            ]
+        ]
+    },
+    {
+        "id": "8c455cb3bf0e3950",
+        "type": "cronplus",
+        "z": "4d3d7e544f2e9296",
+        "name": "plant-maintenance",
+        "outputField": "payload",
+        "timeZone": "",
+        "persistDynamic": false,
+        "commandResponseMsgOutput": "fanOut",
+        "outputs": 2,
+        "options": [],
+        "x": 170,
+        "y": 460,
+        "wires": [
+            [
+                "73e85778075ba338"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "b2849803ee201187",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "prepare schedules",
+        "func": "node.send({\n    payload : msg.payload.schedules\n});\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 170,
+        "y": 420,
+        "wires": [
+            [
+                "8c455cb3bf0e3950"
+            ]
+        ]
+    },
+    {
+        "id": "73e85778075ba338",
+        "type": "switch",
+        "z": "4d3d7e544f2e9296",
+        "name": "",
+        "property": "payload.config.topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "bdn-in",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "bdn-out",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 410,
+        "y": 460,
+        "wires": [
+            [
+                "545a90e6b58264b5"
+            ],
+            [
+                "bae945030eca180f"
+            ]
+        ]
+    },
+    {
+        "id": "545a90e6b58264b5",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "pkb inbound",
+        "func": "\nconst couchdb = global.get('couchdb');\n\n// Get the current date\nconst currentDate = new Date();\n\n// Extract date components\nconst year = currentDate.getFullYear();\nconst month = String(currentDate.getMonth() + 1).padStart(2, '0');\nconst day = String(currentDate.getDate()).padStart(2, '0');\nconst keyDate = `${year}-${month}-${day}`\n\ncouchdb.view('smart-transactions', 'plant-maintenance', 'pkb-by-status', {\n    key: 1\n}).then(res => {\n    \n    let _id = res.data?.rows[0]?.value;\n        if (_id) {\n            \n            try {\n\n                let rows = res.data.rows.map(x => {\n                    let {_id,_rev, topic, apps, form, ...data} = x.value;\n                    return data;\n                });\n                rows = rows.filter(x => x.data.sap === undefined)\n\n                // Grouping By Organizations\n                const groupedData = rows.reduce((acc, item) => {\n                    const key = item.data.organization.id;\n                    if (!acc[key]) {\n                        acc[key] = { organization: item.data.organization, items: [] };\n                    }\n                    const newItem = {\n                        documentNumber : item.data.documentNumber,\n                        asset : item.data.asset,\n                        notifTypeID : item.data.notifTypeID,\n                        remark : item.data.remark,\n                        status : item.data.status,\n                        createdAt : item.meta.createdAt,\n                        createdBy : item.meta.user.created\n                    }\n                    acc[key].items.push(newItem);\n                    return acc;\n                }, {});\n\n                const result = Object.values(groupedData);\n                // Get Last Request Number\n                couchdb.view('smart-transactions', 'logs', 'request-number', {\n                    key: keyDate, limit :1\n                }).then(res => {\n                    node.send({\n                        payload : {\n                            cron : msg.payload,\n                            data : result,\n                            lastRequestNumber : res.data.rows\n                        }\n                    })\n                }, (err) => { node.error(err) }); \n                \n\n            } catch (error) {\n\n                node.error('Error data:', error);\n            }\n        \n        } else {\n            node.error(\"document not found\");\n        }\n}, (err) => { node.error(err) });    \n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 770,
+        "y": 180,
+        "wires": [
+            [
+                "ee32171e3f21576c"
+            ]
+        ]
+    },
+    {
+        "id": "ee32171e3f21576c",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "post to SAP",
+        "func": "const couchdb = global.get('couchdb');\n\n// check if exists\nlet previousRequestNumber = ''\nif(msg.payload.lastRequestNumber.length > 0){\n    let rows = msg.payload.lastRequestNumber.map(x => {\n        let {data} = x.value;\n        return data;\n    });\n    previousRequestNumber = rows[0].lastRequestNumber\n\n    // add for update last request number\n    msg.rowRequestNumber = msg.payload.lastRequestNumber[0].value\n}else {\n    previousRequestNumber = null\n}\nlet postData = []\nlet cronConfig = msg.payload.cron.config.payload\n\nlet logIntegration =  {}\n// Insert Log Integartion\nlet doc = {\n    logType: 'log-cron',\n    topic: 'plant-maintenance',\n    apps : \"dotms\",\n    cron: msg.payload.cron,\n    data : {\n        cronConfig: cronConfig.code,\n        url: cronConfig.endPoint,\n        requestedAt : new Date(),\n        responsedAt : \"\",\n        statusCode : \"\",\n        totalData : 0\n    },\n    createdAt: new Date(),\n    createdBy : 'system'\n}\n\nawait couchdb.insert('smart-transactions', doc).then((res) => { \n    delete res.data.ok\n    logIntegration = res.data\n    delete logIntegration.rev\n    }, err => node.error(err));\n\n// Insert Log Transactions\nlet logTransactions = {}\nlet docTransactions = {\n    logType: 'log-external',\n    topic: 'plant-maintenance',\n    apps : \"dotms\",\n    cron: msg.payload.cron,\n    source: {\n        party: 'sap-pi',\n    },\n    statusCode : msg.payload.statusCode,\n    data :{\n        interfaceType : \"Inbound\",\n        interfaceName : \"BDN\",\n        totalRID : msg.payload.data.length,\n        totalData : 0,\n        errorRID : 0,\n        errorData : 0,\n        detail : []\n    },\n    createdAt: new Date(new Date()),\n    createdBy : 'system'\n}\nawait couchdb.insert('smart-transactions', docTransactions).then((res) => {\n    delete res.data.ok\n    logTransactions = res.data\n    delete logTransactions.rev\n }, err => node.error(err));\n\ndelete msg.payload.cron.config.payload \n\nfunction processArray(arr, i) {\n    if (i < arr.length) {\n        setTimeout(() => {\n\n            let newRequestNumber = generateRequestNumber(previousRequestNumber, i + 1)\n            msg.payload.data[i]['requestNumber'] = newRequestNumber\n            let itemData = []\n            // Push Item Data\n            msg.payload.data[i].items.forEach(function (item) {\n                let [datePart, timePart] = item.createdAt.split('T');\n                timePart = timePart.substring(0, 8)\n                itemData.push({\n                    \"sPKBNumber\": item.documentNumber,\n                    \"sCorpEquipmentNo\": item.asset.corpEquipmentNo,\n                    \"sNotifType\": item.notifTypeID,\n                    \"dCreateDate\": datePart,\n                    \"dCreateTime\": timePart,\n                    \"sNotifDesc\": item.remark,\n                    \"sReportedBy\": item.createdBy.fullName\n                })\n            });\n\n            let payload = {\n                \"sRequestBy\": \"Dotms\",\n                \"sRequestNumber\": newRequestNumber,\n                \"sUnitNm\": msg.payload.data[i].organization.name,\n                \"iTotal\": msg.payload.data[i].items.length,\n                \"arData\": itemData\n            }\n            // node.warn(\"tes \"+ new Date().getMilliseconds());\n             node.send({\n                key : i,\n                totalData: msg.payload.data.length,\n                requestedAt :new Date(),\n                cronConfig : cronConfig,\n                cron : msg.payload.cron,\n                rowRequestNumber : msg.rowRequestNumber,\n                payload: payload,\n                dataSAP : payload,\n                logIntegration: logIntegration,\n                logTransactions: logTransactions\n            })\n            processArray(arr, i + 1); \n        }, 500); \n    }\n}\n\nprocessArray(msg.payload.data, 0);\n\n\nfunction generateRequestNumber(previousNumber,increment=1) {\n    \n// Get the current date\n    const currentDate = new Date();\n    const year = currentDate.getFullYear();\n    const month = String(currentDate.getMonth() + 1).padStart(2, '0');\n    const day = String(currentDate.getDate()).padStart(2, '0');\n    // Extract date components\n   \n    previousNumber = previousNumber || `${year}${month}${day}0000000`; \n    let sequenceNumberPart = previousNumber.substring(8);\n  \n    // Parse the sequence number and increment it\n    const sequenceNumber = parseInt(sequenceNumberPart, 10) + increment;\n\n    // Format the sequence number with leading zeros\n    const formattedSequenceNumber = String(sequenceNumber).padStart(sequenceNumberPart.length, '0');\n\n    // Concatenate date and sequence number to generate the request number\n    const requestNumber = `${year}${month}${day}${formattedSequenceNumber}`;\n\n    return requestNumber;\n}\n// delete msg.topic\n// delete msg.scheduleEvent\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1010,
+        "y": 100,
+        "wires": [
+            [
+                "903e9059b92d9f16"
+            ]
+        ]
+    },
+    {
+        "id": "903e9059b92d9f16",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "insert bucket",
+        "func": "// Check Total Data\nlet doc = {}\nlet db = ''\nlet payloadSize = JSON.stringify(msg.payload).length;\nlet topic = 'plant-maintenance'\nlet logType = ''\nlet data = {}\nif(msg.payload.iTotal == msg.payload.arData.length){\n    db = 'smart-bucket'\n    logType = 'cron-pulling-preparation'\n}else {\n    db = 'smart-transactions'\n    logType = 'log-cron'\n    data = {\n        status : false,\n        message : \"total data is not equal to the array data\"\n    }\n}\ndoc = {\n    logType: logType,\n    topic: 'plant-maintenance',\n    cron: msg.cron,\n    destination: {\n        party: 'sap-pi',\n        url: msg.cronConfig.endPoint\n    },\n    data:data,\n    payloadSize: payloadSize,\n    payload: msg.payload,\n    createdAt : new Date(),\n    createdBy : 'system'\n}\nmsg.sub = {\n    database : db,\n    doc : doc\n}\nreturn msg",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1030,
+        "y": 140,
+        "wires": [
+            [
+                "c708ef0b8ffeb1ea"
+            ]
+        ]
+    },
+    {
+        "id": "c708ef0b8ffeb1ea",
+        "type": "subflow:ef0e7b589320b81a",
+        "z": "4d3d7e544f2e9296",
+        "name": "",
+        "x": 1010,
+        "y": 180,
+        "wires": [
+            [
+                "90f106c33985fc2c"
+            ]
+        ]
+    },
+    {
+        "id": "90f106c33985fc2c",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "prepare to post",
+        "func": "let username = msg.cronConfig.credentials.username\nlet password = msg.cronConfig.credentials.passwordDecrypt\nmsg.url = msg.cronConfig.endPoint;\nmsg.headers = {\n    \"Authorization\": \"Basic \" +\n        Buffer.from(username+':'+password).toString(\"base64\"),\n    \"Content-Type\": \"application/json; charset=utf-8\"\n}\ndelete msg.sub;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1280,
+        "y": 60,
+        "wires": [
+            [
+                "029aaadceeb3d405"
+            ]
+        ]
+    },
+    {
+        "id": "029aaadceeb3d405",
+        "type": "http request",
+        "z": "4d3d7e544f2e9296",
+        "name": "http request pkb in",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1310,
+        "y": 100,
+        "wires": [
+            [
+                "05cb230e66c4f5ee"
+            ]
+        ]
+    },
+    {
+        "id": "05cb230e66c4f5ee",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "get return data",
+        "func": "const couchdb = global.get('couchdb');\nmsg.payload  = JSON.parse(msg.payload)\n\ndelete msg.cronConfig.credentials\nif(msg.payload.status === true){\n    // insert log temporary\n    try{\n        let doc = {\n            logType: 'log-temporary',\n            topic: 'plant-maintenance',\n            apps: \"dotms\",\n            data: {\n                requestNumber: msg.dataSAP['sRequestNumber'],\n                interfaceType: \"BDN\",\n                organizationName: msg.dataSAP['sUnitNm'],\n                total : msg.dataSAP['iTotal']\n            },\n            createdAt : new Date(),\n            createdBy : 'system'\n        }\n        couchdb.insert('smart-transactions', doc).then(() => { }, err => node.error(err));\n        \n    } catch (err) {\n        node.error(err)\n    }\n       \n}\n// Check if finished\n// if((msg.key +1) == msg.data.length){\n    \n    node.send({\n        key : msg.key,\n        totalData: msg.totalData,\n        cron:msg.cron,\n        cronConfig:msg.cronConfig,\n        headers : msg.headers,\n        statusCode : msg.statusCode,\n        url : msg.url,\n        checkRequestNumber : {\n            rowRequestNumber : msg.rowRequestNumber\n        },\n        dataSAP : msg.dataSAP,\n        response : msg.payload,\n        logIntegration : msg.logIntegration,\n        logTransactions : msg.logTransactions\n    })\n// }\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1320,
+        "y": 140,
+        "wires": [
+            [
+                "e08d50df502bba30"
+            ]
+        ]
+    },
+    {
+        "id": "fdcaec3f6d264a6f",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "Update Request Number",
+        "func": "\nlet docs = msg.checkRequestNumber.rowRequestNumber;\nnode.warn(docs);\ndocs.data['lastRequestNumber'] = msg.dataSAP.sRequestNumber\nmsg.sub = {\n    database: 'smart-transactions',\n    docs: docs\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 1000,
+        "wires": [
+            [
+                "615250908d5d00dd"
+            ]
+        ]
+    },
+    {
+        "id": "79ef9bb60549bf61",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "Insert Request Number",
+        "func": "// Get the current date\nconst currentDate = new Date();\nconst year = currentDate.getFullYear();\nconst month = String(currentDate.getMonth() + 1).padStart(2, '0');\nconst day = String(currentDate.getDate()).padStart(2, '0');\nconst keyDate = `${year}-${month}-${day}`\n\nlet doc = {\n   \"logType\": \"log-request-number\",\n  \"topic\": \"plant-maintenance\",\n  \"apps\": \"dotms\",\n  \"data\": {\n    \"lastRequestNumber\": msg.dataSAP.sRequestNumber,\n    \"date\": keyDate\n  }\n}\nmsg.sub = {\n  database : 'smart-transactions',\n  doc : doc\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 1040,
+        "wires": [
+            [
+                "ee42203b2266ff06"
+            ]
+        ]
+    },
+    {
+        "id": "e08d50df502bba30",
+        "type": "amqp out",
+        "z": "4d3d7e544f2e9296",
+        "name": "",
+        "routingkey": "",
+        "iotype": "4",
+        "ioname": "cron.insert.log.transactions",
+        "server": "e907ba5364e5896f",
+        "x": 1560,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "0f0cad3fc2ba9ee5",
+        "type": "amqp in",
+        "z": "4d3d7e544f2e9296",
+        "name": "",
+        "topic": "",
+        "iotype": "4",
+        "ioname": "cron.insert.log.transactions",
+        "server": "e907ba5364e5896f",
+        "x": 140,
+        "y": 980,
+        "wires": [
+            [
+                "2311a4b494a057e1"
+            ]
+        ]
+    },
+    {
+        "id": "2311a4b494a057e1",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "update Logs Integration",
+        "func": "const couchdb = global.get('couchdb');\n// node.warn(msg);\nlet { logIntegration, logTransactions, dataSAP } = msg.payload\ntry {\n  // Update Log Integartion\n  let docIntegration = {}\n  await couchdb.view('smart-transactions', 'logs', 'cron', {\n    key: logIntegration.id\n  }).then(res => {\n    let data = res.data?.rows[0]?.value;\n    if (data) {\n      data['data']['responsedAt'] = new Date()\n      data['data']['totalData'] += dataSAP.iTotal\n      data['data']['statusCode'] = msg.payload.statusCode\n      docIntegration = data\n      couchdb.insert('smart-transactions', docIntegration).then(() => { }, err => node.error(err));\n    }\n  })\n  \n\n  let docTransaction = {}\n  await couchdb.view('smart-transactions', 'logs', 'external', {\n    key: logTransactions.id\n  }).then(res => {\n    let data = res.data?.rows[0]?.value;\n    if (data) {\n      try {\n        let statusResponse = ''\n        let errorDataDetail = 0\n        data.source['url'] = msg.payload.url\n        data.source['headers'] = msg.payload.headers\n        data['statusCode'] = msg.payload.statusCode\n        data['data']['totalData'] += dataSAP.iTotal\n        \n        // check outbond\n        if(msg.checkRequestNumber === false){\n          if (msg.payload.response.sHeader.iTotalError > 0){\n            data['data']['errorRID'] += 1\n            data['data']['errorData'] += msg.payload.response.sHeader.iTotalError\n            errorDataDetail += msg.payload.response.sHeader.iTotalError\n          }\n\n          // Change status\n          if(msg.payload.response.sHeader.iTotal == msg.payload.response.sHeader.iTotalError){\n            statusResponse = 'Error'\n          }else if(msg.payload.response.sHeader.iTotalError == 0){\n            statusResponse = 'Success'\n          }else {\n            statusResponse = 'Success with Error'\n          }\n        }else {\n          if (msg.payload.response.code == 200) {\n            statusResponse = 'Success'\n          } else {\n            statusResponse = 'Error'\n            errorDataDetail += dataSAP.iTotal\n            \n            data['data']['errorRID'] += 1\n            data['data']['errorData'] += dataSAP.iTotal\n          }\n        }\n        \n        \n        data.data.detail.push({\n          requestNumber: dataSAP.sRequestNumber,\n          status: statusResponse,\n          organizationName: dataSAP.sUnitNm,\n          totalData: dataSAP.iTotal,\n          errorData: errorDataDetail,\n          response: msg.payload.response\n        })\n        docTransaction = data\n        couchdb.insert('smart-transactions', docTransaction).then(() => { }, err => node.error(err));\n      } catch (error) {\n        node.error(error);\n      };\n    }\n  })\n  \n}catch(err){\n    node.error('Failed Update Logs '+err);\n}\n\ndelete msg.payload.url\ndelete msg.payload.headers\ndelete msg.payload.cron\ndelete msg.payload.cronConfig\n\nif((msg.payload.key+1) === msg.payload.totalData){\n  // node.warn(msg);\n  node.send({\n    checkRequestNumber : msg.payload.checkRequestNumber,\n      dataSAP : msg.payload.dataSAP\n  });\n}\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 150,
+        "y": 1020,
+        "wires": [
+            [
+                "f5911410a03cec21"
+            ]
+        ]
+    },
+    {
+        "id": "f5911410a03cec21",
+        "type": "switch",
+        "z": "4d3d7e544f2e9296",
+        "name": "check update request number",
+        "property": "checkRequestNumber",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nempty"
+            },
+            {
+                "t": "empty"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 430,
+        "y": 1020,
+        "wires": [
+            [
+                "fdcaec3f6d264a6f"
+            ],
+            [
+                "79ef9bb60549bf61"
+            ]
+        ]
+    },
+    {
+        "id": "ee42203b2266ff06",
+        "type": "subflow:ef0e7b589320b81a",
+        "z": "4d3d7e544f2e9296",
+        "name": "",
+        "x": 970,
+        "y": 1040,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "615250908d5d00dd",
+        "type": "subflow:1de5cd75b2b218c3",
+        "z": "4d3d7e544f2e9296",
+        "name": "",
+        "x": 980,
+        "y": 1000,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bae945030eca180f",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "pkb outbound",
+        "func": "\nconst couchdb = global.get('couchdb');\n\n// Get the current date\nconst currentDate = new Date();\nconst year = currentDate.getFullYear();\nconst month = String(currentDate.getMonth() + 1).padStart(2, '0');\nconst day = String(currentDate.getDate()).padStart(2, '0');\nconst keyDate = `${year}-${month}-${day}`\nlet cronConfig = msg.payload.config.payload\nlet logIntegration =  {}\nlet logTransactions = {}\n// Get Temporary\nlet data = []\nawait couchdb.view('smart-transactions', 'logs', 'temporary-by-interface',{\n    key : 'BDN'\n}).then(res => {\n    \n    if (res.success) {\n        if(res.data.rows.length > 0){\n            data = res.data.rows\n        }\n    } else {\n        node.error(\"document not found\");\n    }\n}, (err) => { node.error(err) });    \n\nif(data.length > 0){\n    \n    \n    // Insert Log Integartion\n    let doc = {\n        logType: 'log-cron',\n        topic: 'plant-maintenance',\n        apps : \"dotms\",\n        cron: msg.payload,\n        data : {\n            cronConfig: cronConfig.code,\n            url: cronConfig.endPoint,\n            requestedAt : new Date(),\n            responsedAt : \"\",\n            statusCode : \"\",\n            totalData : 0\n        },\n        createdAt: new Date(),\n        createdBy : 'system'\n    }\n\n    await couchdb.insert('smart-transactions', doc).then((res) => { \n        delete res.data.ok\n        logIntegration = res.data\n        delete logIntegration.rev\n    }, err => node.error(err));\n\n    // Insert Log Transactions\n    \n    let docTransactions = {\n        logType: 'log-external',\n        topic: 'plant-maintenance',\n        apps : \"dotms\",\n        cron: msg.payload,\n        source: {\n            party: 'sap-pi',\n        },\n        data :{\n            interfaceType : \"Outbound\",\n            interfaceName : \"BDN\",\n            totalRID : data.length,\n            totalData : 0,\n            errorRID : 0,\n            errorData : 0,\n            detail : []\n        },\n        createdAt: new Date(new Date()),\n        createdBy : 'system'\n    }\n    await couchdb.insert('smart-transactions', docTransactions).then((res) => {\n        delete res.data.ok\n        logTransactions = res.data\n        delete logTransactions.rev\n    }, err => node.error(err));\n    // let key =0;\n    // data.forEach(function(row) {\n    //     setTimeout(() => {\n            \n            \n    //         key++;\n    //     }, key * 1000);\n    // });\n    \n\n    processArray(data, 0);\n}\n\nfunction processArray(arr, i) {\n        if (i < arr.length) {\n            setTimeout(() => {\n\n                node.send({\n                    key: i,\n                    cron: msg.payload,\n                    cronConfig: cronConfig,\n                    data: data[i].value.data,\n                    logIntegration: logIntegration,\n                    logTransactions: logTransactions\n                })\n                processArray(arr, i + 1); \n            }, 500); \n        }\n    }\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 440,
+        "wires": [
+            [
+                "69edcd9db9f849d0"
+            ]
+        ]
+    },
+    {
+        "id": "69edcd9db9f849d0",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "Post to SAP",
+        "func": "let username = msg.cronConfig.credentials.username\nlet password = msg.cronConfig.credentials.passwordDecrypt\nmsg.url = msg.cronConfig.endPoint;\nmsg.payload = {\n    \"sRequestNumber\": msg.data.requestNumber\n}\nmsg.headers = {\n    \"Authorization\": \"Basic \" +\n        Buffer.from(username+':'+password).toString(\"base64\"),\n    \"Content-Type\": \"application/json; charset=utf-8\"\n}\ndelete msg.sub;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1010,
+        "y": 400,
+        "wires": [
+            [
+                "2ebd5b4f5836283a"
+            ]
+        ]
+    },
+    {
+        "id": "2ebd5b4f5836283a",
+        "type": "http request",
+        "z": "4d3d7e544f2e9296",
+        "name": "http request pkb out",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1040,
+        "y": 440,
+        "wires": [
+            [
+                "279ba532ca924dde"
+            ]
+        ]
+    },
+    {
+        "id": "f3837b4743299611",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "delete temporary",
+        "func": "const couchdb = global.get('couchdb');\n// Update PKB Data\nif(msg.payload.arItem.length > 0){\n    msg.payload.arItem.forEach(async function(item) {\n        if(item.sPKBNumber){\n            await couchdb.view('smart-transactions', 'plant-maintenance', 'pkb',{\n                key: item.sPKBNumber\n            }).then(res => {\n\n                try {\n                    let docPKB = res.data.rows.map(x => {\n                        return x.value\n                    })\n                    docPKB = docPKB[0]\n                    if(msg.payload.sHeader && msg.payload.sHeader.arItem){\n                        \n                        docPKB.data.sap = {\n                            requestNumber : msg.payload.sHeader.sRequestNumber,\n                            notificationID : item.sNotification,\n                            notifCreatedDate: item.dNotifCreateDate + ' ' + item.dNotifCreateTime,\n                            vehicleStatus: item.sVehicleStatus\n                        }\n                        couchdb.insert('smart-transactions', docPKB).then(() => { }, err => node.error(err));\n                        \n                    }\n                } catch (error) {\n                    node.error(error);\n                };\n                \n            }, (err) => { node.error(err) });  \n        }\n    });\n}\n\n// Delete Temporary\nawait couchdb.view('smart-transactions', 'logs', 'temporary-by-request-number',{\nkey : msg.data.requestNumber\n}).then(res => {\n    if (res.success) {\n        if(res.data.rows.length > 0){\n            let docs = res.data.rows.map(x => {\n                return x.value\n            })\n            msg.sub = {\n                database : 'smart-transactions',\n                docs : docs\n            }\n        }\n    } else {\n        node.error(\"document not found\");\n    }\n}, (err) => { node.error(err) });  \n\n\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1430,
+        "y": 400,
+        "wires": [
+            [
+                "8d84f5342d192acc"
+            ]
+        ]
+    },
+    {
+        "id": "8d84f5342d192acc",
+        "type": "subflow:2feba16f27db3384",
+        "z": "4d3d7e544f2e9296",
+        "name": "",
+        "x": 1500,
+        "y": 440,
+        "wires": [
+            [
+                "28de8ec661c05765"
+            ]
+        ]
+    },
+    {
+        "id": "4129dd0119c01ea0",
+        "type": "switch",
+        "z": "4d3d7e544f2e9296",
+        "name": "",
+        "property": "payload.code",
+        "propertyType": "jsonata",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "200",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "404",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 1230,
+        "y": 480,
+        "wires": [
+            [
+                "f3837b4743299611"
+            ],
+            [
+                "107a27c310568fff"
+            ]
+        ]
+    },
+    {
+        "id": "279ba532ca924dde",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "convert response",
+        "func": "const couchdb = global.get('couchdb');\nmsg.payload = JSON.parse(msg.payload)\nlet payloadSize = JSON.stringify(msg.payload).length;\nlet doc = {\n    logType: 'cron-pulling-external',\n    topic: 'plant-maintenance',\n    cron: msg.cron,\n    source: {\n        party: 'sap-pi',\n        url: msg.url,\n        headers : msg.headers\n    },\n    payloadSize: payloadSize,\n    payload: msg.payload,\n    createdAt : new Date(),\n    createdBy : 'system'\n}\ncouchdb.insert('smart-bucket', doc).then(() => { }, err => node.error(err));\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1050,
+        "y": 480,
+        "wires": [
+            [
+                "4129dd0119c01ea0"
+            ]
+        ]
+    },
+    {
+        "id": "28de8ec661c05765",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "update logs",
+        "func": "\nmsg.dataSAP = {\n    sRequestNumber : msg.payload.sHeader.sRequestNumber,\n    sUnitNm : msg.payload.sHeader.sUnitNm,\n    iTotal : msg.payload.sHeader.iTotal\n}\nnode.send({\n    key : msg.key,\n    totalData: msg.totalData,\n    cron:msg.cron,\n    cronConfig:msg.cronConfig,\n    headers : msg.headers,\n    statusCode : msg.statusCode,\n    url : msg.url,\n    checkRequestNumber : false,\n    dataSAP : msg.dataSAP,\n    response : msg.payload,\n    logIntegration : msg.logIntegration,\n    logTransactions : msg.logTransactions\n})\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1770,
+        "y": 440,
+        "wires": [
+            [
+                "62414a01269bce58"
+            ]
+        ]
+    },
+    {
+        "id": "62414a01269bce58",
+        "type": "amqp out",
+        "z": "4d3d7e544f2e9296",
+        "name": "",
+        "routingkey": "",
+        "iotype": "4",
+        "ioname": "cron.insert.log.transactions",
+        "server": "e907ba5364e5896f",
+        "x": 2000,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "107a27c310568fff",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "update logs",
+        "func": "node.warn(msg);\n\ntry {\n    msg.dataSAP = {\n        sRequestNumber : msg.data.requestNumber,\n        sUnitNm : msg.data.organizationName,\n        iTotal : msg.data.total\n    }\n    node.send({\n        key : msg.key,\n        totalData: msg.data.total,\n        cron:msg.cron,\n        cronConfig:msg.cronConfig,\n        headers : msg.headers,\n        statusCode : msg.statusCode,\n        url : msg.url,\n        checkRequestNumber : false,\n        dataSAP : msg.dataSAP,\n        response : msg.payload,\n        logIntegration : msg.logIntegration,\n        logTransactions : msg.logTransactions\n    })\n} catch (error) {\n    node.error(error);\n};\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1410,
+        "y": 500,
+        "wires": [
+            [
+                "62414a01269bce58"
+            ]
+        ]
+    },
+    {
+        "id": "71422dde6b913aad",
+        "type": "catch",
+        "z": "4d3d7e544f2e9296",
+        "name": "catch error from sap request",
+        "scope": [
+            "029aaadceeb3d405",
+            "2ebd5b4f5836283a"
+        ],
+        "uncaught": false,
+        "x": 140,
+        "y": 1200,
+        "wires": [
+            [
+                "15e1c7b47913c16c"
+            ]
+        ]
+    },
+    {
+        "id": "15e1c7b47913c16c",
+        "type": "function",
+        "z": "4d3d7e544f2e9296",
+        "name": "insert error from SAP",
+        "func": "try {\n    let doc = {\n        logType: 'log-cron',\n        topic: 'plant-maintenance',\n        apps : \"dotms\",\n        cron: msg.cron,\n        data : {\n            type : \"error\",\n            message : msg.error.message,\n            source : msg.error.source\n        },\n        createdAt: new Date(),\n        createdBy : 'system'\n    }\n    msg.sub = {\n        database : 'smart-transactions',\n        doc : doc\n    }\n} catch (error) {\n    node.error(error);\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 160,
+        "y": 1240,
+        "wires": [
+            [
+                "e2c8b2adebc6e3ea"
+            ]
+        ]
+    },
+    {
+        "id": "e2c8b2adebc6e3ea",
+        "type": "subflow:ef0e7b589320b81a",
+        "z": "4d3d7e544f2e9296",
+        "name": "",
+        "x": 390,
+        "y": 1240,
         "wires": [
             []
         ]
