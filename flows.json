@@ -27608,5 +27608,79 @@
                 "a58e150a45e6d209"
             ]
         ]
+    },
+    {
+        "id": "13479453cbde1709",
+        "type": "inject",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "",
+        "props": [
+            {
+                "p": "date",
+                "v": "2024-01-16",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 330,
+        "y": 680,
+        "wires": [
+            [
+                "38e5509c45dad4a5"
+            ]
+        ]
+    },
+    {
+        "id": "38e5509c45dad4a5",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "smart bucket",
+        "func": "const couchdb = global.get('couchdb');\nlet date = msg.date;\nlet year = date.split('-')[0];\nlet month = date.split('-')[1];\nlet day = date.split('-')[2];\nnode.warn(msg.date);\n\ncouchdb.view('smart-timeseries', 'vehicle-tracker', 'by-timestamp-vin', {\n    limit: 1000\n}).then(res => {\n    let docs = res.data.rows.map(d => {\n        let { _id, _rev } = d.value;\n        return {\n            _id, _rev, _deleted: true\n        }\n    });\n    node.send({\n        sub: {\n            database: 'smart-timeseries',\n            docs\n        }\n    });\n    // couchdb.bulk('smart-timeseries', docs).then(res => {\n    //     node.warn(res);\n    // }, err => node.error(err))\n}, err => node.error(err));\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 680,
+        "wires": [
+            [
+                "684231112252228b"
+            ]
+        ]
+    },
+    {
+        "id": "684231112252228b",
+        "type": "subflow:2feba16f27db3384",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "",
+        "x": 660,
+        "y": 720,
+        "wires": [
+            [
+                "51c9b2df0ed06e8e"
+            ]
+        ]
+    },
+    {
+        "id": "51c9b2df0ed06e8e",
+        "type": "debug",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "debug 223",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 970,
+        "y": 720,
+        "wires": []
     }
 ]
