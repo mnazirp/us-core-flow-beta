@@ -224,6 +224,14 @@
         "env": []
     },
     {
+        "id": "21fbb7ee1d1dbc43",
+        "type": "tab",
+        "label": "N-TEST",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "77002254b872fa8e",
         "type": "subflow",
         "name": "algo: jwt-sign",
@@ -1336,13 +1344,15 @@
             "fill-opacity": "0.4"
         },
         "nodes": [
-            "bc3395fb23c960b3",
             "6989d9d7ed54d28c",
             "7a5b7cbb1a6dd572",
-            "0eae8461b0dc1b2a"
+            "0eae8461b0dc1b2a",
+            "bc3395fb23c960b3"
         ],
         "x": 34,
-        "y": 439
+        "y": 439,
+        "w": 492,
+        "h": 122
     },
     {
         "id": "7aaf569aa41ac02a",
@@ -1363,7 +1373,9 @@
             "7f66a0114336a27e"
         ],
         "x": 34,
-        "y": 39
+        "y": 39,
+        "w": 552,
+        "h": 162
     },
     {
         "id": "93d125404594bdb3",
@@ -1383,7 +1395,9 @@
             "596ccc69fa7978cd"
         ],
         "x": 34,
-        "y": 259
+        "y": 259,
+        "w": 572,
+        "h": 122
     },
     {
         "id": "0e692d4a74821e66",
@@ -1441,6 +1455,29 @@
         ],
         "x": 14,
         "y": 4479
+    },
+    {
+        "id": "dd75aac5ccc19969",
+        "type": "group",
+        "z": "8a2099e398e5d7dd",
+        "name": "wt: smart-geofence to transaction",
+        "style": {
+            "stroke": "none",
+            "fill": "#e3f3d3",
+            "fill-opacity": "0.47",
+            "label": true,
+            "color": "#ff3f3f"
+        },
+        "nodes": [
+            "b5554c124e5b1c35",
+            "f68f5ccc879116d2",
+            "941d83c60856db75",
+            "6d6cb3da3073a535"
+        ],
+        "x": 34,
+        "y": 619,
+        "w": 512,
+        "h": 122
     },
     {
         "id": "784d89e62dfb5070",
@@ -26051,24 +26088,6 @@
         "wires": []
     },
     {
-        "id": "bc3395fb23c960b3",
-        "type": "promptinput",
-        "z": "8a2099e398e5d7dd",
-        "g": "9f1e98d4426d35e3",
-        "name": "",
-        "datatype": "str",
-        "prompt": "enter tracking date",
-        "property": "date",
-        "propertyType": "msg",
-        "x": 150,
-        "y": 480,
-        "wires": [
-            [
-                "6989d9d7ed54d28c"
-            ]
-        ]
-    },
-    {
         "id": "6989d9d7ed54d28c",
         "type": "function",
         "z": "8a2099e398e5d7dd",
@@ -26269,6 +26288,103 @@
         "wires": [
             [
                 "b16a4b8417bb586d"
+            ]
+        ]
+    },
+    {
+        "id": "b5554c124e5b1c35",
+        "type": "inject",
+        "z": "8a2099e398e5d7dd",
+        "g": "dd75aac5ccc19969",
+        "name": "",
+        "props": [
+            {
+                "p": "date",
+                "v": "2024-01-16",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 170,
+        "y": 700,
+        "wires": [
+            [
+                "f68f5ccc879116d2"
+            ]
+        ]
+    },
+    {
+        "id": "f68f5ccc879116d2",
+        "type": "function",
+        "z": "8a2099e398e5d7dd",
+        "g": "dd75aac5ccc19969",
+        "name": "get smart-geographic by date",
+        "func": "const couchdb = global.get('couchdb');\nlet date = msg.date;\ncouchdb.view('smart-libs', 'refs', 'by-topic', {\n    keys: ['wt-devices', 'wt-party-ident']\n}).then(res => {\n    let devices = res.data.rows[0].value.data;\n    let party = res.data.rows[1].value.data;\n\n    let identities = devices.map(x => {\n        return {\n            device: x.szDeviceID,\n            imei: x.szPhysicalNo1,\n            nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n        }\n    });\n    identities.forEach(ident => {\n        couchdb.view('smart-geographic', 'geofence', 'by-date-nik', {\n            // key: [\"2024-01-16\", \"18cd4e0f0a5e54cf94f63e8b920ce76b\"]\n            key: [date, ident.nik]\n        }).then(res => {let data = res.data.rows.map(x => x.value);\n            let trees = {};\n            data.forEach(item => {\n                let { tree, event } = item;\n                if (trees[tree]) {\n                    trees[tree].visited++;\n                    trees[tree].harvested += Number(event);\n                } else {\n                    trees[tree] = {\n                        ...item,\n                        visited: 1,\n                        harvested: Number(event)\n                    };\n                }\n            });\n            let rs = {\n                ident,\n                date,\n                transaction: Object.keys(trees).map(x => {\n                    return {\n                        ...trees[x]\n                    }\n                })\n            }\n            if (rs.transaction.length > 0) {\n                node.send({\n                    payload: rs\n                });\n            }\n        }, err => { node.error(err) });\n    });\n});",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 660,
+        "wires": [
+            [
+                "941d83c60856db75"
+            ]
+        ]
+    },
+    {
+        "id": "941d83c60856db75",
+        "type": "amqp out",
+        "z": "8a2099e398e5d7dd",
+        "g": "dd75aac5ccc19969",
+        "name": "",
+        "routingkey": "",
+        "iotype": "4",
+        "ioname": "wt.transaction",
+        "server": "e907ba5364e5896f",
+        "x": 360,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "bc3395fb23c960b3",
+        "type": "promptinput",
+        "z": "8a2099e398e5d7dd",
+        "g": "9f1e98d4426d35e3",
+        "name": "",
+        "datatype": "str",
+        "prompt": "enter tracking date",
+        "property": "date",
+        "propertyType": "msg",
+        "x": 150,
+        "y": 480,
+        "wires": [
+            [
+                "6989d9d7ed54d28c"
+            ]
+        ]
+    },
+    {
+        "id": "6d6cb3da3073a535",
+        "type": "promptinput",
+        "z": "8a2099e398e5d7dd",
+        "g": "dd75aac5ccc19969",
+        "name": "",
+        "datatype": "str",
+        "prompt": "enter tracking date",
+        "property": "date",
+        "propertyType": "msg",
+        "x": 150,
+        "y": 660,
+        "wires": [
+            [
+                "f68f5ccc879116d2"
             ]
         ]
     },
@@ -27165,6 +27281,330 @@
         "y": 1240,
         "wires": [
             []
+        ]
+    },
+    {
+        "id": "f23db2d9e869aa26",
+        "type": "inject",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 320,
+        "y": 100,
+        "wires": [
+            [
+                "d5eb8f4941922f85",
+                "85af61f2e2576352",
+                "8380057a8d298c27",
+                "8e7fc7ac1b9429f8",
+                "74dc0d56de796b31"
+            ]
+        ]
+    },
+    {
+        "id": "d5eb8f4941922f85",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "transactions",
+        "func": "const couchdb = global.get('couchdb');\n\nlet date = \"2024-01-16\";\nlet nik = \"SMSE-99015\";\ncouchdb.view('transactions', 'filter', 'by-harvester-date', {\n    key: [nik, date]\n}).then(res => {\n    let data = res.data.rows.map(x => x.value);\n    let rs = data.map(x => x.harvested).reduce((val, acc) => val + acc);\n    node.warn(`${date} - ${nik} transaction: ${rs}`);\n}, err => node.error(err));\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "85af61f2e2576352",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "redisTS",
+        "func": "const redisTS = global.get('redisTS');\n\n// redisTS.commands([\n//     ['TS.MRANGE', '-', '+', 'FILTER', 'type=worker-tracker', 'topic=event']\n// ]).then(res => {\n//     let event = res.data[0].map(x => [x[0].split(':')[1], x[2]]);\n//     let mapEvent = new Map(event.map(([device, series]) => [device, series]));\n//     node.warn(mapEvent.get('wt0005').filter(x => Number(x[1]) > 1));\n// })\nlet d = new Date('2024-01-16');\nlet start = d.setHours(0, 0, 0, 0);\nlet end = d.setHours(23, 59, 59, 999);\nlet deviceID = \"wt0020\"\n\nredisTS.commands([\n    // ['TS.MRANGE', '1705424400000', '1705510799999', 'FILTER', 'deviceID=wt0027', 'topic=event']\n    ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', `deviceID=${deviceID}`, 'topic=event']\n]).then(res => {\n    let event = res.data[0].map(x => [x[0].split(':')[1], x[2]]);\n    let mapEvent = new Map(event.map(([device, series]) => [device, series]));\n    let rs = mapEvent.get(deviceID).map(x => Number(x[1])).reduce((acc, num) => {\n        return acc + num\n    });\n    node.warn(`${d} - ${deviceID} redis-ts: ${rs}`);\n})\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "74dc0d56de796b31",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "temp02",
+        "func": "const couchdb = global.get('couchdb');\n\n// couchdb.list('temp').then(res => {\n//     let docs = res.data.rows.map(x => x.doc);\n//     let rs = [];\n//     docs.forEach(doc => {\n//         if (doc.payload.geofencing) rs.push(...doc.payload.geofencing)\n//     });\n//     node.warn(rs);\n// }, err => node.error(err))\n\n// couchdb.view('temp02', 'list', 'event-by-nik-tree', {\n//     key: [\"SMSE-99001\", \"ec82a4c118a0bc418298a4bf0b2a43e8\"]\n// }).then((res) => {\n//     let docs = res.data.rows;\n//     node.warn(docs.filter(x => Number(x.value) > 1));\n// }, err => node.error(err));\n\n// couchdb.view('temp02', 'list', 'by-nik-block', {\n//     key: [\"SMSE-99022\", \"D-57\"]\n// }).then((res) => {\n//     let docs = res.data.rows.map(x => x.value);\n//     node.warn(docs);\n// }, err => node.error(err));\n\ncouchdb.view('temp02', 'list', 'by-nik', {\n    key: \"SMSE-99015\"\n}).then((res) => {\n    let docs = res.data.rows.map(x => x.value);\n    let rs = docs.filter(x => Number(x.event) > 0).map(x => Number(x.event))\n        ?.reduce((sum, val) => sum + val);\n    node.warn(`temp02: ${rs}`);\n}, err => node.error(err));\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8e7fc7ac1b9429f8",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "smart-timeseries",
+        "func": "const couchdb = global.get('couchdb');\nlet date = \"2024-01-16\";\nlet imei = \"350317171475175\";\n\ncouchdb.view('smart-timeseries', 'worker-tracker', 'by-date-imei', {\n    key: [date, imei]\n}).then(res => {\n    let data = res.data.rows.map(x => x.value)\n    let rs = data.filter(x => x.eventtype == \"alarm\").length;\n    node.warn(`${date} - ${imei} smart-timeseries: ${rs}`);\n}, err => node.error(err));\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 60,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8380057a8d298c27",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "smart-bucket",
+        "func": "const couchdb = global.get('couchdb');\nlet date = \"16012024\";\nlet imei = \"350317171475175\";\n\ncouchdb.view('smart-bucket', 'set-manual', 'worker-tracker', {\n    key: [date],\n    limit: 1\n}).then(res => {\n    let _id = res.data?.rows[0]?.value;\n    if (_id) {\n        couchdb.openByID('smart-bucket', _id).then(res => {\n            let utc8 = res.data.payload;\n            let data = csvBufferToJson(utc8);\n            let rs = data.filter(x => x.imei == imei && x.eventtype == \"alarm\").length;\n            node.warn(`${date} - ${imei} smart-bucket: ${rs}`);\n        })\n    }\n});\nreturn msg;\n\n\nfunction csvBufferToJson(csvBuffer) {\n    // Convert the CSV buffer to a string\n    const csvString = csvBuffer.toString('utf8');\n\n    // Split the CSV string into lines\n    const lines = csvString.split('\\n');\n\n    // Extract header (assuming the first line is the header)\n    const headers = lines[0].trim().split(',');\n\n    // Initialize an array to store the JSON objects\n    const jsonArray = [];\n\n    // Iterate over each line (starting from the second line) to create JSON objects\n    for (let i = 1; i < lines.length; i++) {\n        const values = lines[i].trim().split(',');\n        const jsonObject = {};\n\n        // Populate the JSON object with key-value pairs\n        for (let j = 0; j < headers.length; j++) {\n            jsonObject[headers[j].replace(/\"/g, '')] = (values[j]) ? values[j].replace(/\"/g, '') : \"\";\n        }\n\n        // Add the JSON object to the array\n        jsonArray.push(jsonObject);\n    }\n\n    return jsonArray;\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 20,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4c8cf52361dd7470",
+        "type": "inject",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "",
+        "props": [
+            {
+                "p": "date",
+                "v": "2024-01-16",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 330,
+        "y": 460,
+        "wires": [
+            [
+                "3153decd1fda954f"
+            ]
+        ]
+    },
+    {
+        "id": "3153decd1fda954f",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "smart bucket",
+        "func": "const couchdb = global.get('couchdb');\nlet date = msg.date;\nlet year = date.split('-')[0];\nlet month = date.split('-')[1];\nlet day = date.split('-')[2];\nnode.warn(msg.date);\n\ncouchdb.view('smart-libs', 'refs', 'by-topic', {\n    keys: ['wt-devices', 'wt-party-ident']\n}).then(res => {\n    let devices = res.data.rows[0].value.data;\n    let party = res.data.rows[1].value.data;\n\n    let identities = devices.map(x => {\n        return {\n            device: x.szDeviceID,\n            imei: x.szPhysicalNo1,\n            nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n        }\n    });\n    couchdb.view('smart-bucket', 'set-manual', 'worker-tracker', {\n        key: [`${day}${month}${year}`],\n        limit: 1\n    }).then(res => {\n        let _id = res.data?.rows[0]?.value;\n        if (_id) {\n            couchdb.openByID('smart-bucket', _id).then(res => {\n                let utc8 = res.data.payload;\n                let bucket = csvBufferToJson(utc8);\n                let rs = [];\n                identities.forEach(ident => {\n                    if (bucket.some(x => x.imei == ident.imei)) {\n                        rs.push({\n                            ...ident,\n                            tracking: bucket.filter(x => x.imei == ident.imei).length,\n                            harvested: bucket.filter(x => x.imei == ident.imei && x.eventtype == \"alarm\").length\n                        });\n                    }\n                });\n                node.warn(rs);\n            })\n        }\n    });\n}, err => node.error(err));\n\nfunction csvBufferToJson(csvBuffer) {\n    // Convert the CSV buffer to a string\n    const csvString = csvBuffer.toString('utf8');\n\n    // Split the CSV string into lines\n    const lines = csvString.split('\\n');\n\n    // Extract header (assuming the first line is the header)\n    const headers = lines[0].trim().split(',');\n\n    // Initialize an array to store the JSON objects\n    const jsonArray = [];\n\n    // Iterate over each line (starting from the second line) to create JSON objects\n    for (let i = 1; i < lines.length; i++) {\n        const values = lines[i].trim().split(',');\n        const jsonObject = {};\n\n        // Populate the JSON object with key-value pairs\n        for (let j = 0; j < headers.length; j++) {\n            jsonObject[headers[j].replace(/\"/g, '')] = (values[j]) ? values[j].replace(/\"/g, '') : \"\";\n        }\n\n        // Add the JSON object to the array\n        jsonArray.push(jsonObject);\n    }\n\n    return jsonArray;\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "74aeec1bb36beab4",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "temp03",
+        "func": "const couchdb = global.get('couchdb');\n\n// couchdb.list('temp').then(res => {\n//     let docs = res.data.rows.map(x => x.doc);\n//     let rs = [];\n//     docs.forEach(doc => {\n//         if (doc.payload.geofencing) rs.push(...doc.payload.geofencing)\n//     });\n//     node.warn(rs);\n// }, err => node.error(err))\n\n// couchdb.view('temp02', 'list', 'event-by-nik-tree', {\n//     key: [\"SMSE-99001\", \"ec82a4c118a0bc418298a4bf0b2a43e8\"]\n// }).then((res) => {\n//     let docs = res.data.rows;\n//     node.warn(docs.filter(x => Number(x.value) > 1));\n// }, err => node.error(err));\n\n// couchdb.view('temp02', 'list', 'by-nik-block', {\n//     key: [\"SMSE-99022\", \"D-57\"]\n// }).then((res) => {\n//     let docs = res.data.rows.map(x => x.value);\n//     node.warn(docs);\n// }, err => node.error(err));\n\ncouchdb.view('temp03', 'list', 'by-nik', {\n    key: \"SMSE-99022\"\n}).then((res) => {\n    let docs = res.data.rows.map(x => x.value);\n    node.warn(docs.filter(x => Number(x.event) > 0));\n}, err => node.error(err));\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "066450afe52f879c",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "temp",
+        "func": "const couchdb = global.get('couchdb');\n\n// couchdb.list('temp').then(res => {\n//     let docs = res.data.rows.map(x => x.doc);\n//     let rs = [];\n//     docs.forEach(doc => {\n//         if (doc.payload.geofencing) rs.push(...doc.payload.geofencing)\n//     });\n//     node.warn(rs);\n// }, err => node.error(err))\n\n// couchdb.view('temp02', 'list', 'event-by-nik-tree', {\n//     key: [\"SMSE-99001\", \"ec82a4c118a0bc418298a4bf0b2a43e8\"]\n// }).then((res) => {\n//     let docs = res.data.rows;\n//     node.warn(docs.filter(x => Number(x.value) > 1));\n// }, err => node.error(err));\n\n// couchdb.view('temp02', 'list', 'by-nik-block', {\n//     key: [\"SMSE-99022\", \"D-57\"]\n// }).then((res) => {\n//     let docs = res.data.rows.map(x => x.value);\n//     node.warn(docs);\n// }, err => node.error(err));\n\ncouchdb.view('temp', 'list', 'by-nik', {\n    key: \"SMSE-99022\"\n}).then((res) => {\n    let docs = res.data.rows.map(x => x.value);\n    node.warn(docs.filter(x => Number(x.event) > 0));\n}, err => node.error(err));\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 550,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3376f2c2eec9b8bb",
+        "type": "promptinput",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "",
+        "datatype": "str",
+        "prompt": "enter tracking date",
+        "property": "date",
+        "propertyType": "msg",
+        "x": 310,
+        "y": 420,
+        "wires": [
+            [
+                "3153decd1fda954f"
+            ]
+        ]
+    },
+    {
+        "id": "c24fa6a1bfd323f4",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "couch smart-timeseries",
+        "func": "const couchdb = global.get('couchdb');\nlet date = msg.date;\nnode.warn(msg.date);\n\ncouchdb.view('smart-libs', 'refs', 'by-topic', {\n    keys: ['wt-devices', 'wt-party-ident']\n}).then(res => {\n    let devices = res.data.rows[0].value.data;\n    let party = res.data.rows[1].value.data;\n\n    let identities = devices.map(x => {\n        return {\n            device: x.szDeviceID,\n            imei: x.szPhysicalNo1,\n            nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n        }\n    });\n    identities.forEach(ident => {\n        couchdb.view('smart-timeseries', 'worker-tracker', 'by-date-imei', {\n            key: [date, ident.imei],\n        }).then(res => {\n            let data = res.data.rows.map(x => x.value);\n            node.warn({\n                ...ident,\n                tracking: data.length,\n                harvested: data.filter(x => x.eventtype == \"alarm\").length\n            });\n        }, err => node.error(err));\n    });\n}, err => node.error(err));",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3bd3c2fbd6ec0298",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "redisTS timeseries",
+        "func": "const couchdb = global.get('couchdb');\nconst redisTS = global.get('redisTS');\nlet date = msg.date;\nnode.warn(msg.date);\n\ncouchdb.view('smart-libs', 'refs', 'by-topic', {\n    keys: ['wt-devices', 'wt-party-ident']\n}).then(res => {\n    let devices = res.data.rows[0].value.data;\n    let party = res.data.rows[1].value.data;\n\n    let identities = devices.map(x => {\n        return {\n            device: x.szDeviceID,\n            imei: x.szPhysicalNo1,\n            nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n        }\n    });\n    identities.forEach(ident => {\n        let d = new Date(date);\n        let start = d.setHours(0, 0, 0, 0);\n        let end = d.setHours(23, 59, 59, 999);\n        let deviceID = ident.device\n\n        redisTS.commands([\n            ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', `deviceID=${deviceID}`, 'topic=event']\n        ]).then(res => {\n            let event = res.data[0].map(x => [x[0].split(':')[1], x[2]]);\n            let mapEvent = new Map(event.map(([device, series]) => [device, series]));\n            let tracking = mapEvent.get(deviceID)?.length;\n            let harvested = mapEvent.get(deviceID)?.map(x => Number(x[1])).reduce((acc, num) => {\n                return acc + num\n            });\n            if (tracking || harvested) {\n                node.warn({\n                    ...ident,\n                    tracking,\n                    harvested\n                });\n            }\n        })\n    })\n}, err => node.error(err));",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 540,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a58e150a45e6d209",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "transactions",
+        "func": "const couchdb = global.get('couchdb');\nconst redisTS = global.get('redisTS');\nlet date = msg.date;\nnode.warn(msg.date);\n\ncouchdb.view('smart-libs', 'refs', 'by-topic', {\n    keys: ['wt-devices', 'wt-party-ident']\n}).then(res => {\n    let devices = res.data.rows[0].value.data;\n    let party = res.data.rows[1].value.data;\n\n    let identities = devices.map(x => {\n        return {\n            device: x.szDeviceID,\n            imei: x.szPhysicalNo1,\n            nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n        }\n    });\n    identities.forEach(ident => {\n        couchdb.view('transactions', 'filter', 'by-harvester-date', {\n            key: [ident.nik, date]\n        }).then(res => {\n            let data = res.data.rows.map(x => x.value);\n            let visited = data.map(x => x.visited).reduce((val, acc) => val + acc, 0);\n            let harvested = data.map(x => x.harvested).reduce((val, acc) => val + acc, 0);\n            if (visited > 0) {\n                node.warn({\n                    ...ident,\n                    visitedTreesNum: data.length,\n                    visited: data.map(x => x.visited).reduce((val, acc) => val + acc, 0),\n                    harvested: data.map(x => x.harvested).reduce((val, acc) => val + acc, 0)\n                });\n            }\n        }, err => node.error(err));\n    })\n}, err => node.error(err));",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 580,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "677b18b854e92fab",
+        "type": "promptinput",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "",
+        "datatype": "str",
+        "prompt": "enter tracking date",
+        "property": "date",
+        "propertyType": "msg",
+        "x": 310,
+        "y": 500,
+        "wires": [
+            [
+                "c24fa6a1bfd323f4"
+            ]
+        ]
+    },
+    {
+        "id": "b72c8dec5b44c1c9",
+        "type": "promptinput",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "",
+        "datatype": "str",
+        "prompt": "enter tracking date",
+        "property": "date",
+        "propertyType": "msg",
+        "x": 310,
+        "y": 540,
+        "wires": [
+            [
+                "3bd3c2fbd6ec0298"
+            ]
+        ]
+    },
+    {
+        "id": "73a92e38a9c45070",
+        "type": "promptinput",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "",
+        "datatype": "str",
+        "prompt": "enter tracking date",
+        "property": "date",
+        "propertyType": "msg",
+        "x": 310,
+        "y": 580,
+        "wires": [
+            [
+                "a58e150a45e6d209"
+            ]
         ]
     }
 ]
