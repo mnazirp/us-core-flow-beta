@@ -1412,7 +1412,9 @@
             "850008dec9093eba"
         ],
         "x": 34,
-        "y": 39
+        "y": 39,
+        "w": 512,
+        "h": 142
     },
     {
         "id": "0c3d5d23d5b1c898",
@@ -26355,7 +26357,7 @@
         "z": "8a2099e398e5d7dd",
         "g": "dd75aac5ccc19969",
         "name": "get smart-geographic by date",
-        "func": "const couchdb = global.get('couchdb');\nlet date = msg.date;\ncouchdb.view('smart-libs', 'refs', 'by-topic', {\n    keys: ['wt-devices', 'wt-party-ident']\n}).then(res => {\n    let devices = res.data.rows[0].value.data;\n    let party = res.data.rows[1].value.data;\n\n    let identities = devices.map(x => {\n        return {\n            device: x.szDeviceID,\n            imei: x.szPhysicalNo1,\n            nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n        }\n    });\n    identities.forEach(ident => {\n        couchdb.view('smart-geographic', 'geofence', 'by-date-nik', {\n            // key: [\"2024-01-16\", \"18cd4e0f0a5e54cf94f63e8b920ce76b\"]\n            key: [date, ident.nik]\n        }).then(res => {let data = res.data.rows.map(x => x.value);\n            let trees = {};\n            data.forEach(item => {\n                let { tree, event } = item;\n                if (trees[tree]) {\n                    trees[tree].visited++;\n                    trees[tree].harvested += Number(event);\n                } else {\n                    trees[tree] = {\n                        ...item,\n                        visited: 1,\n                        harvested: Number(event)\n                    };\n                }\n            });\n            let rs = {\n                ident,\n                date,\n                transaction: Object.keys(trees).map(x => {\n                    return {\n                        ...trees[x]\n                    }\n                })\n            }\n            if (rs.transaction.length > 0) {\n                node.send({\n                    payload: rs\n                });\n            }\n        }, err => { node.error(err) });\n    });\n});",
+        "func": "const couchdb = global.get('couchdb');\nlet date = msg.date;\n\ncouchdb.view('smart-logs', 'cronjob', 'by-date-topic-tag', {\n    key: [date, 'worker-tracker', 'gefence.to.transaction'],\n    limit: 1\n}).then(res => {\n    let log = res.data.rows[0]?.value;\n    if (!log) {\n        let doc = {\n            type: \"cronjob\",\n            topic: \"worker-tracker\",\n            tag: \"gefence.to.transaction\",\n            source: {\n                database: \"smart-geographic\",\n                design: \"geofence\",\n                view: \"by-date-nik\",\n                key: [date, \"ident.nik\"],\n            },\n            date,\n        }\n        couchdb.insert('smart-logs', doc).then(() => {\n            couchdb.view('smart-libs', 'refs', 'by-topic', {\n                keys: ['wt-devices', 'wt-party-ident']\n            }).then(res => {\n                let devices = res.data.rows[0].value.data;\n                let party = res.data.rows[1].value.data;\n\n                let identities = devices.map(x => {\n                    return {\n                        device: x.szDeviceID,\n                        imei: x.szPhysicalNo1,\n                        nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n                    }\n                });\n                identities.forEach(ident => {\n                    couchdb.view('smart-geographic', 'geofence', 'by-date-nik', {\n                        key: [date, ident.nik]\n                    }).then(res => {\n                        let data = res.data.rows.map(x => x.value);\n                        let trees = {};\n                        data.forEach(item => {\n                            let { tree, event } = item;\n                            if (trees[tree]) {\n                                trees[tree].visited++;\n                                trees[tree].harvested += Number(event);\n                            } else {\n                                trees[tree] = {\n                                    ...item,\n                                    visited: 1,\n                                    harvested: Number(event)\n                                };\n                            }\n                        });\n                        let rs = {\n                            ident,\n                            date,\n                            transaction: Object.keys(trees).map(x => {\n                                return {\n                                    ...trees[x]\n                                }\n                            })\n                        }\n                        if (rs.transaction.length > 0) {\n                            node.send({\n                                payload: rs\n                            });\n                        }\n                    }, err => { node.error(err) });\n                });\n            });\n        }, err => node.error(err));\n    } else {\n        node.warn(`date: ${date} already execute `);\n        node.warn(log);\n    }\n}, err => node.error(err));",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -28085,5 +28087,79 @@
                 "c511ff12c9b2a251"
             ]
         ]
+    },
+    {
+        "id": "13479453cbde1709",
+        "type": "inject",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "",
+        "props": [
+            {
+                "p": "date",
+                "v": "2024-01-16",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 330,
+        "y": 680,
+        "wires": [
+            [
+                "38e5509c45dad4a5"
+            ]
+        ]
+    },
+    {
+        "id": "38e5509c45dad4a5",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "smart bucket",
+        "func": "const couchdb = global.get('couchdb');\nlet date = msg.date;\nlet year = date.split('-')[0];\nlet month = date.split('-')[1];\nlet day = date.split('-')[2];\nnode.warn(msg.date);\n\ncouchdb.view('smart-timeseries', 'vehicle-tracker', 'by-timestamp-vin', {\n    limit: 1000\n}).then(res => {\n    let docs = res.data.rows.map(d => {\n        let { _id, _rev } = d.value;\n        return {\n            _id, _rev, _deleted: true\n        }\n    });\n    node.send({\n        sub: {\n            database: 'smart-timeseries',\n            docs\n        }\n    });\n    // couchdb.bulk('smart-timeseries', docs).then(res => {\n    //     node.warn(res);\n    // }, err => node.error(err))\n}, err => node.error(err));\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 680,
+        "wires": [
+            [
+                "684231112252228b"
+            ]
+        ]
+    },
+    {
+        "id": "684231112252228b",
+        "type": "subflow:2feba16f27db3384",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "",
+        "x": 660,
+        "y": 720,
+        "wires": [
+            [
+                "51c9b2df0ed06e8e"
+            ]
+        ]
+    },
+    {
+        "id": "51c9b2df0ed06e8e",
+        "type": "debug",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "debug 223",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 970,
+        "y": 720,
+        "wires": []
     }
 ]
