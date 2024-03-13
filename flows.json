@@ -1412,9 +1412,7 @@
             "850008dec9093eba"
         ],
         "x": 34,
-        "y": 39,
-        "w": 512,
-        "h": 142
+        "y": 39
     },
     {
         "id": "0c3d5d23d5b1c898",
@@ -1511,7 +1509,9 @@
             "39d8bafe143d94e7"
         ],
         "x": 34,
-        "y": 659
+        "y": 639,
+        "w": 1152,
+        "h": 442
     },
     {
         "id": "784d89e62dfb5070",
@@ -21657,15 +21657,15 @@
         "type": "function",
         "z": "d13820078197e616",
         "g": "0c3d5d23d5b1c898",
-        "name": "by-cron-timestamp",
-        "func": "msg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'by-date',\n    limit: 1,\n    descending: true\n}\nreturn msg;",
+        "name": "by-cron-date",
+        "func": "msg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'by-cron-timestamp',\n    limit: 1,\n    descending: true\n}\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 590,
+        "x": 570,
         "y": 4340,
         "wires": [
             [
@@ -27664,7 +27664,7 @@
         "payload": "{\"date\":\"2024-03-09 22:55:15\"}",
         "payloadType": "json",
         "x": 310,
-        "y": 700,
+        "y": 680,
         "wires": [
             [
                 "010ddcdd886303c5"
@@ -27685,7 +27685,7 @@
         "finalize": "",
         "libs": [],
         "x": 680,
-        "y": 780,
+        "y": 760,
         "wires": [
             [
                 "519120d7ca9110e9"
@@ -27706,7 +27706,7 @@
         "finalize": "",
         "libs": [],
         "x": 520,
-        "y": 740,
+        "y": 720,
         "wires": [
             [
                 "a21d88dd5b67cb2d"
@@ -27727,7 +27727,7 @@
         "finalize": "",
         "libs": [],
         "x": 870,
-        "y": 780,
+        "y": 760,
         "wires": [
             [
                 "f14289672131f49c"
@@ -27745,7 +27745,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 210,
-        "y": 740,
+        "y": 720,
         "wires": [
             [
                 "010ddcdd886303c5"
@@ -27761,7 +27761,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 1060,
-        "y": 780,
+        "y": 760,
         "wires": []
     },
     {
@@ -27773,7 +27773,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 860,
-        "y": 920,
+        "y": 900,
         "wires": []
     },
     {
@@ -27790,7 +27790,7 @@
         "finalize": "",
         "libs": [],
         "x": 690,
-        "y": 920,
+        "y": 900,
         "wires": [
             [
                 "f755121d8eb0a89b",
@@ -27812,7 +27812,7 @@
         "finalize": "",
         "libs": [],
         "x": 500,
-        "y": 920,
+        "y": 900,
         "wires": [
             [
                 "4079e2ef49ab3d13"
@@ -27833,7 +27833,7 @@
         "finalize": "",
         "libs": [],
         "x": 520,
-        "y": 880,
+        "y": 860,
         "wires": [
             [
                 "21c9d64c217aab55"
@@ -27863,7 +27863,7 @@
         "payload": "{\"date\":\"2024-03-10\"}",
         "payloadType": "json",
         "x": 260,
-        "y": 840,
+        "y": 820,
         "wires": [
             [
                 "5016c0dca4797967"
@@ -27881,7 +27881,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 230,
-        "y": 880,
+        "y": 860,
         "wires": [
             [
                 "5016c0dca4797967"
@@ -27902,7 +27902,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 870,
-        "y": 880,
+        "y": 860,
         "wires": []
     },
     {
@@ -27919,7 +27919,7 @@
         "finalize": "",
         "libs": [],
         "x": 510,
-        "y": 780,
+        "y": 760,
         "wires": [
             [
                 "ae963f38b7504e00"
@@ -27935,7 +27935,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 1060,
-        "y": 1060,
+        "y": 1040,
         "wires": []
     },
     {
@@ -27952,7 +27952,7 @@
         "finalize": "",
         "libs": [],
         "x": 870,
-        "y": 1060,
+        "y": 1040,
         "wires": [
             [
                 "ba8ae9524445c3c3",
@@ -27974,7 +27974,7 @@
         "finalize": "",
         "libs": [],
         "x": 680,
-        "y": 1060,
+        "y": 1040,
         "wires": [
             [
                 "5e278373547e9ff9"
@@ -27995,7 +27995,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 1070,
-        "y": 1020,
+        "y": 1000,
         "wires": []
     },
     {
@@ -28012,7 +28012,7 @@
         "finalize": "",
         "libs": [],
         "x": 520,
-        "y": 1020,
+        "y": 1000,
         "wires": [
             [
                 "39d8bafe143d94e7"
@@ -28042,7 +28042,7 @@
         "payload": "{\"date\":\"2024-03-09 22:55:15\",\"vins\":[\"MJEC1JG43M5196180\",\"MJEC1JG43M5196110\"]}",
         "payloadType": "json",
         "x": 310,
-        "y": 980,
+        "y": 960,
         "wires": [
             [
                 "069355cdbbf8268f"
@@ -28060,7 +28060,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 220,
-        "y": 1020,
+        "y": 1000,
         "wires": [
             [
                 "069355cdbbf8268f"
@@ -28081,85 +28081,11 @@
         "finalize": "",
         "libs": [],
         "x": 510,
-        "y": 1060,
+        "y": 1040,
         "wires": [
             [
                 "c511ff12c9b2a251"
             ]
         ]
-    },
-    {
-        "id": "13479453cbde1709",
-        "type": "inject",
-        "z": "21fbb7ee1d1dbc43",
-        "name": "",
-        "props": [
-            {
-                "p": "date",
-                "v": "2024-01-16",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "x": 330,
-        "y": 680,
-        "wires": [
-            [
-                "38e5509c45dad4a5"
-            ]
-        ]
-    },
-    {
-        "id": "38e5509c45dad4a5",
-        "type": "function",
-        "z": "21fbb7ee1d1dbc43",
-        "name": "smart bucket",
-        "func": "const couchdb = global.get('couchdb');\nlet date = msg.date;\nlet year = date.split('-')[0];\nlet month = date.split('-')[1];\nlet day = date.split('-')[2];\nnode.warn(msg.date);\n\ncouchdb.view('smart-timeseries', 'vehicle-tracker', 'by-timestamp-vin', {\n    limit: 1000\n}).then(res => {\n    let docs = res.data.rows.map(d => {\n        let { _id, _rev } = d.value;\n        return {\n            _id, _rev, _deleted: true\n        }\n    });\n    node.send({\n        sub: {\n            database: 'smart-timeseries',\n            docs\n        }\n    });\n    // couchdb.bulk('smart-timeseries', docs).then(res => {\n    //     node.warn(res);\n    // }, err => node.error(err))\n}, err => node.error(err));\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 570,
-        "y": 680,
-        "wires": [
-            [
-                "684231112252228b"
-            ]
-        ]
-    },
-    {
-        "id": "684231112252228b",
-        "type": "subflow:2feba16f27db3384",
-        "z": "21fbb7ee1d1dbc43",
-        "name": "",
-        "x": 660,
-        "y": 720,
-        "wires": [
-            [
-                "51c9b2df0ed06e8e"
-            ]
-        ]
-    },
-    {
-        "id": "51c9b2df0ed06e8e",
-        "type": "debug",
-        "z": "21fbb7ee1d1dbc43",
-        "name": "debug 223",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 970,
-        "y": 720,
-        "wires": []
     }
 ]
