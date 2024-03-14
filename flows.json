@@ -1350,9 +1350,7 @@
             "bc3395fb23c960b3"
         ],
         "x": 34,
-        "y": 439,
-        "w": 492,
-        "h": 122
+        "y": 439
     },
     {
         "id": "7aaf569aa41ac02a",
@@ -1373,9 +1371,7 @@
             "7f66a0114336a27e"
         ],
         "x": 34,
-        "y": 39,
-        "w": 552,
-        "h": 162
+        "y": 39
     },
     {
         "id": "93d125404594bdb3",
@@ -1395,9 +1391,7 @@
             "596ccc69fa7978cd"
         ],
         "x": 34,
-        "y": 259,
-        "w": 572,
-        "h": 122
+        "y": 259
     },
     {
         "id": "0e692d4a74821e66",
@@ -1418,9 +1412,7 @@
             "850008dec9093eba"
         ],
         "x": 34,
-        "y": 39,
-        "w": 512,
-        "h": 142
+        "y": 39
     },
     {
         "id": "0c3d5d23d5b1c898",
@@ -1479,9 +1471,7 @@
             "6d6cb3da3073a535"
         ],
         "x": 34,
-        "y": 619,
-        "w": 512,
-        "h": 122
+        "y": 619
     },
     {
         "id": "79f14cb89367b4f4",
@@ -1518,9 +1508,9 @@
             "6b13bea405683fd6",
             "2e0c73c9eb5a7cb9"
         ],
-        "x": 34,
+        "x": 24,
         "y": 39,
-        "w": 832,
+        "w": 842,
         "h": 322
     },
     {
@@ -1554,9 +1544,9 @@
             "549fe57a3dac1475",
             "39d8bafe143d94e7"
         ],
-        "x": 34,
+        "x": 24,
         "y": 419,
-        "w": 992,
+        "w": 1002,
         "h": 322
     },
     {
@@ -21799,7 +21789,7 @@
         "z": "d13820078197e616",
         "g": "0c3d5d23d5b1c898",
         "name": "msg.vinAsset",
-        "func": "msg.vinAsset = msg.sub.rows.filter(x => x.value != \"\").map(x => x.value.vin);\nreturn msg;",
+        "func": "let { date } = msg.ori;\nmsg.vinAsset = msg.sub.rows.map((x) => x.value).filter((x) => {\n    if (x.dtmModifiedDate) {\n        let currentDate = new Date(date);\n        let dtmModifiedDate = new Date(x.dtmModifiedDate.split('T')[0])\n        return currentDate > dtmModifiedDate;\n    }\n    return false\n}).map(x => x.szPhysicalNo2);\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
