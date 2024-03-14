@@ -1350,7 +1350,9 @@
             "bc3395fb23c960b3"
         ],
         "x": 34,
-        "y": 439
+        "y": 439,
+        "w": 492,
+        "h": 122
     },
     {
         "id": "7aaf569aa41ac02a",
@@ -1371,7 +1373,9 @@
             "7f66a0114336a27e"
         ],
         "x": 34,
-        "y": 39
+        "y": 39,
+        "w": 552,
+        "h": 162
     },
     {
         "id": "93d125404594bdb3",
@@ -1391,7 +1395,9 @@
             "596ccc69fa7978cd"
         ],
         "x": 34,
-        "y": 259
+        "y": 259,
+        "w": 572,
+        "h": 122
     },
     {
         "id": "0e692d4a74821e66",
@@ -1412,7 +1418,9 @@
             "850008dec9093eba"
         ],
         "x": 34,
-        "y": 39
+        "y": 39,
+        "w": 512,
+        "h": 142
     },
     {
         "id": "0c3d5d23d5b1c898",
@@ -1471,7 +1479,9 @@
             "6d6cb3da3073a535"
         ],
         "x": 34,
-        "y": 619
+        "y": 619,
+        "w": 512,
+        "h": 122
     },
     {
         "id": "79f14cb89367b4f4",
@@ -1497,12 +1507,21 @@
             "bdad5c44e54e648e",
             "673fe7e431ea5280",
             "9247ded782e33a4c",
-            "51d21a11f29668f6"
+            "51d21a11f29668f6",
+            "09f1745aeb69835f",
+            "19f3ca38b5fd94e9",
+            "85fb7a0cdbb4fc66",
+            "1143f8a2883c867f",
+            "4555d331e8fbc9fc",
+            "55af1ca819b6e14a",
+            "806ca1825dc55108",
+            "6b13bea405683fd6",
+            "2e0c73c9eb5a7cb9"
         ],
-        "x": 24,
+        "x": 34,
         "y": 39,
-        "w": 842,
-        "h": 202
+        "w": 832,
+        "h": 322
     },
     {
         "id": "31635bca54f414f8",
@@ -1535,9 +1554,9 @@
             "549fe57a3dac1475",
             "39d8bafe143d94e7"
         ],
-        "x": 24,
-        "y": 279,
-        "w": 1002,
+        "x": 34,
+        "y": 419,
+        "w": 992,
         "h": 322
     },
     {
@@ -27419,7 +27438,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "79f14cb89367b4f4",
         "name": "calc redis-timeseries",
-        "func": "let { date } = msg.payload;\nif (!isValidDate(date)) {\n    _nextError(\"invalid date param\")\n}\n\ntry {\n    const couchdb = global.get('couchdb');\n    const redisTS = global.get('redisTS');\n\n    couchdb.view('smart-libs', 'refs', 'by-topic', {\n        keys: ['wt-devices', 'wt-party-ident']\n    }).then(res => {\n        let devices = res.data.rows[0].value.data;\n        let party = res.data.rows[1].value.data;\n\n        let identities = devices.map(x => {\n            return {\n                device: x.szDeviceID,\n                imei: x.szPhysicalNo1,\n                nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n            }\n        });\n        let rs = [];\n        for (let i = 0; i < identities.length; i++) {\n            let d = new Date(date);\n            let start = d.setHours(0, 0, 0, 0);\n            let end = d.setHours(23, 59, 59, 999);\n            let deviceID = identities[i].device\n\n            redisTS.commands([\n                ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', `deviceID=${deviceID}`, 'topic=event']\n            ]).then(res => {\n                let event = res.data[0].map(x => [x[0].split(':')[1], x[2]]);\n                let mapEvent = new Map(event.map(([device, series]) => [device, series]));\n                let tracking = mapEvent.get(deviceID)?.length;\n                let harvested = mapEvent.get(deviceID)?.map(x => Number(x[1])).reduce((acc, num) => {\n                    return acc + num\n                });\n                rs.push({\n                    ...identities[i],\n                    tracking,\n                    harvested\n                });\n                if (rs.length == identities.length) {\n                    _next(rs.filter(x => x.tracking && x.harvested));\n                }\n            }, err => _nextError(err));\n        }\n    }, err => _nextError(err));\n} catch (err) { _nextError(err) }\n\nfunction isValidDate(dateString) {\n    // Regular expression to match YYYY-MM-DD format\n    const regex = /^\\d{4}-\\d{2}-\\d{2}$/;\n    return regex.test(dateString);\n}\n\nfunction _next(payload) {\n    msg.statusCode = 200;\n    msg.payload = payload;\n    node.send(msg);\n}\n\nfunction _nextError(err) {\n    msg.statusCode = 500;\n    msg.payload = err;\n    node.send(msg);\n}",
+        "func": "let { date } = msg.payload;\nif (!isValidDate(date)) {\n    _nextError(\"invalid date param\")\n}\n\ntry {\n    const couchdb = global.get('couchdb');\n    const redisTS = global.get('redisTS');\n\n    couchdb.view('smart-libs', 'refs', 'by-topic', {\n        keys: ['wt-devices', 'wt-party-ident']\n    }).then(res => {\n        let devices = res.data.rows[0].value.data;\n        let party = res.data.rows[1].value.data;\n\n        let identities = devices.map(x => {\n            return {\n                device: x.szDeviceID,\n                imei: x.szPhysicalNo1,\n                nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n            }\n        });\n        let rs = [];\n        for (let i = 0; i < identities.length; i++) {\n            let d = new Date(date);\n            let start = d.setHours(0, 0, 0, 0);\n            let end = d.setHours(23, 59, 59, 999);\n            let deviceID = identities[i].device\n\n            redisTS.commands([\n                ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', `deviceID=${deviceID}`, 'topic=event']\n            ]).then(res => {\n                let event = res.data[0].map(x => [x[0].split(':')[1], x[2]]);\n                let mapEvent = new Map(event.map(([device, series]) => [device, series]));\n                let tracking = mapEvent.get(deviceID)?.length;\n                let harvested = mapEvent.get(deviceID)?.map(x => Number(x[1])).reduce((acc, num) => {\n                    return acc + num\n                });\n                rs.push({\n                    ...identities[i],\n                    tracking,\n                    harvested\n                });\n                if (rs.length == identities.length) {\n                    _next(rs.filter(x => x.tracking && x.harvested));\n                }\n            }, err => rs.push(err));\n        }\n    }, err => _nextError(err));\n} catch (err) { _nextError(err) }\n\nfunction isValidDate(dateString) {\n    // Regular expression to match YYYY-MM-DD format\n    const regex = /^\\d{4}-\\d{2}-\\d{2}$/;\n    return regex.test(dateString);\n}\n\nfunction _next(payload) {\n    msg.statusCode = 200;\n    msg.payload = payload;\n    node.send(msg);\n}\n\nfunction _nextError(err) {\n    msg.statusCode = 500;\n    msg.payload = err;\n    node.send(msg);\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27470,7 +27489,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "79f14cb89367b4f4",
         "name": "calc smart-timeseries",
-        "func": "let { date } = msg.payload;\nif (!isValidDate(date)) {\n    _nextError(\"invalid date param\")\n}\n\ntry {\n    const couchdb = global.get('couchdb');\n\n    couchdb.view('smart-libs', 'refs', 'by-topic', {\n        keys: ['wt-devices', 'wt-party-ident']\n    }).then(res => {\n        let devices = res.data.rows[0].value.data;\n        let party = res.data.rows[1].value.data;\n\n        let identities = devices.map(x => {\n            return {\n                device: x.szDeviceID,\n                imei: x.szPhysicalNo1,\n                nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n            }\n        });\n        let rs = [];\n        for (let i = 0; i < identities.length; i++) {\n            couchdb.view('smart-timeseries', 'worker-tracker', 'by-date-imei', {\n                key: [date, identities[i].imei],\n            }).then(res => {\n                let data = res.data.rows.map(x => x.value);\n                rs.push({\n                    ...identities[i],\n                    tracking: data.length,\n                    harvested: data.filter(x => x.eventtype == \"alarm\").length\n                });\n                if (rs.length == identities.length) {\n                    _next(rs.filter(x => x.tracking && x.harvested));\n                }\n            }, err => _nextError(err));\n        }\n    }, err => _nextError(err));\n} catch (err) { _nextError(err) }\n\nfunction isValidDate(dateString) {\n    // Regular expression to match YYYY-MM-DD format\n    const regex = /^\\d{4}-\\d{2}-\\d{2}$/;\n    return regex.test(dateString);\n}\n\nfunction _next(payload) {\n    msg.statusCode = 200;\n    msg.payload = payload;\n    node.send(msg);\n}\n\nfunction _nextError(err) {\n    msg.statusCode = 500;\n    msg.payload = err;\n    node.send(msg);\n}",
+        "func": "let { date } = msg.payload;\nif (!isValidDate(date)) {\n    _nextError(\"invalid date param\")\n}\n\ntry {\n    const couchdb = global.get('couchdb');\n\n    couchdb.view('smart-libs', 'refs', 'by-topic', {\n        keys: ['wt-devices', 'wt-party-ident']\n    }).then(res => {\n        let devices = res.data.rows[0].value.data;\n        let party = res.data.rows[1].value.data;\n\n        let identities = devices.map(x => {\n            return {\n                device: x.szDeviceID,\n                imei: x.szPhysicalNo1,\n                nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n            }\n        });\n        let rs = [];\n        for (let i = 0; i < identities.length; i++) {\n            couchdb.view('smart-timeseries', 'worker-tracker', 'by-date-imei', {\n                key: [date, identities[i].imei],\n            }).then(res => {\n                let data = res.data.rows.map(x => x.value);\n                rs.push({\n                    ...identities[i],\n                    tracking: data.length,\n                    harvested: data.filter(x => x.eventtype == \"alarm\").length\n                });\n                if (rs.length == identities.length) {\n                    _next(rs.filter(x => x.tracking && x.harvested));\n                }\n            }, err => rs.push(err));\n        }\n    }, err => _nextError(err));\n} catch (err) { _nextError(err) }\n\nfunction isValidDate(dateString) {\n    // Regular expression to match YYYY-MM-DD format\n    const regex = /^\\d{4}-\\d{2}-\\d{2}$/;\n    return regex.test(dateString);\n}\n\nfunction _next(payload) {\n    msg.statusCode = 200;\n    msg.payload = payload;\n    node.send(msg);\n}\n\nfunction _nextError(err) {\n    msg.statusCode = 500;\n    msg.payload = err;\n    node.send(msg);\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27554,7 +27573,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-bucket",
-        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\nlet smartAsset = msg.smartAsset;\ncouchdb.view('smart-bucket', 'position', 'hino-date', {\n    key: [date]\n}).then((x) => {\n    let payloads = JSON.parse(x.data.rows[0].value.payload)\n    let vinNotFound = []\n    let notIncludeFrom665 = []\n    payloads = payloads.map((k) => k.vin);\n    vinAsset.forEach((k) => {\n        if (!payloads.includes(k)) {\n            vinNotFound.push(k)\n        }\n    })\n    smartAsset.forEach((k) => {\n        if (!payloads.includes(k)) {\n            notIncludeFrom665.push(k)\n        }\n    })\n\n    let outside633 = []\n    notIncludeFrom665.forEach((k) => {\n        if (!vinNotFound.includes(k)) {\n            outside633.push(k)\n        }\n    })\n\n\n    msg.smartBucket = {\n        totalVinSmartBucket: payloads.length,\n        vinSmartBucket: payloads,\n        vinBucketFilterFromAcceptence: payloads.filter((m) => vinAsset.includes(m)).length,\n        vinAcceptenceNotFoundFromTrackingBucket: vinNotFound,\n        notIncludeFrom665,\n        outside633,\n        docID: x.data.rows[0].value._id\n    }\n    node.send(msg)\n})\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\nlet smartAsset = msg.smartAsset;\ncouchdb.view('smart-bucket','position','hino-date', {\n    key: [date]\n}).then((x) => {\n    let payloads = JSON.parse(x.data.rows[0].value.payload)\n    let vinNotFound = []\n    let notIncludeFrom665 = []\n    payloads = payloads.map((k) => k.vin);\n    vinAsset.forEach((k) => {\n        if (!payloads.includes(k)) {\n            vinNotFound.push(k)\n        }\n    })\n    smartAsset.forEach((k) => {\n        if (!payloads.includes(k)) {\n            notIncludeFrom665.push(k)\n        }\n    })\n\n    let outside633 = []\n    notIncludeFrom665.forEach((k) => {\n        if(!vinNotFound.includes(k)) {\n            outside633.push(k)\n        }\n    })\n\n\n    msg.smartBucket = {\n        totalVinSmartBucket : payloads.length,\n        vinSmartBucket: payloads,\n        vinBucketFilterFromAcceptence : payloads.filter((m) => vinAsset.includes(m)).length,\n        vinAcceptenceNotFoundFromTrackingBucket: vinNotFound,\n        notIncludeFrom665,\n        outside633,\n        docID : x.data.rows[0].value._id\n    }\n    node.send(msg)\n})\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27562,7 +27581,7 @@
         "finalize": "",
         "libs": [],
         "x": 730,
-        "y": 320,
+        "y": 460,
         "wires": [
             [
                 "519120d7ca9110e9"
@@ -27583,7 +27602,7 @@
         "finalize": "",
         "libs": [],
         "x": 500,
-        "y": 320,
+        "y": 460,
         "wires": [
             [
                 "a21d88dd5b67cb2d"
@@ -27596,7 +27615,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-timeseries",
-        "func": "const couchdb = global.get('couchdb')\nlet { docID } = msg.smartBucket;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-timeseries', 'vehicle-tracker', 'by-doc-id', {\n    key: docID\n}).then((x) => {\n    let vinSmartTimeseries = x.data.rows.map((x) => x.value.vin);\n    msg.smartTimeseries = {\n        totalVinSmartTimeseries: vinSmartTimeseries.length,\n        listVinSmartTimeseries: vinSmartTimeseries,\n        vinFilterFromOrigin: vinSmartTimeseries.filter((m) => vinAsset.includes(m)).length,\n    }\n    msg.payload = {\n        vinAcceptenceDariBisnis: msg.originVin,\n        isAssetAcceptenceMatchWithCouchDbSmartAsset: msg.isMatchWithCouchDb,\n        smartBucket: msg.smartBucket,\n        smartTimeseries: msg.smartTimeseries,\n    }\n    node.send(msg)\n}, (error) => {\n    node.warn(error)\n})\n\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { docID } = msg.smartBucket;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-timeseries','vehicle-tracker','by-doc-id', {\n    key : docID\n}).then((x) => {\n    let vinSmartTimeseries = x.data.rows.map((x) => x.value.vin);\n    msg.smartTimeseries = {\n        totalVinSmartTimeseries : vinSmartTimeseries.length,\n        listVinSmartTimeseries : vinSmartTimeseries,\n        vinFilterFromOrigin : vinSmartTimeseries.filter((m) => vinAsset.includes(m)).length,\n    }\n    msg.payload = {\n        vinAcceptenceDariBisnis: msg.originVin,\n        isAssetAcceptenceMatchWithCouchDbSmartAsset: msg.isMatchWithCouchDb,\n        smartBucket : msg.smartBucket,\n        smartTimeseries : msg.smartTimeseries,\n    }\n    node.send(msg)\n},(error) => {\n    node.warn(error)\n})\n\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27604,7 +27623,7 @@
         "finalize": "",
         "libs": [],
         "x": 740,
-        "y": 360,
+        "y": 500,
         "wires": [
             [
                 "f14289672131f49c"
@@ -27622,7 +27641,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 190,
-        "y": 320,
+        "y": 460,
         "wires": [
             [
                 "010ddcdd886303c5"
@@ -27638,7 +27657,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 940,
-        "y": 360,
+        "y": 500,
         "wires": []
     },
     {
@@ -27650,7 +27669,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 940,
-        "y": 420,
+        "y": 560,
         "wires": []
     },
     {
@@ -27667,7 +27686,7 @@
         "finalize": "",
         "libs": [],
         "x": 740,
-        "y": 420,
+        "y": 560,
         "wires": [
             [
                 "f755121d8eb0a89b"
@@ -27680,7 +27699,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-bucket",
-        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-bucket', 'position', 'hino', {\n    key: [date]\n}).then((x) => {\n    let totalAssetsAccepted = 0;\n    let vinNotFound = []\n    let vinFound = []\n    x.data.rows.forEach((m) => {\n        let payloads = JSON.parse(m.value.payload)\n        payloads = payloads.map((k) => k.vin);\n        let asset = 0\n        vinAsset.forEach((k) => {\n            if (payloads.includes(k)) {\n                asset++;\n                if (!vinFound.includes(k)) {\n                    vinFound.push(k)\n                }\n            } else {\n                if (!vinNotFound.includes(k)) {\n                    vinNotFound.push(k)\n                }\n            }\n        })\n        totalAssetsAccepted += asset\n    })\n\n    msg.smartBucket = {\n        totalDocumentId: x.data.rows.length,\n        totalAssetsAccepted: totalAssetsAccepted,\n        totalVinAcceptence: vinFound.length,\n        vinNotFound: vinNotFound,\n    }\n    node.send(msg)\n})\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-bucket','position','hino', {\n    key: [date]\n}).then((x) => {\n    let totalAssetsAccepted = 0;\n    let vinNotFound = []\n    let vinFound = []\n    x.data.rows.forEach((m) => {\n        let payloads = JSON.parse(m.value.payload)\n        payloads = payloads.map((k) => k.vin);\n        let asset = 0\n        vinAsset.forEach((k) => {\n            if (payloads.includes(k)) {\n                asset++;\n                if (!vinFound.includes(k)) {\n                    vinFound.push(k)\n                }\n            } else {\n                if(!vinNotFound.includes(k)) {\n                    vinNotFound.push(k)\n                }\n            }\n        })\n        totalAssetsAccepted += asset\n    })\n\n    msg.smartBucket = {\n        totalDocumentId : x.data.rows.length,\n        totalAssetsAccepted : totalAssetsAccepted,\n        totalVinAcceptence : vinFound.length,\n        vinNotFound : vinNotFound,\n    }\n    node.send(msg)\n})\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27688,7 +27707,7 @@
         "finalize": "",
         "libs": [],
         "x": 510,
-        "y": 460,
+        "y": 600,
         "wires": [
             [
                 "4079e2ef49ab3d13"
@@ -27709,7 +27728,7 @@
         "finalize": "",
         "libs": [],
         "x": 500,
-        "y": 420,
+        "y": 560,
         "wires": [
             [
                 "21c9d64c217aab55"
@@ -27727,7 +27746,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 170,
-        "y": 420,
+        "y": 560,
         "wires": [
             [
                 "5016c0dca4797967"
@@ -27748,7 +27767,7 @@
         "finalize": "",
         "libs": [],
         "x": 510,
-        "y": 360,
+        "y": 500,
         "wires": [
             [
                 "ae963f38b7504e00"
@@ -27764,7 +27783,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 940,
-        "y": 560,
+        "y": 700,
         "wires": []
     },
     {
@@ -27773,7 +27792,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-timeseries",
-        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet docID = msg.payload.smartBucket.docID;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-timeseries','vehicle-tracker','by-doc-id', {\n    key: docID\n}).then((x) => {\n    msg.payload.smartTimeseries = {\n        trackings : []\n    }\n    node.send(msg)\n},(error) => {\n    node.warn(error)\n})\n\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date', {\n    key : date\n}).then((x) => {\n    node.warn(x.data.rows.length)\n    // let vinSmartTimeseries = x.data.rows.map((x) => x.value.vin);\n    // msg.smartTimeseries = {\n    //     totalVinSmartTimeseries : vinSmartTimeseries.length,\n    //     vinFilterFromOrigin : vinSmartTimeseries.filter((m) => vinAsset.includes(m)).length,\n    // }\n    // msg.payload = {\n    //     smartBucket : msg.smartBucket,\n    //     smartTimeseries : msg.smartTimeseries,\n    // }\n    // node.send(msg)\n},(error) => {\n    node.warn(error)\n})\n\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27781,7 +27800,7 @@
         "finalize": "",
         "libs": [],
         "x": 740,
-        "y": 560,
+        "y": 700,
         "wires": [
             [
                 "ba8ae9524445c3c3"
@@ -27794,7 +27813,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-bucket",
-        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-bucket','position','hino-date', {\n    key: [date]\n}).then((x) => {\n    let createdAt = x.data.rows[0].value.createdAt; \n    let smartAsset = msg.smartAsset.map((m) => m.szPhysicalNo2);\n    let trackings = JSON.parse(x.data.rows[0].value.payload);\n    trackings = trackings.filter((c) => smartAsset.includes(c.vin)).map((c) => {\n\n        let isMoreThanOneMonth = false;\n        if (c.printed_timezone) {\n            let last30Days = new Date(createdAt.split('T')[0])\n            last30Days.setDate(last30Days.getDate() - 30);\n\n            let printedTime = new Date(c.printed_timezone.split(\" \")[0])\n            if (last30Days > printedTime) {\n                isMoreThanOneMonth = true\n            }\n        }\n\n\n        let asset = msg.smartAsset.find( function (item) {\n            return item.szPhysicalNo2 == c.vin\n        })\n        return {\n            ...c,\n            isMoreThanOneMonth,\n            unitNopol: `${asset.szOrgName} - ${asset.szPhysicalNo1}`\n        }\n    });\n\n    msg.payload = {\n        totalVin : trackings.length,\n        smartBucket : {\n            docID : x.data.rows[0].value._id,\n            trackings: trackings\n        }\n    };\n    node.send(msg);\n})\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-bucket','position','hino-date', {\n    key: [date]\n}).then((x) => {\n    let totalAssetsAccepted = 0;\n    let vinNotFound = []\n    let vinFound = []\n    x.data.rows.forEach((m) => {\n        let payloads = JSON.parse(m.value.payload)\n        payloads = payloads.map((k) => k.vin);\n        let asset = 0\n        vinAsset.forEach((k) => {\n            if (payloads.includes(k)) {\n                asset++;\n                if (!vinFound.includes(k)) {\n                    vinFound.push(k)\n                }\n            } else {\n                if(!vinNotFound.includes(k)) {\n                    vinNotFound.push(k)\n                }\n            }\n        })\n        totalAssetsAccepted += asset\n    })\n\n    msg.smartBucket = {\n        totalDocumentId : x.data.rows.length,\n        totalAssetsAccepted : totalAssetsAccepted,\n        totalVinAcceptence : vinFound.length,\n        vinNotFound : vinNotFound,\n    }\n    node.warn(msg.smartBucket)\n    node.send({\n        ...msg\n    })\n})\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27802,7 +27821,7 @@
         "finalize": "",
         "libs": [],
         "x": 730,
-        "y": 520,
+        "y": 660,
         "wires": [
             [
                 "5e278373547e9ff9"
@@ -27815,7 +27834,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "633 vin",
-        "func": "msg.originVin =\n    [\"MJEC1JG43M5196046\",\n        \"MJEC1JG43M5196047\",\n        \"MJEC1JG43M5196048\",\n        \"MJEC1JG43M5196049\",\n        \"MJEC1JG43M5196106\",\n        \"MJEC1JG43M5196107\",\n        \"MJEC1JG43M5196109\",\n        \"MJEC1JG43M5196110\",\n        \"MJEC1JG43M5196111\",\n        \"MJEC1JG43M5196112\",\n        \"MJEC1JG43M5196113\",\n        \"MJEC1JG43M5196114\",\n        \"MJEC1JG43M5196140\",\n        \"MJEC1JG43M5196141\",\n        \"MJEC1JG43M5196142\",\n        \"MJEC1JG43M5196143\",\n        \"MJEC1JG43M5196145\",\n        \"MJEC1JG43M5196146\",\n        \"MJEC1JG43M5196147\",\n        \"MJEC1JG43M5196148\",\n        \"MJEC1JG43M5196149\",\n        \"MJEC1JG43M5196170\",\n        \"MJEC1JG43M5196171\",\n        \"MJEC1JG43M5196172\",\n        \"MJEC1JG43M5196173\",\n        \"MJEC1JG43M5196174\",\n        \"MJEC1JG43M5196175\",\n        \"MJEC1JG43M5196176\",\n        \"MJEC1JG43M5196177\",\n        \"MJEC1JG43M5196178\",\n        \"MJEC1JG43M5196179\",\n        \"MJEC1JG43M5196180\",\n        \"MJEC1JG43M5196181\",\n        \"MJEC1JG43M5196183\",\n        \"MJEC1JG43M5196184\",\n        \"MJEC1JG43M5196247\",\n        \"MJEC1JG43M5196257\",\n        \"MJEC1JG43M5196321\",\n        \"MJEC1JG43M5196322\",\n        \"MJEC1JG43M5196323\",\n        \"MJEC1JG43M5196324\",\n        \"MJEC1JG43M5196350\",\n        \"MJEC1JG43M5196351\",\n        \"MJEC1JG43M5196353\",\n        \"MJEC1JG43M5196355\",\n        \"MJEC1JG43M5196356\",\n        \"MJEC1JG43M5196357\",\n        \"MJEC1JG43M5196358\",\n        \"MJEC1JG43M5196360\",\n        \"MJEC1JG43M5196361\",\n        \"MJEC1JG43M5196362\",\n        \"MJEC1JG43M5196363\",\n        \"MJEC1JG43M5196380\",\n        \"MJEC1JG43M5196384\",\n        \"MJEC1JG43M5196385\",\n        \"MJEC1JG43M5196532\",\n        \"MJEC1JG43M5196533\",\n        \"MJEC1JG43M5196536\",\n        \"MJEC1JG43M5196561\",\n        \"MJEC1JG43M5196565\",\n        \"MJEC1JG43M5197080\",\n        \"MJEC1JG43M5197081\",\n        \"MJEC1JG43M5197082\",\n        \"MJEC1JG43M5197083\",\n        \"MJEC1JG43M5197084\",\n        \"MJEC1JG43M5197085\",\n        \"MJEC1JG43M5197086\",\n        \"MJEC1JG43M5197087\",\n        \"MJEC1JG43M5197088\",\n        \"MJEC1JG43M5197089\",\n        \"MJEC1JG43M5197115\",\n        \"MJEC1JG43M5197116\",\n        \"MJEC1JG43M5197117\",\n        \"MJEC1JG43M5197118\",\n        \"MJEC1JG43M5197119\",\n        \"MJEC1JG43M5197120\",\n        \"MJEC1JG43M5197121\",\n        \"MJEC1JG43M5197122\",\n        \"MJEC1JG43M5197438\",\n        \"MJEC1JG43M5197523\",\n        \"MJEC1JG43N5198101\",\n        \"MJEC1JG43N5198102\",\n        \"MJEC1JG43N5198103\",\n        \"MJEC1JG43N5198104\",\n        \"MJEC1JG43N5199014\",\n        \"MJEC1JG43N5200220\",\n        \"MJEC1JG43N5200221\",\n        \"MJEC1JG43N5200222\",\n        \"MJEC1JG43N5200223\",\n        \"MJEC1JG43N5200224\",\n        \"MJEC1JG43N5200460\",\n        \"MJEC1JG43N5200461\",\n        \"MJEC1JG43N5200465\",\n        \"MJEC1JG43N5200468\",\n        \"MJEC1JG43N5200952\",\n        \"MJEC1JG43N5201070\",\n        \"MJEC1JG43N5201100\",\n        \"MJEC1JG43N5201101\",\n        \"MJEC1JG43N5201102\",\n        \"MJEC1JG43N5201103\",\n        \"MJEC1JG43N5201104\",\n        \"MJEC1JG43N5201130\",\n        \"MJEC1JG43N5201131\",\n        \"MJEC1JG43N5201132\",\n        \"MJEC1JG43N5201133\",\n        \"MJEC1JG43N5201134\",\n        \"MJEC1JG43N5201135\",\n        \"MJEC1JG43N5201136\",\n        \"MJEC1JG43N5201137\",\n        \"MJEC1JG43N5201138\",\n        \"MJEC1JG43N5201139\",\n        \"MJEC1JG43N5201165\",\n        \"MJEC1JG43N5201166\",\n        \"MJEC1JG43N5201167\",\n        \"MJEC1JG43N5201168\",\n        \"MJEC1JG43N5201169\",\n        \"MJEC1JG43N5201399\",\n        \"MJEC1JG43N5201485\",\n        \"MJEC1JG43N5201487\",\n        \"MJEC1JG43N5201488\",\n        \"MJEC1JG43N5201915\",\n        \"MJEC1JG53M5007237\",\n        \"MJECCB2F0N5001360\",\n        \"MJECCB2F0N5001827\",\n        \"MJECCB2F0N5001987\",\n        \"MJECCB2F0N5002055\",\n        \"MJECCB2F0N5002069\",\n        \"MJECCB2F0N5002136\",\n        \"MJECCB2F0N5002217\",\n        \"MJECCB2F0N5002220\",\n        \"MJECCB2F0N5002296\",\n        \"MJECCB2F0N5002377\",\n        \"MJECCB2F0N5002444\",\n        \"MJECCB2F0N5002525\",\n        \"MJECCB2F0N5002590\",\n        \"MJECCB2F0N5003884\",\n        \"MJECCB2F0N5008566\",\n        \"MJECCB2F0P5001958\",\n        \"MJECCB2F0P5001961\",\n        \"MJECCB2F0P5002026\",\n        \"MJECCB2F0P5002107\",\n        \"MJECCB2F0P5002110\",\n        \"MJECCB2F0P5002186\",\n        \"MJECCB2F0P5003466\",\n        \"MJECCB2F0P5009431\",\n        \"MJECCB2F1N5001044\",\n        \"MJECCB2F1N5001075\",\n        \"MJECCB2F1N5001111\",\n        \"MJECCB2F1N5001142\",\n        \"MJECCB2F1N5001173\",\n        \"MJECCB2F1N5001206\",\n        \"MJECCB2F1N5001237\",\n        \"MJECCB2F1N5001271\",\n        \"MJECCB2F1N5001335\",\n        \"MJECCB2F1N5001402\",\n        \"MJECCB2F1N5001691\",\n        \"MJECCB2F1N5001769\",\n        \"MJECCB2F1N5001772\",\n        \"MJECCB2F1N5001996\",\n        \"MJECCB2F1N5002064\",\n        \"MJECCB2F1N5002145\",\n        \"MJECCB2F1N5002212\",\n        \"MJECCB2F1N5002288\",\n        \"MJECCB2F1N5002291\",\n        \"MJECCB2F1N5002369\",\n        \"MJECCB2F1N5002372\",\n        \"MJECCB2F1N5002517\",\n        \"MJECCB2F1N5002520\",\n        \"MJECCB2F1N5002906\",\n        \"MJECCB2F1N5003604\",\n        \"MJECCB2F1N5003926\",\n        \"MJECCB2F1N5007815\",\n        \"MJECCB2F1N5007944\",\n        \"MJECCB2F1N5008043\",\n        \"MJECCB2F1N5008186\",\n        \"MJECCB2F1P5000267\",\n        \"MJECCB2F1P5002181\",\n        \"MJECCB2F1P5002259\",\n        \"MJECCB2F1P5002262\",\n        \"MJECCB2F1P5002343\",\n        \"MJECCB2F1P5003413\",\n        \"MJECCB2F1P5003461\",\n        \"MJECCB2F1P5003525\",\n        \"MJECCB2F1P5005503\",\n        \"MJECCB2F2N5001019\",\n        \"MJECCB2F2N5001361\",\n        \"MJECCB2F2N5001988\",\n        \"MJECCB2F2N5001991\",\n        \"MJECCB2F2N5002056\",\n        \"MJECCB2F2N5002137\",\n        \"MJECCB2F2N5002140\",\n        \"MJECCB2F2N5002218\",\n        \"MJECCB2F2N5002221\",\n        \"MJECCB2F2N5002378\",\n        \"MJECCB2F2N5002445\",\n        \"MJECCB2F2N5002526\",\n        \"MJECCB2F2N5002591\",\n        \"MJECCB2F2N5007662\",\n        \"MJECCB2F2N5007760\",\n        \"MJECCB2F2P5001959\",\n        \"MJECCB2F2P5001962\",\n        \"MJECCB2F2P5002027\",\n        \"MJECCB2F2P5002030\",\n        \"MJECCB2F2P5002111\",\n        \"MJECCB2F2P5002187\",\n        \"MJECCB2F2P5002335\",\n        \"MJECCB2F2P5003467\",\n        \"MJECCB2F2P5003582\",\n        \"MJECCB2F2P5007485\",\n        \"MJECCB2F2P5009432\",\n        \"MJECCB2F3N5001076\",\n        \"MJECCB2F3N5001112\",\n        \"MJECCB2F3N5001143\",\n        \"MJECCB2F3N5001174\",\n        \"MJECCB2F3N5001207\",\n        \"MJECCB2F3N5001238\",\n        \"MJECCB2F3N5001272\",\n        \"MJECCB2F3N5001305\",\n        \"MJECCB2F3N5001336\",\n        \"MJECCB2F3N5001403\",\n        \"MJECCB2F3N5001997\",\n        \"MJECCB2F3N5002065\",\n        \"MJECCB2F3N5002146\",\n        \"MJECCB2F3N5002213\",\n        \"MJECCB2F3N5002289\",\n        \"MJECCB2F3N5002292\",\n        \"MJECCB2F3N5002373\",\n        \"MJECCB2F3N5002437\",\n        \"MJECCB2F3N5002440\",\n        \"MJECCB2F3N5002518\",\n        \"MJECCB2F3N5002521\",\n        \"MJECCB2F3N5002907\",\n        \"MJECCB2F3N5003653\",\n        \"MJECCB2F3N5003880\",\n        \"MJECCB2F3N5003927\",\n        \"MJECCB2F3N5007816\",\n        \"MJECCB2F3N5007881\",\n        \"MJECCB2F3N5008044\",\n        \"MJECCB2F3P5000268\",\n        \"MJECCB2F3P5002182\",\n        \"MJECCB2F3P5002263\",\n        \"MJECCB2F3P5002344\",\n        \"MJECCB2F3P5003414\",\n        \"MJECCB2F3P5003462\",\n        \"MJECCB2F3P5003526\",\n        \"MJECCB2F3P5005504\",\n        \"MJECCB2F4N5000941\",\n        \"MJECCB2F4N5001040\",\n        \"MJECCB2F4N5001765\",\n        \"MJECCB2F4N5001913\",\n        \"MJECCB2F4N5001989\",\n        \"MJECCB2F4N5001992\",\n        \"MJECCB2F4N5002057\",\n        \"MJECCB2F4N5002060\",\n        \"MJECCB2F4N5002138\",\n        \"MJECCB2F4N5002141\",\n        \"MJECCB2F4N5002219\",\n        \"MJECCB2F4N5002222\",\n        \"MJECCB2F4N5002298\",\n        \"MJECCB2F4N5002365\",\n        \"MJECCB2F4N5002379\",\n        \"MJECCB2F4N5002527\",\n        \"MJECCB2F4N5002592\",\n        \"MJECCB2F4N5003600\",\n        \"MJECCB2F4N5007548\",\n        \"MJECCB2F4N5007663\",\n        \"MJECCB2F4N5007761\",\n        \"MJECCB2F4N5007940\",\n        \"MJECCB2F4N5008134\",\n        \"MJECCB2F4P5001963\",\n        \"MJECCB2F4P5002028\",\n        \"MJECCB2F4P5002031\",\n        \"MJECCB2F4P5002109\",\n        \"MJECCB2F4P5002112\",\n        \"MJECCB2F4P5002188\",\n        \"MJECCB2F4P5002255\",\n        \"MJECCB2F4P5002336\",\n        \"MJECCB2F4P5003468\",\n        \"MJECCB2F4P5007486\",\n        \"MJECCB2F4P5009433\",\n        \"MJECCB2F5N5001077\",\n        \"MJECCB2F5N5001113\",\n        \"MJECCB2F5N5001144\",\n        \"MJECCB2F5N5001208\",\n        \"MJECCB2F5N5001239\",\n        \"MJECCB2F5N5001273\",\n        \"MJECCB2F5N5001306\",\n        \"MJECCB2F5N5001774\",\n        \"MJECCB2F5N5002066\",\n        \"MJECCB2F5N5002147\",\n        \"MJECCB2F5N5002214\",\n        \"MJECCB2F5N5002293\",\n        \"MJECCB2F5N5002374\",\n        \"MJECCB2F5N5002438\",\n        \"MJECCB2F5N5002441\",\n        \"MJECCB2F5N5002519\",\n        \"MJECCB2F5N5002522\",\n        \"MJECCB2F5N5002908\",\n        \"MJECCB2F5N5003654\",\n        \"MJECCB2F5N5003881\",\n        \"MJECCB2F5N5003928\",\n        \"MJECCB2F5N5007817\",\n        \"MJECCB2F5P5000269\",\n        \"MJECCB2F5P5002183\",\n        \"MJECCB2F5P5002264\",\n        \"MJECCB2F5P5003463\",\n        \"MJECCB2F5P5003527\",\n        \"MJECCB2F6N5000942\",\n        \"MJECCB2F6N5001170\",\n        \"MJECCB2F6N5001766\",\n        \"MJECCB2F6N5001914\",\n        \"MJECCB2F6N5001993\",\n        \"MJECCB2F6N5002058\",\n        \"MJECCB2F6N5002061\",\n        \"MJECCB2F6N5002139\",\n        \"MJECCB2F6N5002142\",\n        \"MJECCB2F6N5002223\",\n        \"MJECCB2F6N5002285\",\n        \"MJECCB2F6N5002299\",\n        \"MJECCB2F6N5002366\",\n        \"MJECCB2F6N5002528\",\n        \"MJECCB2F6N5002593\",\n        \"MJECCB2F6N5003601\",\n        \"MJECCB2F6N5007664\",\n        \"MJECCB2F6N5007762\",\n        \"MJECCB2F6N5007941\",\n        \"MJECCB2F6N5008040\",\n        \"MJECCB2F6N5008085\",\n        \"MJECCB2F6P5001964\",\n        \"MJECCB2F6P5002029\",\n        \"MJECCB2F6P5002032\",\n        \"MJECCB2F6P5002113\",\n        \"MJECCB2F6P5002256\",\n        \"MJECCB2F6P5002337\",\n        \"MJECCB2F6P5002340\",\n        \"MJECCB2F6P5003410\",\n        \"MJECCB2F6P5003469\",\n        \"MJECCB2F6P5005500\",\n        \"MJECCB2F6P5007487\",\n        \"MJECCB2F6P5009434\",\n        \"MJECCB2F7N5001016\",\n        \"MJECCB2F7N5001078\",\n        \"MJECCB2F7N5001114\",\n        \"MJECCB2F7N5001209\",\n        \"MJECCB2F7N5001307\",\n        \"MJECCB2F7N5001338\",\n        \"MJECCB2F7N5001405\",\n        \"MJECCB2F7N5001775\",\n        \"MJECCB2F7N5001985\",\n        \"MJECCB2F7N5001999\",\n        \"MJECCB2F7N5002067\",\n        \"MJECCB2F7N5002148\",\n        \"MJECCB2F7N5002215\",\n        \"MJECCB2F7N5002294\",\n        \"MJECCB2F7N5002375\",\n        \"MJECCB2F7N5002439\",\n        \"MJECCB2F7N5002442\",\n        \"MJECCB2F7N5002523\",\n        \"MJECCB2F7N5002909\",\n        \"MJECCB2F7N5003882\",\n        \"MJECCB2F7N5003929\",\n        \"MJECCB2F7N5007883\",\n        \"MJECCB2F7P5001956\",\n        \"MJECCB2F7P5002105\",\n        \"MJECCB2F7P5002184\",\n        \"MJECCB2F7P5003464\",\n        \"MJECCB2F7P5003528\",\n        \"MJECCB2F7P5003531\",\n        \"MJECCB2F8N5000943\",\n        \"MJECCB2F8N5001042\",\n        \"MJECCB2F8N5001171\",\n        \"MJECCB2F8N5001364\",\n        \"MJECCB2F8N5001767\",\n        \"MJECCB2F8N5001770\",\n        \"MJECCB2F8N5001915\",\n        \"MJECCB2F8N5002062\",\n        \"MJECCB2F8N5002143\",\n        \"MJECCB2F8N5002210\",\n        \"MJECCB2F8N5002224\",\n        \"MJECCB2F8N5002367\",\n        \"MJECCB2F8N5002370\",\n        \"MJECCB2F8N5002448\",\n        \"MJECCB2F8N5002529\",\n        \"MJECCB2F8N5003602\",\n        \"MJECCB2F8N5003650\",\n        \"MJECCB2F8N5007763\",\n        \"MJECCB2F8N5007942\",\n        \"MJECCB2F8N5008041\",\n        \"MJECCB2F8N5008086\",\n        \"MJECCB2F8P5002033\",\n        \"MJECCB2F8P5002114\",\n        \"MJECCB2F8P5002257\",\n        \"MJECCB2F8P5002260\",\n        \"MJECCB2F8P5002338\",\n        \"MJECCB2F8P5002341\",\n        \"MJECCB2F8P5003411\",\n        \"MJECCB2F8P5005501\",\n        \"MJECCB2F8P5007488\",\n        \"MJECCB2F9N5001079\",\n        \"MJECCB2F9N5001308\",\n        \"MJECCB2F9N5002068\",\n        \"MJECCB2F9N5002135\",\n        \"MJECCB2F9N5002149\",\n        \"MJECCB2F9N5002216\",\n        \"MJECCB2F9N5002295\",\n        \"MJECCB2F9N5002376\",\n        \"MJECCB2F9N5002443\",\n        \"MJECCB2F9N5002524\",\n        \"MJECCB2F9N5003883\",\n        \"MJECCB2F9N5007819\",\n        \"MJECCB2F9N5007884\",\n        \"MJECCB2F9N5008565\",\n        \"MJECCB2F9P5001957\",\n        \"MJECCB2F9P5001960\",\n        \"MJECCB2F9P5002025\",\n        \"MJECCB2F9P5002106\",\n        \"MJECCB2F9P5002185\",\n        \"MJECCB2F9P5003465\",\n        \"MJECCB2F9P5003529\",\n        \"MJECCB2F9P5003532\",\n        \"MJECCB2F9P5009430\",\n        \"MJECCB2FXN5000975\",\n        \"MJECCB2FXN5001110\",\n        \"MJECCB2FXN5001141\",\n        \"MJECCB2FXN5001172\",\n        \"MJECCB2FXN5001205\",\n        \"MJECCB2FXN5001236\",\n        \"MJECCB2FXN5001270\",\n        \"MJECCB2FXN5001365\",\n        \"MJECCB2FXN5001401\",\n        \"MJECCB2FXN5001818\",\n        \"MJECCB2FXN5001916\",\n        \"MJECCB2FXN5001995\",\n        \"MJECCB2FXN5002063\",\n        \"MJECCB2FXN5002144\",\n        \"MJECCB2FXN5002211\",\n        \"MJECCB2FXN5002287\",\n        \"MJECCB2FXN5002290\",\n        \"MJECCB2FXN5002368\",\n        \"MJECCB2FXN5002371\",\n        \"MJECCB2FXN5002435\",\n        \"MJECCB2FXN5002449\",\n        \"MJECCB2FXN5002905\",\n        \"MJECCB2FXN5003651\",\n        \"MJECCB2FXN5003925\",\n        \"MJECCB2FXN5007764\",\n        \"MJECCB2FXN5007943\",\n        \"MJECCB2FXN5008042\",\n        \"MJECCB2FXN5008087\",\n        \"MJECCB2FXN5008185\",\n        \"MJECCB2FXP5000266\",\n        \"MJECCB2FXP5002034\",\n        \"MJECCB2FXP5002180\",\n        \"MJECCB2FXP5002258\",\n        \"MJECCB2FXP5002261\",\n        \"MJECCB2FXP5002339\",\n        \"MJECCB2FXP5002342\",\n        \"MJECCB2FXP5003412\",\n        \"MJECCB2FXP5003460\",\n        \"MJEECB0F4N5000403\",\n        \"MJEFG8JJ1NJB14448\",\n        \"MJEFG8JJ1NJB14449\",\n        \"MJEFG8JJ1NJB14450\",\n        \"MJEFG8JJ1NJB14455\",\n        \"MJEFG8JJ1NJB14456\",\n        \"MJEFG8JJ1NJB14457\",\n        \"MJEFG8JJ1NJB14459\",\n        \"MJEFG8JJ1NJB14460\",\n        \"MJEFG8JJ1NJB14462\",\n        \"MJEFG8JJ1NJB14464\",\n        \"MJEFG8JJ1NJB14465\",\n        \"MJEFG8JJ1NJB14467\",\n        \"MJEFG8JJ1NJB14469\",\n        \"MJEFG8JJ2NJP10057\",\n        \"MJEFG8JJ2NJP10058\",\n        \"MJEFG8JJ2NJP10065\",\n        \"MJEFG8JJ2NJP10066\",\n        \"MJEFG8JJ2NJP10067\",\n        \"MJEFG8JJ2NJP10068\",\n        \"MJEFG8JJ2NJP10069\",\n        \"MJEFG8JJ2NJP10070\",\n        \"MJEFG8JJ2NJP10071\",\n        \"MJEFG8JJ2NJP10072\",\n        \"MJEFG8JJ2NJP10101\",\n        \"MJEFG8JJ2NJP10111\",\n        \"MJEFG8JJ2NJP10112\",\n        \"MJEFG8JJ2NJP10114\",\n        \"MJEFG8JJ2PJP10436\",\n        \"MJEFG8JJ2PJP10439\",\n        \"MJEFG8JJ2PJP10441\",\n        \"MJEFG8JJ2PJP10442\",\n        \"MJEFG8JJ2PJP10444\",\n        \"MJEFG8JJ2PJP10456\",\n        \"MJEFG8JK1LJJ11228\",\n        \"MJEFG8JK1MJJ11354\",\n        \"MJEFG8JK1MJJ11355\",\n        \"MJEFG8JK1NJJ11449\",\n        \"MJEFG8JK1NJJ11453\",\n        \"MJEFG8JK1NJJ11455\",\n        \"MJEFG8JK2NJP10078\",\n        \"MJEFG8JK2NJP10082\",\n        \"MJEFG8JK2NJP10097\",\n        \"MJEFG8JK2NJP10119\",\n        \"MJEFG8JK2NJP10120\",\n        \"MJEFG8JK2NJP10122\",\n        \"MJEFG8JK2NJP10123\",\n        \"MJEFG8JK2NJP10143\",\n        \"MJEFG8JK2NJP10144\",\n        \"MJEFG8JK2NJP10145\",\n        \"MJEFG8JK2NJP10146\",\n        \"MJEFG8JK2NJP10155\",\n        \"MJEFG8JK2NJP10156\",\n        \"MJEFG8JK2NJP10157\",\n        \"MJEFG8JK2NJP10160\",\n        \"MJEFG8JK2NJP10161\",\n        \"MJEFL8JN1MJJ12489\",\n        \"MJEFL8JN1MJJ12490\",\n        \"MJEFL8JN1MJJ12491\",\n        \"MJEFL8JN1MJJ12492\",\n        \"MJEFL8JN1MJJ12494\",\n        \"MJEFL8JN1MJJ12498\",\n        \"MJEFL8JN1MJJ12499\",\n        \"MJEFL8JN1MJJ12500\",\n        \"MJEFL8JN1MJJ12524\",\n        \"MJEFL8JN1MJJ12525\",\n        \"MJEFL8JN1MJJ12537\",\n        \"MJEFL8JN1MJJ12538\",\n        \"MJEFL8JN1MJJ12540\",\n        \"MJEFL8JN1MJJ12541\",\n        \"MJEFL8JW2PJY11952\",\n        \"MJEFL8JW2PJY11964\",\n        \"MJEFL8JW2PJY11972\",\n        \"MJEFL8JW2PJY12291\",\n        \"MJEFL8JW2PJY12298\",\n        \"MJEFL8JW2PJY12299\",\n        \"MJEFL8JW2PJY12312\",\n        \"MJEFL8JW2PJY12325\",\n        \"MJEFL8JW2PJY12332\",\n        \"MJEFL8JW2PJY12345\",\n        \"MJEFL8JW2PJY12346\",\n        \"MJEFL8JW2PJY12360\",\n        \"MJEFL8JW2PJY12367\",\n        \"MJEFL8JW2PJY12368\",\n        \"MJEFM2PL2NJM10060\",\n        \"MJEFM2PL2NJM10269\",\n        \"MJEFM2PL2NJM10270\",\n        \"MJEFM2PL2NJM10272\",\n        \"MJEFM2PL2NJM10280\",\n        \"MJEFM2PL2PJM10341\",\n        \"MJEFM2PL2PJM10342\",\n        \"MJEFM2PL2PJM10343\",\n        \"MJEFM2PL2PJM10344\",\n        \"MJEFM2PL2PJM10345\",\n        \"MJEFM2PL2PJM10346\",\n        \"MJEFM2PL2PJM10353\",\n        \"MJEFM2PL2PJM10354\",\n        \"MJEFM2PL2PJM10355\",\n        \"MJEFM2PL2PJM10357\",\n        \"MJEFM2PL2PJM10380\",\n        \"MJEFM2PL2PJM10381\",\n        \"MJEFM2PL2PJM10382\",\n        \"MJEFM2PL2PJM10383\",\n        \"MJEFM2PL2PJM10384\",\n        \"MJEFM2PL2PJM10385\",\n        \"MJEFM2PL2PJM10388\",\n        \"MJEFM8JK2NJX10294\",\n        \"MJEFM8JK2NJX10297\",\n        \"MJEFM8JK2NJX10313\",\n        \"MJEFM8JK2PJX10408\",\n        \"MJEFM8JK2PJX10414\",\n        \"MJEFM8JK2PJX10415\",\n        \"MJEFM8JK2PJX10416\",\n        \"MJEFM8JK2PJX10417\",\n        \"MJEFM8JK2PJX10418\",\n        \"MJEFM8JN2MJX35089\",\n        \"MJEFM8JN2MJX35464\",\n        \"MJEFM8JN2NJX10195\",\n        \"MJEFM8JN2NJX10701\",\n        \"MJEFM8JN2NJX10702\",\n        \"MJEFM8JN2NJX10703\",\n        \"MJEFM8JN2NJX10704\",\n        \"MJEFM8JN2NJX10705\",\n        \"MJEFM8JN2NJX11407\",\n        \"MJEFM8JN2NJX11408\",\n        \"MJEFM8JN2NJX11603\",\n        \"MJEFM8JN2NJX11604\",\n        \"MJEFM8JN2NJX11624\",\n        \"MJEFM8JN2NJX11625\",\n        \"MJEFM8JN2NJX11627\",\n        \"MJEFM8JN2NJX11628\",\n        \"MJEFM8JN2NJX11632\",\n        \"MJEFM8JN2NJX11636\",\n        \"MJEFM8JN2NJX13857\",\n        \"MJEFM8JN2NJX14311\",\n        \"MJEFM8JN2NJX14537\",\n        \"MJEFM8JN2NJX14539\",\n        \"MJEFM8JN2PJX18362\",\n        \"MJEFM8JN2PJX18363\",\n        \"MJEFM8JN2PJX18388\",\n        \"MJEFM8JN2PJX18397\",\n        \"MJEFM8JN2PJX18399\",\n        \"MJEFM8JN2PJX18400\",\n        \"MJEFM8JN2PJX18401\",\n        \"MJEFM8JN2PJX18402\",\n        \"MJEFM8JN2PJX18403\",\n        \"MJEFM8JN2PJX18404\",\n        \"MJEFM8JN2PJX18500\",\n        \"MJEFM8JN2PJX18501\",\n        \"MJEFM8JN2PJX18502\",\n        \"MJEFM8JN2PJX18504\",\n        \"MJEFM8JN2PJX18516\",\n        \"MJEFM8JN2PJX18517\",\n        \"MJEFM8JN2PJX18518\",\n        \"MJEFM8JN2PJX18519\",\n        \"MJEFM8JN2PJX18753\",\n        \"MJEFM8JN2PJX18754\",\n        \"MJEFM8JN2PJX18755\",\n        \"MJEFM8JN2PJX19009\",\n        \"MJEFM8JN2PJX19039\",\n        \"MJEFM8JN2PJX19042\",\n        \"MJEFM8JN2PJX19078\",\n        \"MJEFM8JN2PJX19414\",\n        \"MJEFM8JN2PJX19415\",\n        \"MJEFM8JN2PJX19417\",\n        \"MJEFM8JN2PJX19418\",\n        \"MJEFM8JN2PJX19420\",\n        \"MJEFM8JN2PJX19421\",\n        \"MJEFM8JN2PJX19425\",\n        \"MJEFM8JN2PJX19429\",\n        \"MJEFM8JN2PJX19430\",\n        \"MJEFM8JN2PJX19431\",\n        \"MJEFM8JN2PJX19433\",\n        \"MJEFM8JN2PJX19434\"]\nreturn msg;",
+        "func": "msg.originVin = \n[\"MJEC1JG43M5196046\",\n\"MJEC1JG43M5196047\",\n\"MJEC1JG43M5196048\",\n\"MJEC1JG43M5196049\",\n\"MJEC1JG43M5196106\",\n\"MJEC1JG43M5196107\",\n\"MJEC1JG43M5196109\",\n\"MJEC1JG43M5196110\",\n\"MJEC1JG43M5196111\",\n\"MJEC1JG43M5196112\",\n\"MJEC1JG43M5196113\",\n\"MJEC1JG43M5196114\",\n\"MJEC1JG43M5196140\",\n\"MJEC1JG43M5196141\",\n\"MJEC1JG43M5196142\",\n\"MJEC1JG43M5196143\",\n\"MJEC1JG43M5196145\",\n\"MJEC1JG43M5196146\",\n\"MJEC1JG43M5196147\",\n\"MJEC1JG43M5196148\",\n\"MJEC1JG43M5196149\",\n\"MJEC1JG43M5196170\",\n\"MJEC1JG43M5196171\",\n\"MJEC1JG43M5196172\",\n\"MJEC1JG43M5196173\",\n\"MJEC1JG43M5196174\",\n\"MJEC1JG43M5196175\",\n\"MJEC1JG43M5196176\",\n\"MJEC1JG43M5196177\",\n\"MJEC1JG43M5196178\",\n\"MJEC1JG43M5196179\",\n\"MJEC1JG43M5196180\",\n\"MJEC1JG43M5196181\",\n\"MJEC1JG43M5196183\",\n\"MJEC1JG43M5196184\",\n\"MJEC1JG43M5196247\",\n\"MJEC1JG43M5196257\",\n\"MJEC1JG43M5196321\",\n\"MJEC1JG43M5196322\",\n\"MJEC1JG43M5196323\",\n\"MJEC1JG43M5196324\",\n\"MJEC1JG43M5196350\",\n\"MJEC1JG43M5196351\",\n\"MJEC1JG43M5196353\",\n\"MJEC1JG43M5196355\",\n\"MJEC1JG43M5196356\",\n\"MJEC1JG43M5196357\",\n\"MJEC1JG43M5196358\",\n\"MJEC1JG43M5196360\",\n\"MJEC1JG43M5196361\",\n\"MJEC1JG43M5196362\",\n\"MJEC1JG43M5196363\",\n\"MJEC1JG43M5196380\",\n\"MJEC1JG43M5196384\",\n\"MJEC1JG43M5196385\",\n\"MJEC1JG43M5196532\",\n\"MJEC1JG43M5196533\",\n\"MJEC1JG43M5196536\",\n\"MJEC1JG43M5196561\",\n\"MJEC1JG43M5196565\",\n\"MJEC1JG43M5197080\",\n\"MJEC1JG43M5197081\",\n\"MJEC1JG43M5197082\",\n\"MJEC1JG43M5197083\",\n\"MJEC1JG43M5197084\",\n\"MJEC1JG43M5197085\",\n\"MJEC1JG43M5197086\",\n\"MJEC1JG43M5197087\",\n\"MJEC1JG43M5197088\",\n\"MJEC1JG43M5197089\",\n\"MJEC1JG43M5197115\",\n\"MJEC1JG43M5197116\",\n\"MJEC1JG43M5197117\",\n\"MJEC1JG43M5197118\",\n\"MJEC1JG43M5197119\",\n\"MJEC1JG43M5197120\",\n\"MJEC1JG43M5197121\",\n\"MJEC1JG43M5197122\",\n\"MJEC1JG43M5197438\",\n\"MJEC1JG43M5197523\",\n\"MJEC1JG43N5198101\",\n\"MJEC1JG43N5198102\",\n\"MJEC1JG43N5198103\",\n\"MJEC1JG43N5198104\",\n\"MJEC1JG43N5199014\",\n\"MJEC1JG43N5200220\",\n\"MJEC1JG43N5200221\",\n\"MJEC1JG43N5200222\",\n\"MJEC1JG43N5200223\",\n\"MJEC1JG43N5200224\",\n\"MJEC1JG43N5200460\",\n\"MJEC1JG43N5200461\",\n\"MJEC1JG43N5200465\",\n\"MJEC1JG43N5200468\",\n\"MJEC1JG43N5200952\",\n\"MJEC1JG43N5201070\",\n\"MJEC1JG43N5201100\",\n\"MJEC1JG43N5201101\",\n\"MJEC1JG43N5201102\",\n\"MJEC1JG43N5201103\",\n\"MJEC1JG43N5201104\",\n\"MJEC1JG43N5201130\",\n\"MJEC1JG43N5201131\",\n\"MJEC1JG43N5201132\",\n\"MJEC1JG43N5201133\",\n\"MJEC1JG43N5201134\",\n\"MJEC1JG43N5201135\",\n\"MJEC1JG43N5201136\",\n\"MJEC1JG43N5201137\",\n\"MJEC1JG43N5201138\",\n\"MJEC1JG43N5201139\",\n\"MJEC1JG43N5201165\",\n\"MJEC1JG43N5201166\",\n\"MJEC1JG43N5201167\",\n\"MJEC1JG43N5201168\",\n\"MJEC1JG43N5201169\",\n\"MJEC1JG43N5201399\",\n\"MJEC1JG43N5201485\",\n\"MJEC1JG43N5201487\",\n\"MJEC1JG43N5201488\",\n\"MJEC1JG43N5201915\",\n\"MJEC1JG53M5007237\",\n\"MJECCB2F0N5001360\",\n\"MJECCB2F0N5001827\",\n\"MJECCB2F0N5001987\",\n\"MJECCB2F0N5002055\",\n\"MJECCB2F0N5002069\",\n\"MJECCB2F0N5002136\",\n\"MJECCB2F0N5002217\",\n\"MJECCB2F0N5002220\",\n\"MJECCB2F0N5002296\",\n\"MJECCB2F0N5002377\",\n\"MJECCB2F0N5002444\",\n\"MJECCB2F0N5002525\",\n\"MJECCB2F0N5002590\",\n\"MJECCB2F0N5003884\",\n\"MJECCB2F0N5008566\",\n\"MJECCB2F0P5001958\",\n\"MJECCB2F0P5001961\",\n\"MJECCB2F0P5002026\",\n\"MJECCB2F0P5002107\",\n\"MJECCB2F0P5002110\",\n\"MJECCB2F0P5002186\",\n\"MJECCB2F0P5003466\",\n\"MJECCB2F0P5009431\",\n\"MJECCB2F1N5001044\",\n\"MJECCB2F1N5001075\",\n\"MJECCB2F1N5001111\",\n\"MJECCB2F1N5001142\",\n\"MJECCB2F1N5001173\",\n\"MJECCB2F1N5001206\",\n\"MJECCB2F1N5001237\",\n\"MJECCB2F1N5001271\",\n\"MJECCB2F1N5001335\",\n\"MJECCB2F1N5001402\",\n\"MJECCB2F1N5001691\",\n\"MJECCB2F1N5001769\",\n\"MJECCB2F1N5001772\",\n\"MJECCB2F1N5001996\",\n\"MJECCB2F1N5002064\",\n\"MJECCB2F1N5002145\",\n\"MJECCB2F1N5002212\",\n\"MJECCB2F1N5002288\",\n\"MJECCB2F1N5002291\",\n\"MJECCB2F1N5002369\",\n\"MJECCB2F1N5002372\",\n\"MJECCB2F1N5002517\",\n\"MJECCB2F1N5002520\",\n\"MJECCB2F1N5002906\",\n\"MJECCB2F1N5003604\",\n\"MJECCB2F1N5003926\",\n\"MJECCB2F1N5007815\",\n\"MJECCB2F1N5007944\",\n\"MJECCB2F1N5008043\",\n\"MJECCB2F1N5008186\",\n\"MJECCB2F1P5000267\",\n\"MJECCB2F1P5002181\",\n\"MJECCB2F1P5002259\",\n\"MJECCB2F1P5002262\",\n\"MJECCB2F1P5002343\",\n\"MJECCB2F1P5003413\",\n\"MJECCB2F1P5003461\",\n\"MJECCB2F1P5003525\",\n\"MJECCB2F1P5005503\",\n\"MJECCB2F2N5001019\",\n\"MJECCB2F2N5001361\",\n\"MJECCB2F2N5001988\",\n\"MJECCB2F2N5001991\",\n\"MJECCB2F2N5002056\",\n\"MJECCB2F2N5002137\",\n\"MJECCB2F2N5002140\",\n\"MJECCB2F2N5002218\",\n\"MJECCB2F2N5002221\",\n\"MJECCB2F2N5002378\",\n\"MJECCB2F2N5002445\",\n\"MJECCB2F2N5002526\",\n\"MJECCB2F2N5002591\",\n\"MJECCB2F2N5007662\",\n\"MJECCB2F2N5007760\",\n\"MJECCB2F2P5001959\",\n\"MJECCB2F2P5001962\",\n\"MJECCB2F2P5002027\",\n\"MJECCB2F2P5002030\",\n\"MJECCB2F2P5002111\",\n\"MJECCB2F2P5002187\",\n\"MJECCB2F2P5002335\",\n\"MJECCB2F2P5003467\",\n\"MJECCB2F2P5003582\",\n\"MJECCB2F2P5007485\",\n\"MJECCB2F2P5009432\",\n\"MJECCB2F3N5001076\",\n\"MJECCB2F3N5001112\",\n\"MJECCB2F3N5001143\",\n\"MJECCB2F3N5001174\",\n\"MJECCB2F3N5001207\",\n\"MJECCB2F3N5001238\",\n\"MJECCB2F3N5001272\",\n\"MJECCB2F3N5001305\",\n\"MJECCB2F3N5001336\",\n\"MJECCB2F3N5001403\",\n\"MJECCB2F3N5001997\",\n\"MJECCB2F3N5002065\",\n\"MJECCB2F3N5002146\",\n\"MJECCB2F3N5002213\",\n\"MJECCB2F3N5002289\",\n\"MJECCB2F3N5002292\",\n\"MJECCB2F3N5002373\",\n\"MJECCB2F3N5002437\",\n\"MJECCB2F3N5002440\",\n\"MJECCB2F3N5002518\",\n\"MJECCB2F3N5002521\",\n\"MJECCB2F3N5002907\",\n\"MJECCB2F3N5003653\",\n\"MJECCB2F3N5003880\",\n\"MJECCB2F3N5003927\",\n\"MJECCB2F3N5007816\",\n\"MJECCB2F3N5007881\",\n\"MJECCB2F3N5008044\",\n\"MJECCB2F3P5000268\",\n\"MJECCB2F3P5002182\",\n\"MJECCB2F3P5002263\",\n\"MJECCB2F3P5002344\",\n\"MJECCB2F3P5003414\",\n\"MJECCB2F3P5003462\",\n\"MJECCB2F3P5003526\",\n\"MJECCB2F3P5005504\",\n\"MJECCB2F4N5000941\",\n\"MJECCB2F4N5001040\",\n\"MJECCB2F4N5001765\",\n\"MJECCB2F4N5001913\",\n\"MJECCB2F4N5001989\",\n\"MJECCB2F4N5001992\",\n\"MJECCB2F4N5002057\",\n\"MJECCB2F4N5002060\",\n\"MJECCB2F4N5002138\",\n\"MJECCB2F4N5002141\",\n\"MJECCB2F4N5002219\",\n\"MJECCB2F4N5002222\",\n\"MJECCB2F4N5002298\",\n\"MJECCB2F4N5002365\",\n\"MJECCB2F4N5002379\",\n\"MJECCB2F4N5002527\",\n\"MJECCB2F4N5002592\",\n\"MJECCB2F4N5003600\",\n\"MJECCB2F4N5007548\",\n\"MJECCB2F4N5007663\",\n\"MJECCB2F4N5007761\",\n\"MJECCB2F4N5007940\",\n\"MJECCB2F4N5008134\",\n\"MJECCB2F4P5001963\",\n\"MJECCB2F4P5002028\",\n\"MJECCB2F4P5002031\",\n\"MJECCB2F4P5002109\",\n\"MJECCB2F4P5002112\",\n\"MJECCB2F4P5002188\",\n\"MJECCB2F4P5002255\",\n\"MJECCB2F4P5002336\",\n\"MJECCB2F4P5003468\",\n\"MJECCB2F4P5007486\",\n\"MJECCB2F4P5009433\",\n\"MJECCB2F5N5001077\",\n\"MJECCB2F5N5001113\",\n\"MJECCB2F5N5001144\",\n\"MJECCB2F5N5001208\",\n\"MJECCB2F5N5001239\",\n\"MJECCB2F5N5001273\",\n\"MJECCB2F5N5001306\",\n\"MJECCB2F5N5001774\",\n\"MJECCB2F5N5002066\",\n\"MJECCB2F5N5002147\",\n\"MJECCB2F5N5002214\",\n\"MJECCB2F5N5002293\",\n\"MJECCB2F5N5002374\",\n\"MJECCB2F5N5002438\",\n\"MJECCB2F5N5002441\",\n\"MJECCB2F5N5002519\",\n\"MJECCB2F5N5002522\",\n\"MJECCB2F5N5002908\",\n\"MJECCB2F5N5003654\",\n\"MJECCB2F5N5003881\",\n\"MJECCB2F5N5003928\",\n\"MJECCB2F5N5007817\",\n\"MJECCB2F5P5000269\",\n\"MJECCB2F5P5002183\",\n\"MJECCB2F5P5002264\",\n\"MJECCB2F5P5003463\",\n\"MJECCB2F5P5003527\",\n\"MJECCB2F6N5000942\",\n\"MJECCB2F6N5001170\",\n\"MJECCB2F6N5001766\",\n\"MJECCB2F6N5001914\",\n\"MJECCB2F6N5001993\",\n\"MJECCB2F6N5002058\",\n\"MJECCB2F6N5002061\",\n\"MJECCB2F6N5002139\",\n\"MJECCB2F6N5002142\",\n\"MJECCB2F6N5002223\",\n\"MJECCB2F6N5002285\",\n\"MJECCB2F6N5002299\",\n\"MJECCB2F6N5002366\",\n\"MJECCB2F6N5002528\",\n\"MJECCB2F6N5002593\",\n\"MJECCB2F6N5003601\",\n\"MJECCB2F6N5007664\",\n\"MJECCB2F6N5007762\",\n\"MJECCB2F6N5007941\",\n\"MJECCB2F6N5008040\",\n\"MJECCB2F6N5008085\",\n\"MJECCB2F6P5001964\",\n\"MJECCB2F6P5002029\",\n\"MJECCB2F6P5002032\",\n\"MJECCB2F6P5002113\",\n\"MJECCB2F6P5002256\",\n\"MJECCB2F6P5002337\",\n\"MJECCB2F6P5002340\",\n\"MJECCB2F6P5003410\",\n\"MJECCB2F6P5003469\",\n\"MJECCB2F6P5005500\",\n\"MJECCB2F6P5007487\",\n\"MJECCB2F6P5009434\",\n\"MJECCB2F7N5001016\",\n\"MJECCB2F7N5001078\",\n\"MJECCB2F7N5001114\",\n\"MJECCB2F7N5001209\",\n\"MJECCB2F7N5001307\",\n\"MJECCB2F7N5001338\",\n\"MJECCB2F7N5001405\",\n\"MJECCB2F7N5001775\",\n\"MJECCB2F7N5001985\",\n\"MJECCB2F7N5001999\",\n\"MJECCB2F7N5002067\",\n\"MJECCB2F7N5002148\",\n\"MJECCB2F7N5002215\",\n\"MJECCB2F7N5002294\",\n\"MJECCB2F7N5002375\",\n\"MJECCB2F7N5002439\",\n\"MJECCB2F7N5002442\",\n\"MJECCB2F7N5002523\",\n\"MJECCB2F7N5002909\",\n\"MJECCB2F7N5003882\",\n\"MJECCB2F7N5003929\",\n\"MJECCB2F7N5007883\",\n\"MJECCB2F7P5001956\",\n\"MJECCB2F7P5002105\",\n\"MJECCB2F7P5002184\",\n\"MJECCB2F7P5003464\",\n\"MJECCB2F7P5003528\",\n\"MJECCB2F7P5003531\",\n\"MJECCB2F8N5000943\",\n\"MJECCB2F8N5001042\",\n\"MJECCB2F8N5001171\",\n\"MJECCB2F8N5001364\",\n\"MJECCB2F8N5001767\",\n\"MJECCB2F8N5001770\",\n\"MJECCB2F8N5001915\",\n\"MJECCB2F8N5002062\",\n\"MJECCB2F8N5002143\",\n\"MJECCB2F8N5002210\",\n\"MJECCB2F8N5002224\",\n\"MJECCB2F8N5002367\",\n\"MJECCB2F8N5002370\",\n\"MJECCB2F8N5002448\",\n\"MJECCB2F8N5002529\",\n\"MJECCB2F8N5003602\",\n\"MJECCB2F8N5003650\",\n\"MJECCB2F8N5007763\",\n\"MJECCB2F8N5007942\",\n\"MJECCB2F8N5008041\",\n\"MJECCB2F8N5008086\",\n\"MJECCB2F8P5002033\",\n\"MJECCB2F8P5002114\",\n\"MJECCB2F8P5002257\",\n\"MJECCB2F8P5002260\",\n\"MJECCB2F8P5002338\",\n\"MJECCB2F8P5002341\",\n\"MJECCB2F8P5003411\",\n\"MJECCB2F8P5005501\",\n\"MJECCB2F8P5007488\",\n\"MJECCB2F9N5001079\",\n\"MJECCB2F9N5001308\",\n\"MJECCB2F9N5002068\",\n\"MJECCB2F9N5002135\",\n\"MJECCB2F9N5002149\",\n\"MJECCB2F9N5002216\",\n\"MJECCB2F9N5002295\",\n\"MJECCB2F9N5002376\",\n\"MJECCB2F9N5002443\",\n\"MJECCB2F9N5002524\",\n\"MJECCB2F9N5003883\",\n\"MJECCB2F9N5007819\",\n\"MJECCB2F9N5007884\",\n\"MJECCB2F9N5008565\",\n\"MJECCB2F9P5001957\",\n\"MJECCB2F9P5001960\",\n\"MJECCB2F9P5002025\",\n\"MJECCB2F9P5002106\",\n\"MJECCB2F9P5002185\",\n\"MJECCB2F9P5003465\",\n\"MJECCB2F9P5003529\",\n\"MJECCB2F9P5003532\",\n\"MJECCB2F9P5009430\",\n\"MJECCB2FXN5000975\",\n\"MJECCB2FXN5001110\",\n\"MJECCB2FXN5001141\",\n\"MJECCB2FXN5001172\",\n\"MJECCB2FXN5001205\",\n\"MJECCB2FXN5001236\",\n\"MJECCB2FXN5001270\",\n\"MJECCB2FXN5001365\",\n\"MJECCB2FXN5001401\",\n\"MJECCB2FXN5001818\",\n\"MJECCB2FXN5001916\",\n\"MJECCB2FXN5001995\",\n\"MJECCB2FXN5002063\",\n\"MJECCB2FXN5002144\",\n\"MJECCB2FXN5002211\",\n\"MJECCB2FXN5002287\",\n\"MJECCB2FXN5002290\",\n\"MJECCB2FXN5002368\",\n\"MJECCB2FXN5002371\",\n\"MJECCB2FXN5002435\",\n\"MJECCB2FXN5002449\",\n\"MJECCB2FXN5002905\",\n\"MJECCB2FXN5003651\",\n\"MJECCB2FXN5003925\",\n\"MJECCB2FXN5007764\",\n\"MJECCB2FXN5007943\",\n\"MJECCB2FXN5008042\",\n\"MJECCB2FXN5008087\",\n\"MJECCB2FXN5008185\",\n\"MJECCB2FXP5000266\",\n\"MJECCB2FXP5002034\",\n\"MJECCB2FXP5002180\",\n\"MJECCB2FXP5002258\",\n\"MJECCB2FXP5002261\",\n\"MJECCB2FXP5002339\",\n\"MJECCB2FXP5002342\",\n\"MJECCB2FXP5003412\",\n\"MJECCB2FXP5003460\",\n\"MJEECB0F4N5000403\",\n\"MJEFG8JJ1NJB14448\",\n\"MJEFG8JJ1NJB14449\",\n\"MJEFG8JJ1NJB14450\",\n\"MJEFG8JJ1NJB14455\",\n\"MJEFG8JJ1NJB14456\",\n\"MJEFG8JJ1NJB14457\",\n\"MJEFG8JJ1NJB14459\",\n\"MJEFG8JJ1NJB14460\",\n\"MJEFG8JJ1NJB14462\",\n\"MJEFG8JJ1NJB14464\",\n\"MJEFG8JJ1NJB14465\",\n\"MJEFG8JJ1NJB14467\",\n\"MJEFG8JJ1NJB14469\",\n\"MJEFG8JJ2NJP10057\",\n\"MJEFG8JJ2NJP10058\",\n\"MJEFG8JJ2NJP10065\",\n\"MJEFG8JJ2NJP10066\",\n\"MJEFG8JJ2NJP10067\",\n\"MJEFG8JJ2NJP10068\",\n\"MJEFG8JJ2NJP10069\",\n\"MJEFG8JJ2NJP10070\",\n\"MJEFG8JJ2NJP10071\",\n\"MJEFG8JJ2NJP10072\",\n\"MJEFG8JJ2NJP10101\",\n\"MJEFG8JJ2NJP10111\",\n\"MJEFG8JJ2NJP10112\",\n\"MJEFG8JJ2NJP10114\",\n\"MJEFG8JJ2PJP10436\",\n\"MJEFG8JJ2PJP10439\",\n\"MJEFG8JJ2PJP10441\",\n\"MJEFG8JJ2PJP10442\",\n\"MJEFG8JJ2PJP10444\",\n\"MJEFG8JJ2PJP10456\",\n\"MJEFG8JK1LJJ11228\",\n\"MJEFG8JK1MJJ11354\",\n\"MJEFG8JK1MJJ11355\",\n\"MJEFG8JK1NJJ11449\",\n\"MJEFG8JK1NJJ11453\",\n\"MJEFG8JK1NJJ11455\",\n\"MJEFG8JK2NJP10078\",\n\"MJEFG8JK2NJP10082\",\n\"MJEFG8JK2NJP10097\",\n\"MJEFG8JK2NJP10119\",\n\"MJEFG8JK2NJP10120\",\n\"MJEFG8JK2NJP10122\",\n\"MJEFG8JK2NJP10123\",\n\"MJEFG8JK2NJP10143\",\n\"MJEFG8JK2NJP10144\",\n\"MJEFG8JK2NJP10145\",\n\"MJEFG8JK2NJP10146\",\n\"MJEFG8JK2NJP10155\",\n\"MJEFG8JK2NJP10156\",\n\"MJEFG8JK2NJP10157\",\n\"MJEFG8JK2NJP10160\",\n\"MJEFG8JK2NJP10161\",\n\"MJEFL8JN1MJJ12489\",\n\"MJEFL8JN1MJJ12490\",\n\"MJEFL8JN1MJJ12491\",\n\"MJEFL8JN1MJJ12492\",\n\"MJEFL8JN1MJJ12494\",\n\"MJEFL8JN1MJJ12498\",\n\"MJEFL8JN1MJJ12499\",\n\"MJEFL8JN1MJJ12500\",\n\"MJEFL8JN1MJJ12524\",\n\"MJEFL8JN1MJJ12525\",\n\"MJEFL8JN1MJJ12537\",\n\"MJEFL8JN1MJJ12538\",\n\"MJEFL8JN1MJJ12540\",\n\"MJEFL8JN1MJJ12541\",\n\"MJEFL8JW2PJY11952\",\n\"MJEFL8JW2PJY11964\",\n\"MJEFL8JW2PJY11972\",\n\"MJEFL8JW2PJY12291\",\n\"MJEFL8JW2PJY12298\",\n\"MJEFL8JW2PJY12299\",\n\"MJEFL8JW2PJY12312\",\n\"MJEFL8JW2PJY12325\",\n\"MJEFL8JW2PJY12332\",\n\"MJEFL8JW2PJY12345\",\n\"MJEFL8JW2PJY12346\",\n\"MJEFL8JW2PJY12360\",\n\"MJEFL8JW2PJY12367\",\n\"MJEFL8JW2PJY12368\",\n\"MJEFM2PL2NJM10060\",\n\"MJEFM2PL2NJM10269\",\n\"MJEFM2PL2NJM10270\",\n\"MJEFM2PL2NJM10272\",\n\"MJEFM2PL2NJM10280\",\n\"MJEFM2PL2PJM10341\",\n\"MJEFM2PL2PJM10342\",\n\"MJEFM2PL2PJM10343\",\n\"MJEFM2PL2PJM10344\",\n\"MJEFM2PL2PJM10345\",\n\"MJEFM2PL2PJM10346\",\n\"MJEFM2PL2PJM10353\",\n\"MJEFM2PL2PJM10354\",\n\"MJEFM2PL2PJM10355\",\n\"MJEFM2PL2PJM10357\",\n\"MJEFM2PL2PJM10380\",\n\"MJEFM2PL2PJM10381\",\n\"MJEFM2PL2PJM10382\",\n\"MJEFM2PL2PJM10383\",\n\"MJEFM2PL2PJM10384\",\n\"MJEFM2PL2PJM10385\",\n\"MJEFM2PL2PJM10388\",\n\"MJEFM8JK2NJX10294\",\n\"MJEFM8JK2NJX10297\",\n\"MJEFM8JK2NJX10313\",\n\"MJEFM8JK2PJX10408\",\n\"MJEFM8JK2PJX10414\",\n\"MJEFM8JK2PJX10415\",\n\"MJEFM8JK2PJX10416\",\n\"MJEFM8JK2PJX10417\",\n\"MJEFM8JK2PJX10418\",\n\"MJEFM8JN2MJX35089\",\n\"MJEFM8JN2MJX35464\",\n\"MJEFM8JN2NJX10195\",\n\"MJEFM8JN2NJX10701\",\n\"MJEFM8JN2NJX10702\",\n\"MJEFM8JN2NJX10703\",\n\"MJEFM8JN2NJX10704\",\n\"MJEFM8JN2NJX10705\",\n\"MJEFM8JN2NJX11407\",\n\"MJEFM8JN2NJX11408\",\n\"MJEFM8JN2NJX11603\",\n\"MJEFM8JN2NJX11604\",\n\"MJEFM8JN2NJX11624\",\n\"MJEFM8JN2NJX11625\",\n\"MJEFM8JN2NJX11627\",\n\"MJEFM8JN2NJX11628\",\n\"MJEFM8JN2NJX11632\",\n\"MJEFM8JN2NJX11636\",\n\"MJEFM8JN2NJX13857\",\n\"MJEFM8JN2NJX14311\",\n\"MJEFM8JN2NJX14537\",\n\"MJEFM8JN2NJX14539\",\n\"MJEFM8JN2PJX18362\",\n\"MJEFM8JN2PJX18363\",\n\"MJEFM8JN2PJX18388\",\n\"MJEFM8JN2PJX18397\",\n\"MJEFM8JN2PJX18399\",\n\"MJEFM8JN2PJX18400\",\n\"MJEFM8JN2PJX18401\",\n\"MJEFM8JN2PJX18402\",\n\"MJEFM8JN2PJX18403\",\n\"MJEFM8JN2PJX18404\",\n\"MJEFM8JN2PJX18500\",\n\"MJEFM8JN2PJX18501\",\n\"MJEFM8JN2PJX18502\",\n\"MJEFM8JN2PJX18504\",\n\"MJEFM8JN2PJX18516\",\n\"MJEFM8JN2PJX18517\",\n\"MJEFM8JN2PJX18518\",\n\"MJEFM8JN2PJX18519\",\n\"MJEFM8JN2PJX18753\",\n\"MJEFM8JN2PJX18754\",\n\"MJEFM8JN2PJX18755\",\n\"MJEFM8JN2PJX19009\",\n\"MJEFM8JN2PJX19039\",\n\"MJEFM8JN2PJX19042\",\n\"MJEFM8JN2PJX19078\",\n\"MJEFM8JN2PJX19414\",\n\"MJEFM8JN2PJX19415\",\n\"MJEFM8JN2PJX19417\",\n\"MJEFM8JN2PJX19418\",\n\"MJEFM8JN2PJX19420\",\n\"MJEFM8JN2PJX19421\",\n\"MJEFM8JN2PJX19425\",\n\"MJEFM8JN2PJX19429\",\n\"MJEFM8JN2PJX19430\",\n\"MJEFM8JN2PJX19431\",\n\"MJEFM8JN2PJX19433\",\n\"MJEFM8JN2PJX19434\"]\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27823,7 +27842,7 @@
         "finalize": "",
         "libs": [],
         "x": 500,
-        "y": 520,
+        "y": 660,
         "wires": [
             [
                 "39d8bafe143d94e7"
@@ -27841,7 +27860,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 180,
-        "y": 520,
+        "y": 660,
         "wires": [
             [
                 "069355cdbbf8268f"
@@ -27854,7 +27873,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-asset",
-        "func": "const couchdb = global.get('couchdb')\nlet { vins } = msg.payload;\ncouchdb.view('smart-asset','truck','by-vin',{\n    keys: vins.map((x) => [x])\n}).then((x) => {\n    let smartAsset = x.data.rows.map((m) => m.value);\n    msg.smartAsset = smartAsset;\n    node.send(msg)\n})\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { vins } = msg.payload;\nnode.warn(vins.map((x) => `[\"${x}\"]`))\ncouchdb.view('smart-asset','truck','by-vin',{\n    keys: vins.map((x) => [x])\n}).then((x) => {\n    let smartAsset = x.data.rows.map((m) => m.value);\n    msg.smartAsset = smartAsset;\n    node.send(msg)\n})\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27862,11 +27881,164 @@
         "finalize": "",
         "libs": [],
         "x": 510,
-        "y": 560,
+        "y": 700,
         "wires": [
             [
                 "c511ff12c9b2a251"
             ]
         ]
+    },
+    {
+        "id": "09f1745aeb69835f",
+        "type": "http in",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "",
+        "url": "/api/n-test/wt/not-inrange/by-nik-block",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 240,
+        "wires": [
+            [
+                "19f3ca38b5fd94e9"
+            ]
+        ]
+    },
+    {
+        "id": "19f3ca38b5fd94e9",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "get not-inrange",
+        "func": "let { date, nik, block } = msg.payload;\n\nif (!validate()) {\n    _nextError(\"invalid parameters\")\n}\n\ntry {\n    const couchdb = global.get('couchdb');\n    couchdb.view('temp03', 'list', 'by-date-nik-block', {\n        key: [date, nik, block]\n    }).then(res => {\n        let rs = res.data.rows?.map(x => x.value);\n        _next(rs);\n    }, err => { _nextError(err) });\n} catch (err) { _nextError(err) }\n\nfunction validate() {\n    if (!date || !nik || !block) return false;\n    return isValidDate(date)\n}\nfunction isValidDate(dateString) {\n    // Regular expression to match YYYY-MM-DD format\n    const regex = /^\\d{4}-\\d{2}-\\d{2}$/;\n    return regex.test(dateString);\n}\n\nfunction _next(payload) {\n    msg.statusCode = 200;\n    msg.payload = payload;\n    node.send(msg);\n}\n\nfunction _nextError(err) {\n    msg.statusCode = 500;\n    msg.payload = err;\n    node.send(msg);\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 240,
+        "wires": [
+            [
+                "85fb7a0cdbb4fc66"
+            ]
+        ]
+    },
+    {
+        "id": "85fb7a0cdbb4fc66",
+        "type": "http response",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 790,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "1143f8a2883c867f",
+        "type": "http in",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "",
+        "url": "/api/n-test/wt/not-inrange/by-nik",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 280,
+        "wires": [
+            [
+                "4555d331e8fbc9fc"
+            ]
+        ]
+    },
+    {
+        "id": "4555d331e8fbc9fc",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "get not-inrange",
+        "func": "let { date, nik } = msg.payload;\n\nif (!date || !nik || !isValidDate(date)) {\n    _nextError(\"invalid parameters\")\n}\n\ntry {\n    const couchdb = global.get('couchdb');\n    couchdb.view('temp03', 'list', 'by-date-nik', {\n        key: [date, nik]\n    }).then(res => {\n        let rs = res.data.rows?.map(x => x.value);\n        _next(rs);\n    }, err => { _nextError(err) });\n} catch (err) { _nextError(err) }\n\nfunction isValidDate(dateString) {\n    // Regular expression to match YYYY-MM-DD format\n    const regex = /^\\d{4}-\\d{2}-\\d{2}$/;\n    return regex.test(dateString);\n}\n\nfunction _next(payload) {\n    msg.statusCode = 200;\n    msg.payload = payload;\n    node.send(msg);\n}\n\nfunction _nextError(err) {\n    msg.statusCode = 500;\n    msg.payload = err;\n    node.send(msg);\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 280,
+        "wires": [
+            [
+                "55af1ca819b6e14a"
+            ]
+        ]
+    },
+    {
+        "id": "55af1ca819b6e14a",
+        "type": "http response",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 790,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "806ca1825dc55108",
+        "type": "http in",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "",
+        "url": "/api/n-test/wt/not-inrange/by-nik-tree",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 220,
+        "y": 320,
+        "wires": [
+            [
+                "6b13bea405683fd6"
+            ]
+        ]
+    },
+    {
+        "id": "6b13bea405683fd6",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "get not-inrange",
+        "func": "let { date, nik, tree } = msg.payload;\n\nif (!date || !nik || !tree || !isValidDate(date)) {\n    _nextError(\"invalid parameters\")\n}\n\ntry {\n    const couchdb = global.get('couchdb');\n    couchdb.view('temp03', 'list', 'by-date-nik-tree', {\n        key: [date, nik, tree]\n    }).then(res => {\n        let rs = res.data.rows?.map(x => x.value);\n        _next(rs);\n    }, err => { _nextError(err) });\n} catch (err) { _nextError(err) }\n\nfunction _next(payload) {\n    msg.statusCode = 200;\n    msg.payload = payload;\n    node.send(msg);\n}\nfunction isValidDate(dateString) {\n    // Regular expression to match YYYY-MM-DD format\n    const regex = /^\\d{4}-\\d{2}-\\d{2}$/;\n    return regex.test(dateString);\n}\n\nfunction _nextError(err) {\n    node.warn(err);\n    msg.statusCode = 500;\n    msg.payload = err;\n    node.send(msg);\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 320,
+        "wires": [
+            [
+                "2e0c73c9eb5a7cb9"
+            ]
+        ]
+    },
+    {
+        "id": "2e0c73c9eb5a7cb9",
+        "type": "http response",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 790,
+        "y": 320,
+        "wires": []
     }
 ]
