@@ -1418,7 +1418,9 @@
             "850008dec9093eba"
         ],
         "x": 34,
-        "y": 39
+        "y": 39,
+        "w": 512,
+        "h": 142
     },
     {
         "id": "0c3d5d23d5b1c898",
@@ -1503,12 +1505,21 @@
             "bdad5c44e54e648e",
             "673fe7e431ea5280",
             "9247ded782e33a4c",
-            "51d21a11f29668f6"
+            "51d21a11f29668f6",
+            "09f1745aeb69835f",
+            "19f3ca38b5fd94e9",
+            "85fb7a0cdbb4fc66",
+            "1143f8a2883c867f",
+            "4555d331e8fbc9fc",
+            "55af1ca819b6e14a",
+            "806ca1825dc55108",
+            "6b13bea405683fd6",
+            "2e0c73c9eb5a7cb9"
         ],
         "x": 34,
         "y": 39,
         "w": 832,
-        "h": 202
+        "h": 322
     },
     {
         "id": "31635bca54f414f8",
@@ -1542,7 +1553,7 @@
             "39d8bafe143d94e7"
         ],
         "x": 34,
-        "y": 279,
+        "y": 419,
         "w": 992,
         "h": 322
     },
@@ -27568,7 +27579,7 @@
         "finalize": "",
         "libs": [],
         "x": 730,
-        "y": 320,
+        "y": 460,
         "wires": [
             [
                 "519120d7ca9110e9"
@@ -27589,7 +27600,7 @@
         "finalize": "",
         "libs": [],
         "x": 500,
-        "y": 320,
+        "y": 460,
         "wires": [
             [
                 "a21d88dd5b67cb2d"
@@ -27610,7 +27621,7 @@
         "finalize": "",
         "libs": [],
         "x": 740,
-        "y": 360,
+        "y": 500,
         "wires": [
             [
                 "f14289672131f49c"
@@ -27628,7 +27639,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 190,
-        "y": 320,
+        "y": 460,
         "wires": [
             [
                 "010ddcdd886303c5"
@@ -27644,7 +27655,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 940,
-        "y": 360,
+        "y": 500,
         "wires": []
     },
     {
@@ -27656,7 +27667,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 940,
-        "y": 420,
+        "y": 560,
         "wires": []
     },
     {
@@ -27673,7 +27684,7 @@
         "finalize": "",
         "libs": [],
         "x": 740,
-        "y": 420,
+        "y": 560,
         "wires": [
             [
                 "f755121d8eb0a89b"
@@ -27694,7 +27705,7 @@
         "finalize": "",
         "libs": [],
         "x": 510,
-        "y": 460,
+        "y": 600,
         "wires": [
             [
                 "4079e2ef49ab3d13"
@@ -27715,7 +27726,7 @@
         "finalize": "",
         "libs": [],
         "x": 500,
-        "y": 420,
+        "y": 560,
         "wires": [
             [
                 "21c9d64c217aab55"
@@ -27733,7 +27744,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 170,
-        "y": 420,
+        "y": 560,
         "wires": [
             [
                 "5016c0dca4797967"
@@ -27754,7 +27765,7 @@
         "finalize": "",
         "libs": [],
         "x": 510,
-        "y": 360,
+        "y": 500,
         "wires": [
             [
                 "ae963f38b7504e00"
@@ -27770,7 +27781,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 940,
-        "y": 560,
+        "y": 700,
         "wires": []
     },
     {
@@ -27787,7 +27798,7 @@
         "finalize": "",
         "libs": [],
         "x": 740,
-        "y": 560,
+        "y": 700,
         "wires": [
             [
                 "ba8ae9524445c3c3"
@@ -27808,7 +27819,7 @@
         "finalize": "",
         "libs": [],
         "x": 730,
-        "y": 520,
+        "y": 660,
         "wires": [
             [
                 "5e278373547e9ff9"
@@ -27829,7 +27840,7 @@
         "finalize": "",
         "libs": [],
         "x": 500,
-        "y": 520,
+        "y": 660,
         "wires": [
             [
                 "39d8bafe143d94e7"
@@ -27847,7 +27858,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 180,
-        "y": 520,
+        "y": 660,
         "wires": [
             [
                 "069355cdbbf8268f"
@@ -27868,11 +27879,164 @@
         "finalize": "",
         "libs": [],
         "x": 510,
-        "y": 560,
+        "y": 700,
         "wires": [
             [
                 "c511ff12c9b2a251"
             ]
         ]
+    },
+    {
+        "id": "09f1745aeb69835f",
+        "type": "http in",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "",
+        "url": "/api/n-test/wt/not-inrange/by-nik-block",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 240,
+        "wires": [
+            [
+                "19f3ca38b5fd94e9"
+            ]
+        ]
+    },
+    {
+        "id": "19f3ca38b5fd94e9",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "get not-inrange",
+        "func": "let { date, nik, block } = msg.payload;\n\nif (!validate()) {\n    _nextError(\"invalid parameters\")\n}\n\ntry {\n    const couchdb = global.get('couchdb');\n    couchdb.view('temp03', 'list', 'by-date-nik-block', {\n        key: [date, nik, block]\n    }).then(res => {\n        let rs = res.data.rows?.map(x => x.value);\n        _next(rs);\n    }, err => { _nextError(err) });\n} catch (err) { _nextError(err) }\n\nfunction validate() {\n    if (!date || !nik || !block) return false;\n    return isValidDate(date)\n}\nfunction isValidDate(dateString) {\n    // Regular expression to match YYYY-MM-DD format\n    const regex = /^\\d{4}-\\d{2}-\\d{2}$/;\n    return regex.test(dateString);\n}\n\nfunction _next(payload) {\n    msg.statusCode = 200;\n    msg.payload = payload;\n    node.send(msg);\n}\n\nfunction _nextError(err) {\n    msg.statusCode = 500;\n    msg.payload = err;\n    node.send(msg);\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 240,
+        "wires": [
+            [
+                "85fb7a0cdbb4fc66"
+            ]
+        ]
+    },
+    {
+        "id": "85fb7a0cdbb4fc66",
+        "type": "http response",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 790,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "1143f8a2883c867f",
+        "type": "http in",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "",
+        "url": "/api/n-test/wt/not-inrange/by-nik",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 280,
+        "wires": [
+            [
+                "4555d331e8fbc9fc"
+            ]
+        ]
+    },
+    {
+        "id": "4555d331e8fbc9fc",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "get not-inrange",
+        "func": "let { date, nik } = msg.payload;\n\nif (!date || !nik || !isValidDate(date)) {\n    _nextError(\"invalid parameters\")\n}\n\ntry {\n    const couchdb = global.get('couchdb');\n    couchdb.view('temp03', 'list', 'by-date-nik', {\n        key: [date, nik]\n    }).then(res => {\n        let rs = res.data.rows?.map(x => x.value);\n        _next(rs);\n    }, err => { _nextError(err) });\n} catch (err) { _nextError(err) }\n\nfunction isValidDate(dateString) {\n    // Regular expression to match YYYY-MM-DD format\n    const regex = /^\\d{4}-\\d{2}-\\d{2}$/;\n    return regex.test(dateString);\n}\n\nfunction _next(payload) {\n    msg.statusCode = 200;\n    msg.payload = payload;\n    node.send(msg);\n}\n\nfunction _nextError(err) {\n    msg.statusCode = 500;\n    msg.payload = err;\n    node.send(msg);\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 280,
+        "wires": [
+            [
+                "55af1ca819b6e14a"
+            ]
+        ]
+    },
+    {
+        "id": "55af1ca819b6e14a",
+        "type": "http response",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 790,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "806ca1825dc55108",
+        "type": "http in",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "",
+        "url": "/api/n-test/wt/not-inrange/by-nik-tree",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 220,
+        "y": 320,
+        "wires": [
+            [
+                "6b13bea405683fd6"
+            ]
+        ]
+    },
+    {
+        "id": "6b13bea405683fd6",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "get not-inrange",
+        "func": "let { date, nik, tree } = msg.payload;\n\nif (!date || !nik || !tree || !isValidDate(date)) {\n    _nextError(\"invalid parameters\")\n}\n\ntry {\n    const couchdb = global.get('couchdb');\n    couchdb.view('temp03', 'list', 'by-date-nik-tree', {\n        key: [date, nik, tree]\n    }).then(res => {\n        let rs = res.data.rows?.map(x => x.value);\n        _next(rs);\n    }, err => { _nextError(err) });\n} catch (err) { _nextError(err) }\n\nfunction _next(payload) {\n    msg.statusCode = 200;\n    msg.payload = payload;\n    node.send(msg);\n}\nfunction isValidDate(dateString) {\n    // Regular expression to match YYYY-MM-DD format\n    const regex = /^\\d{4}-\\d{2}-\\d{2}$/;\n    return regex.test(dateString);\n}\n\nfunction _nextError(err) {\n    node.warn(err);\n    msg.statusCode = 500;\n    msg.payload = err;\n    node.send(msg);\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 320,
+        "wires": [
+            [
+                "2e0c73c9eb5a7cb9"
+            ]
+        ]
+    },
+    {
+        "id": "2e0c73c9eb5a7cb9",
+        "type": "http response",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "79f14cb89367b4f4",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 790,
+        "y": 320,
+        "wires": []
     }
 ]
