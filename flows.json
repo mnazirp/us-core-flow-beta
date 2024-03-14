@@ -27782,7 +27782,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-timeseries",
-        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date', {\n    key : date\n}).then((x) => {\n    msg.payload = {\n        smartBucket : msg.smartBucket,\n    }\n    node.send(msg)\n},(error) => {\n    node.warn(error)\n})\n\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet smartBucket  = msg.smartBucket;\nlet vinAsset = msg.originVin;\nlet { date } = msg.payload;\ncouchdb.view('smart-timeseries','vehicle-tracker','by-doc-id', {\n    key : smartBucket.docID\n}).then((x) => {\n    let smartAsset = msg.smartAsset;\n    let payloads = x.data.rows.map((k) => k.value);\n    payloads = payloads.filter((m) => smartAsset.map((c) => c.szPhysicalNo2).includes(m.vin)).map((k) => {\n\n        let asset = smartAsset.find(function (item) {\n            return item.szPhysicalNo2 == k.vin;\n        })\n\n        let isOneMonth = false;\n\n        let currentDate = new Date(date);\n        if (k.printed_timezone) {\n            let printedTimezone = k.printed_timezone.split(\" \")[0]\n\n            currentDate.setDate(currentDate.getDate() - 30);\n            printedTimezone = new Date(printedTimezone)\n\n            if (currentDate > printedTimezone) {\n                isOneMonth = true;\n            }\n        }\n\n        return {\n            ...k,\n            isOneMonth,\n            last30Days: currentDate,\n            unitNoPol: `${asset.szOrgName} - ${asset.szPhysicalNo1}`,\n        }\n\n    })\n    \n\n    msg.payload = {\n        smartBucket : msg.smartBucket,\n        smartTimeseries : {\n            totalVin : x.data.rows.length,\n            tracking : payloads\n        }\n    }\n    node.send(msg)\n},(error) => {\n    node.warn(error)\n})\n\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27792,7 +27792,9 @@
         "x": 740,
         "y": 700,
         "wires": [
-            []
+            [
+                "ba8ae9524445c3c3"
+            ]
         ]
     },
     {
@@ -27801,7 +27803,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-bucket",
-        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-bucket','position','hino', {\n    key: [date],\n    limit: 1,\n    desceding: true\n}).then((x) => {\n    let smartAsset = msg.smartAsset;\n    let payloads = JSON.parse(x.data.rows[0].value.payload);\n    payloads = payloads.filter((m) => smartAsset.map((c) => c.szPhysicalNo2).includes(m.vin)).map((k) =>{\n\n        let asset = smartAsset.find(function(item)  {\n            return item.szPhysicalNo2 == k.vin;\n        })\n\n        return {\n            ...k,\n            unitNoPol : '',\n        }\n\n    })\n    msg.payload = {\n        jumlahVin : payloads.length,\n        tracking : payloads,\n    };\n    node.send(msg);\n})\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-bucket','position','hino', {\n    key: [date],\n    limit: 1,\n    desceding: true\n}).then((x) => {\n    let smartAsset = msg.smartAsset;\n    let payloads = JSON.parse(x.data.rows[0].value.payload);\n    payloads = payloads.filter((m) => smartAsset.map((c) => c.szPhysicalNo2).includes(m.vin)).map((k) =>{\n\n        let asset = smartAsset.find(function(item)  {\n            return item.szPhysicalNo2 == k.vin;\n        })\n\n        let isOneMonth = false;\n\n        let currentDate = new Date(date);\n        if (k.printed_timezone) {\n            let printedTimezone = k.printed_timezone.split(\" \")[0]\n\n            currentDate.setDate(currentDate.getDate() - 30);\n            printedTimezone = new Date(printedTimezone)\n\n            if(currentDate > printedTimezone) {\n                isOneMonth = true;\n            }\n        }\n\n        return {\n            ...k,\n            isOneMonth,\n            last30Days : currentDate,\n            unitNoPol: `${asset.szOrgName} - ${asset.szPhysicalNo1}`,\n        }\n\n    })\n    msg.smartBucket = {\n        docID : x.data.rows[0].value._id,\n        jumlahVin: payloads.length,\n        tracking: payloads,\n    }\n    node.send(msg);\n})\nreturn null;\n\nfunction formatDate(date) {\n    var year = date.getFullYear();\n    var month = ('0' + (date.getMonth() + 1)).slice(-2); // Adding 1 because getMonth returns zero-based index\n    var day = ('0' + date.getDate()).slice(-2);\n    return year + '-' + month + '-' + day;\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27812,7 +27814,7 @@
         "y": 660,
         "wires": [
             [
-                "ba8ae9524445c3c3"
+                "5e278373547e9ff9"
             ]
         ]
     },
