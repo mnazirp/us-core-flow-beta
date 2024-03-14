@@ -21237,7 +21237,7 @@
         "type": "function",
         "z": "d13820078197e616",
         "name": "function 132",
-        "func": "try {\n    let raw = msg.sub.rows[0].value.payload;\n    let createdAt = msg.sub.rows[0].value.createdAt;\n    let data = JSON.parse(raw);\n    msg.payload = data.map((x) => {\n        // let { vin, vehiclestatus, longitude, latitude, province_name, speed, printed_timezone } = x;\n        return x;\n    })\n    msg.statusCode = 200;\n    node.send(msg);\n} catch (err) {\n    msg.statusCode = 500;\n    msg.payload = {\n        error: err\n    }\n    node.send(msg);\n}",
+        "func": "try {\n    let raw = msg.sub.rows[0].value.payload;\n    let createdAt = msg.sub.rows[0].value.createdAt;\n    let data = JSON.parse(raw);\n    msg.payload = {\n        docID: msg.sub.rows[0].value._id,\n        data : data.map((x) => {\n            // let { vin, vehiclestatus, longitude, latitude, province_name, speed, printed_timezone } = x;\n            return x;\n        })\n    }\n    msg.statusCode = 200;\n    node.send(msg);\n} catch (err) {\n    msg.statusCode = 500;\n    msg.payload = {\n        error: err\n    }\n    node.send(msg);\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
