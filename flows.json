@@ -1542,7 +1542,8 @@
             "c511ff12c9b2a251",
             "069355cdbbf8268f",
             "549fe57a3dac1475",
-            "39d8bafe143d94e7"
+            "39d8bafe143d94e7",
+            "bf61daaf91691ef8"
         ],
         "x": 24,
         "y": 419,
@@ -27563,7 +27564,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-bucket",
-        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\nlet smartAsset = msg.smartAsset;\ncouchdb.view('smart-bucket','position','hino', {\n    key: [date],\n    limit:1,\n    desceding: true\n}).then((x) => {\n    let payloads = JSON.parse(x.data.rows[0].value.payload)\n    let vinNotFound = []\n    let notIncludeFrom665 = []\n    payloads = payloads.map((k) => k.vin);\n    vinAsset.forEach((k) => {\n        if (!payloads.includes(k)) {\n            vinNotFound.push(k)\n        }\n    })\n    smartAsset.forEach((k) => {\n        if (!payloads.includes(k)) {\n            notIncludeFrom665.push(k)\n        }\n    })\n\n    let outside633 = []\n    notIncludeFrom665.forEach((k) => {\n        if(!vinNotFound.includes(k)) {\n            outside633.push(k)\n        }\n    })\n\n\n    msg.smartBucket = {\n        totalVinSmartBucket : payloads.length,\n        vinSmartBucket: payloads,\n        vinBucketFilterFromAcceptence : payloads.filter((m) => vinAsset.includes(m)).length,\n        vinAcceptenceNotFoundFromTrackingBucket: vinNotFound,\n        notIncludeFrom665,\n        outside633,\n        docID : x.data.rows[0].value._id\n    }\n    node.send(msg)\n})\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\nlet smartAsset = msg.smartAsset;\ncouchdb.view('smart-bucket','position','hino', {\n    key: [date],\n    limit:1,\n    desceding: true\n}).then((x) => {\n    let payloads = JSON.parse(x.data.rows[0].value.payload)\n    let vinNotFound = []\n    let notIncludeFrom665 = []\n    payloads = payloads.map((k) => k.vin);\n    vinAsset.forEach((k) => {\n        if (!payloads.includes(k)) {\n            vinNotFound.push(k)\n        }\n    })\n    smartAsset.forEach((k) => {\n        if (!payloads.includes(k)) {\n            notIncludeFrom665.push(k)\n        }\n    })\n    let outside633 = []\n    notIncludeFrom665.forEach((k) => {\n        if(!vinNotFound.includes(k)) {\n            outside633.push(k)\n        }\n    })\n    let totalTrackingFe = payloads.filter(k => smartAsset.includes(k))\n\n    msg.smartBucket = {\n        totalVinSmartBucket : payloads.length,\n        totalLastPosition : totalTrackingFe.length,\n        vinSmartBucket: payloads,\n        vinBucketFilterFromAcceptence : payloads.filter((m) => vinAsset.includes(m)).length,\n        vinAcceptenceNotFoundFromTrackingBucket: vinNotFound,\n        notIncludeFrom665,\n        outside633,\n        docID : x.data.rows[0].value._id\n    }\n    node.send(msg)\n})\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27659,7 +27660,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 940,
-        "y": 560,
+        "y": 600,
         "wires": []
     },
     {
@@ -27668,15 +27669,15 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-timeseries",
-        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date', {\n    key : date\n}).then((x) => {\n    // let totalAllTracking = x.data.rows.length;\n    // let vinSmartTimeseries = x.data.rows.map((x) => x.value.vin);\n    // msg.smartTimeseries = {\n    //     totalVinSmartTimeseries : vinSmartTimeseries.length,\n    //     vinFilterFromOrigin : vinSmartTimeseries.filter((m) => vinAsset.includes(m)).length,\n    // }\n    msg.smartTimeseries = [\n        {\n            keterangan: `jumlah tracking ${msg.totalVinOnBucket} x ${msg.smartBucket.totalDocumentId}`,\n            count : x.data.rows.length\n        },\n        {\n            keterangan: `jumlah tracking accepetence ${msg.smartBucket.totalVinAcceptence} x ${msg.smartBucket.totalDocumentId}`,\n            count: msg.smartBucket.totalAssetsAccepted\n        },\n    ]\n    msg.payload = {\n        smartBucket: msg.smartBucket,\n        smartTimeseries: msg.smartTimeseries,\n    }\n    node.send(msg);\n},(error) => {\n    node.warn(error)\n})\n\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date', {\n    key : date\n}).then((x) => {\n    let totalTrackingWithFilterSmartAsset = 0;\n    let vinOnTracking = []\n    x.data.rows.forEach((k) => {\n        if(msg.smartAsset.includes(k.value.vin)) {\n            if(!vinOnTracking.includes(k.value.vin)) {\n                vinOnTracking.push(k.value.vin)\n            }\n            totalTrackingWithFilterSmartAsset++;\n        }\n    })\n    msg.smartTimeseries = [\n        {\n            keterangan: `jumlah tracking ${msg.totalVinOnBucket} x ${msg.smartBucket.totalDocumentId}`,\n            count : x.data.rows.length\n        },\n        {\n            keterangan: `jumlah tracking accepetence ${msg.smartBucket.totalVinAcceptence} x ${msg.smartBucket.totalDocumentId}`,\n            count: msg.smartBucket.totalAssetsAccepted\n        },\n        {\n            keterangan: `jumlah tracking accepetence ${vinOnTracking.length} x ${msg.smartBucket.totalDocumentId}`,\n            count: totalTrackingWithFilterSmartAsset\n        },\n    ]\n    msg.payload = {\n        smartBucket: msg.smartBucket,\n        smartTimeseries: msg.smartTimeseries,\n    }\n    node.send(msg);\n},(error) => {\n    node.warn(error)\n})\n\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 740,
-        "y": 560,
+        "x": 750,
+        "y": 600,
         "wires": [
             [
                 "f755121d8eb0a89b"
@@ -27696,8 +27697,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 510,
-        "y": 600,
+        "x": 740,
+        "y": 560,
         "wires": [
             [
                 "4079e2ef49ab3d13"
@@ -27721,7 +27722,7 @@
         "y": 560,
         "wires": [
             [
-                "21c9d64c217aab55"
+                "bf61daaf91691ef8"
             ]
         ]
     },
@@ -28030,5 +28031,26 @@
         "x": 790,
         "y": 320,
         "wires": []
+    },
+    {
+        "id": "bf61daaf91691ef8",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "31635bca54f414f8",
+        "name": "smart asset",
+        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\ncouchdb.view('smart-asset','truck','by-vin',{\n    \n}).then((x) => {\n    let smartAsset = x.data.rows.map((m) => m.value.szPhysicalNo2)\n    smartAsset = [...new Set(smartAsset)]\n    let isMatch = smartAsset.filter((k) => msg.originVin.includes(k))\n    msg.isMatchWithCouchDb = isMatch.length;\n    msg.smartAsset = smartAsset;\n    node.send(msg)\n})\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 600,
+        "wires": [
+            [
+                "21c9d64c217aab55"
+            ]
+        ]
     }
 ]
