@@ -1448,9 +1448,7 @@
             "c8da9e03ebb83e55"
         ],
         "x": 14,
-        "y": 4119,
-        "w": 1172,
-        "h": 662
+        "y": 4119
     },
     {
         "id": "dd75aac5ccc19969",
@@ -1503,6 +1501,42 @@
         "y": 39,
         "w": 832,
         "h": 202
+    },
+    {
+        "id": "31635bca54f414f8",
+        "type": "group",
+        "z": "21fbb7ee1d1dbc43",
+        "name": "N-Test Vehicle Monitoring",
+        "style": {
+            "stroke": "none",
+            "fill": "#e3f3d3",
+            "fill-opacity": "0.53",
+            "label": true,
+            "color": "#ff3f3f"
+        },
+        "nodes": [
+            "ae963f38b7504e00",
+            "010ddcdd886303c5",
+            "519120d7ca9110e9",
+            "6f2568ed1d75f00e",
+            "f14289672131f49c",
+            "f755121d8eb0a89b",
+            "4079e2ef49ab3d13",
+            "21c9d64c217aab55",
+            "5016c0dca4797967",
+            "4c2d3b46f3910372",
+            "a21d88dd5b67cb2d",
+            "ba8ae9524445c3c3",
+            "5e278373547e9ff9",
+            "c511ff12c9b2a251",
+            "069355cdbbf8268f",
+            "549fe57a3dac1475",
+            "39d8bafe143d94e7"
+        ],
+        "x": 34,
+        "y": 279,
+        "w": 992,
+        "h": 322
     },
     {
         "id": "784d89e62dfb5070",
@@ -27513,76 +27547,6 @@
         "wires": []
     },
     {
-        "id": "31635bca54f414f8",
-        "type": "group",
-        "z": "21fbb7ee1d1dbc43",
-        "name": "N-Test Vehicle Tracking",
-        "style": {
-            "stroke": "#ffcf3f",
-            "fill": "#ffff3f",
-            "fill-opacity": "0.33",
-            "label": true
-        },
-        "nodes": [
-            "725d675075169f2d",
-            "ae963f38b7504e00",
-            "010ddcdd886303c5",
-            "519120d7ca9110e9",
-            "6f2568ed1d75f00e",
-            "f14289672131f49c",
-            "f755121d8eb0a89b",
-            "4079e2ef49ab3d13",
-            "21c9d64c217aab55",
-            "5016c0dca4797967",
-            "d20a71ba6bdbee9b",
-            "4c2d3b46f3910372",
-            "9ff014efe4da56e4",
-            "a21d88dd5b67cb2d",
-            "ba8ae9524445c3c3",
-            "5e278373547e9ff9",
-            "c511ff12c9b2a251",
-            "37d648fcaf3544ab",
-            "069355cdbbf8268f",
-            "cdec9d58b8045219",
-            "549fe57a3dac1475",
-            "39d8bafe143d94e7"
-        ],
-        "x": 34,
-        "y": 639,
-        "w": 1152,
-        "h": 442
-    },
-    {
-        "id": "725d675075169f2d",
-        "type": "inject",
-        "z": "21fbb7ee1d1dbc43",
-        "g": "31635bca54f414f8",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "{\"date\":\"2024-03-09 22:55:15\"}",
-        "payloadType": "json",
-        "x": 310,
-        "y": 680,
-        "wires": [
-            [
-                "010ddcdd886303c5"
-            ]
-        ]
-    },
-    {
         "id": "ae963f38b7504e00",
         "type": "function",
         "z": "21fbb7ee1d1dbc43",
@@ -27595,8 +27559,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 680,
-        "y": 760,
+        "x": 730,
+        "y": 320,
         "wires": [
             [
                 "519120d7ca9110e9"
@@ -27616,8 +27580,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 520,
-        "y": 720,
+        "x": 500,
+        "y": 320,
         "wires": [
             [
                 "a21d88dd5b67cb2d"
@@ -27637,8 +27601,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 870,
-        "y": 760,
+        "x": 740,
+        "y": 360,
         "wires": [
             [
                 "f14289672131f49c"
@@ -27651,12 +27615,12 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "",
-        "url": "/api/tracking/n-test/last-position",
+        "url": "/api/n-test/vm/last-position",
         "method": "post",
         "upload": false,
         "swaggerDoc": "",
-        "x": 210,
-        "y": 720,
+        "x": 190,
+        "y": 320,
         "wires": [
             [
                 "010ddcdd886303c5"
@@ -27671,8 +27635,8 @@
         "name": "",
         "statusCode": "200",
         "headers": {},
-        "x": 1060,
-        "y": 760,
+        "x": 940,
+        "y": 360,
         "wires": []
     },
     {
@@ -27683,8 +27647,8 @@
         "name": "",
         "statusCode": "200",
         "headers": {},
-        "x": 860,
-        "y": 900,
+        "x": 940,
+        "y": 420,
         "wires": []
     },
     {
@@ -27700,12 +27664,11 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 690,
-        "y": 900,
+        "x": 740,
+        "y": 420,
         "wires": [
             [
-                "f755121d8eb0a89b",
-                "9ff014efe4da56e4"
+                "f755121d8eb0a89b"
             ]
         ]
     },
@@ -27722,8 +27685,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 500,
-        "y": 900,
+        "x": 510,
+        "y": 460,
         "wires": [
             [
                 "4079e2ef49ab3d13"
@@ -27743,41 +27706,11 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 520,
-        "y": 860,
+        "x": 500,
+        "y": 420,
         "wires": [
             [
                 "21c9d64c217aab55"
-            ]
-        ]
-    },
-    {
-        "id": "d20a71ba6bdbee9b",
-        "type": "inject",
-        "z": "21fbb7ee1d1dbc43",
-        "g": "31635bca54f414f8",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "{\"date\":\"2024-03-10\"}",
-        "payloadType": "json",
-        "x": 260,
-        "y": 820,
-        "wires": [
-            [
-                "5016c0dca4797967"
             ]
         ]
     },
@@ -27787,34 +27720,17 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "",
-        "url": "/api/tracking/n-test/history",
+        "url": "/api/n-test/vm/history",
         "method": "post",
         "upload": false,
         "swaggerDoc": "",
-        "x": 230,
-        "y": 860,
+        "x": 170,
+        "y": 420,
         "wires": [
             [
                 "5016c0dca4797967"
             ]
         ]
-    },
-    {
-        "id": "9ff014efe4da56e4",
-        "type": "debug",
-        "z": "21fbb7ee1d1dbc43",
-        "g": "31635bca54f414f8",
-        "name": "debug 223",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 870,
-        "y": 860,
-        "wires": []
     },
     {
         "id": "a21d88dd5b67cb2d",
@@ -27830,7 +27746,7 @@
         "finalize": "",
         "libs": [],
         "x": 510,
-        "y": 760,
+        "y": 360,
         "wires": [
             [
                 "ae963f38b7504e00"
@@ -27845,8 +27761,8 @@
         "name": "",
         "statusCode": "200",
         "headers": {},
-        "x": 1060,
-        "y": 1040,
+        "x": 940,
+        "y": 560,
         "wires": []
     },
     {
@@ -27862,12 +27778,11 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 870,
-        "y": 1040,
+        "x": 740,
+        "y": 560,
         "wires": [
             [
-                "ba8ae9524445c3c3",
-                "37d648fcaf3544ab"
+                "ba8ae9524445c3c3"
             ]
         ]
     },
@@ -27884,30 +27799,13 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 680,
-        "y": 1040,
+        "x": 730,
+        "y": 520,
         "wires": [
             [
                 "5e278373547e9ff9"
             ]
         ]
-    },
-    {
-        "id": "37d648fcaf3544ab",
-        "type": "debug",
-        "z": "21fbb7ee1d1dbc43",
-        "g": "31635bca54f414f8",
-        "name": "debug 224",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1070,
-        "y": 1000,
-        "wires": []
     },
     {
         "id": "069355cdbbf8268f",
@@ -27922,41 +27820,11 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 520,
-        "y": 1000,
+        "x": 500,
+        "y": 520,
         "wires": [
             [
                 "39d8bafe143d94e7"
-            ]
-        ]
-    },
-    {
-        "id": "cdec9d58b8045219",
-        "type": "inject",
-        "z": "21fbb7ee1d1dbc43",
-        "g": "31635bca54f414f8",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "{\"date\":\"2024-03-09 22:55:15\",\"vins\":[\"MJEC1JG43M5196180\",\"MJEC1JG43M5196110\"]}",
-        "payloadType": "json",
-        "x": 310,
-        "y": 960,
-        "wires": [
-            [
-                "069355cdbbf8268f"
             ]
         ]
     },
@@ -27966,12 +27834,12 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "",
-        "url": "/api/tracking/n-test/attribute",
+        "url": "/api/n-test/vm/attribute",
         "method": "post",
         "upload": false,
         "swaggerDoc": "",
-        "x": 220,
-        "y": 1000,
+        "x": 180,
+        "y": 520,
         "wires": [
             [
                 "069355cdbbf8268f"
@@ -27992,7 +27860,7 @@
         "finalize": "",
         "libs": [],
         "x": 510,
-        "y": 1040,
+        "y": 560,
         "wires": [
             [
                 "c511ff12c9b2a251"
