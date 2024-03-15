@@ -1350,9 +1350,7 @@
             "bc3395fb23c960b3"
         ],
         "x": 34,
-        "y": 439,
-        "w": 492,
-        "h": 122
+        "y": 439
     },
     {
         "id": "7aaf569aa41ac02a",
@@ -1373,9 +1371,7 @@
             "7f66a0114336a27e"
         ],
         "x": 34,
-        "y": 39,
-        "w": 552,
-        "h": 162
+        "y": 39
     },
     {
         "id": "93d125404594bdb3",
@@ -1395,9 +1391,7 @@
             "596ccc69fa7978cd"
         ],
         "x": 34,
-        "y": 259,
-        "w": 572,
-        "h": 122
+        "y": 259
     },
     {
         "id": "0e692d4a74821e66",
@@ -1475,9 +1469,7 @@
             "6d6cb3da3073a535"
         ],
         "x": 34,
-        "y": 619,
-        "w": 512,
-        "h": 122
+        "y": 619
     },
     {
         "id": "79f14cb89367b4f4",
@@ -1548,7 +1540,8 @@
             "c511ff12c9b2a251",
             "069355cdbbf8268f",
             "549fe57a3dac1475",
-            "39d8bafe143d94e7"
+            "39d8bafe143d94e7",
+            "bf61daaf91691ef8"
         ],
         "x": 34,
         "y": 419,
@@ -21243,7 +21236,7 @@
         "type": "function",
         "z": "d13820078197e616",
         "name": "function 132",
-        "func": "try {\n    let raw = msg.sub.rows[0].value.payload;\n    let createdAt = msg.sub.rows[0].value.createdAt;\n    let data = JSON.parse(raw);\n    msg.payload = data.map((x) => {\n        // let { vin, vehiclestatus, longitude, latitude, province_name, speed, printed_timezone } = x;\n        return x;\n    })\n    msg.statusCode = 200;\n    node.send(msg);\n} catch (err) {\n    msg.statusCode = 500;\n    msg.payload = {\n        error: err\n    }\n    node.send(msg);\n}",
+        "func": "try {\n    let raw = msg.sub.rows[0].value.payload;\n    let createdAt = msg.sub.rows[0].value.createdAt;\n    let data = JSON.parse(raw);\n    msg.payload = {\n        docID: msg.sub.rows[0].value._id,\n        data : data.map((x) => {\n            // let { vin, vehiclestatus, longitude, latitude, province_name, speed, printed_timezone } = x;\n            return x;\n        })\n    }\n    msg.statusCode = 200;\n    node.send(msg);\n} catch (err) {\n    msg.statusCode = 500;\n    msg.payload = {\n        error: err\n    }\n    node.send(msg);\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -21276,7 +21269,7 @@
         "type": "function",
         "z": "d13820078197e616",
         "name": "by-cron-timestamp",
-        "func": "msg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'by-cron-timestamp',\n    limit: 1,\n    descending: true\n}\nreturn msg;",
+        "func": "let { date } = msg.payload;\nmsg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'hino',\n    key: [date],\n    limit: 1,\n    descending: true\n}\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -21656,7 +21649,7 @@
         "statusCode": "",
         "headers": {},
         "x": 1110,
-        "y": 4340,
+        "y": 4280,
         "wires": []
     },
     {
@@ -21665,7 +21658,7 @@
         "z": "d13820078197e616",
         "g": "0c3d5d23d5b1c898",
         "name": "mapping",
-        "func": "try {\n    let raw = msg.sub.rows[0].value.payload;\n    let createdAt = msg.sub.rows[0].value.createdAt;\n    let data = JSON.parse(raw);\n    msg.payload = data.map((x) => {\n        let { vehiclestatus, enginehours, positiondatetime, createddatetime , province_name, printed_timezone, ...others } = x;\n        \n        let isMoreThanOneMonth = false;\n        if (printed_timezone) {\n            let last30Days = new Date(createdAt.split('T')[0])\n            last30Days.setDate(last30Days.getDate() - 30);\n\n            let printedTime = new Date(printed_timezone.split(\" \")[0])\n            if (last30Days > printedTime) {\n                isMoreThanOneMonth = true\n            }\n        }\n        \n        return {\n            vehicleStatus: vehiclestatus,\n            engineHours: enginehours,\n            positionDatetime: positiondatetime,\n            createdDatetime: createddatetime,\n            provinceName: province_name,\n            printedTimezone: printed_timezone,\n            isMoreThanOneMonth,\n            ...others,\n            createdAt\n        };\n    }).filter((x) => {\n        return msg.vinAsset.includes(x.vin)\n    })\n    msg.statusCode = 200;\n    node.send(msg);\n} catch (err) {\n    msg.statusCode = 500;\n    msg.payload = {\n        error: err\n    }\n    node.send(msg);\n}",
+        "func": "try {\n    let raw = msg.sub.rows[0].value.payload;\n    let createdAt = msg.sub.rows[0].value.createdAt;\n    let data = JSON.parse(raw);\n    msg.payload = data.map((x) => {\n        let { vehiclestatus, enginehours, positiondatetime, createddatetime , province_name, printed_timezone, ...others } = x;\n        \n        let isMoreThanOneMonth = false;\n        if (printed_timezone) {\n            let last30Days = new Date(createdAt.split('T')[0])\n            last30Days.setDate(last30Days.getDate() - 30);\n\n            let printedTime = new Date(printed_timezone.split(\" \")[0])\n            if (last30Days > printedTime) {\n                isMoreThanOneMonth = true\n            }\n        }\n        \n        return {\n            vehicleStatus: vehiclestatus,\n            engineHours: enginehours,\n            positionDatetime: positiondatetime,\n            createdDatetime: createddatetime,\n            provinceName: province_name,\n            printedTimezone: printed_timezone,\n            isMoreThanOneMonth,\n            ...others,\n            createdAt\n        };\n    }).filter((x) => {\n        return msg.vinAsset.includes(x.vin)\n    })\n    msg.statusCode = 200;\n    node.send(msg);\n} catch (err) {\n    msg.statusCode = 500;\n    msg.payload = []\n    node.send(msg);\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -21673,7 +21666,7 @@
         "finalize": "",
         "libs": [],
         "x": 980,
-        "y": 4340,
+        "y": 4280,
         "wires": [
             [
                 "e73cce7965ceb288"
@@ -21687,7 +21680,7 @@
         "g": "0c3d5d23d5b1c898",
         "name": "",
         "x": 800,
-        "y": 4340,
+        "y": 4280,
         "wires": [
             [
                 "6f2babbeb15d4008"
@@ -21700,7 +21693,7 @@
         "z": "d13820078197e616",
         "g": "0c3d5d23d5b1c898",
         "name": "by-cron-date",
-        "func": "msg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'by-cron-timestamp',\n    limit: 1,\n    descending: true\n}\nreturn msg;",
+        "func": "let { date } = msg.ori\nmsg.sub = {\n    database: 'smart-bucket',\n    design: 'position',\n    view: 'hino',\n    key: [date],\n    limit: 1,\n    descending: true\n}\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -21708,7 +21701,7 @@
         "finalize": "",
         "libs": [],
         "x": 570,
-        "y": 4340,
+        "y": 4280,
         "wires": [
             [
                 "bc8e534611b9435e"
@@ -21739,14 +21732,14 @@
         "z": "d13820078197e616",
         "g": "0c3d5d23d5b1c898",
         "name": "validated",
-        "func": "let valid = false;\nlet { unittransport, numDays, allUnit } = msg.payload;\nif (\n    numDays\n    && typeof numDays == 'number'\n) {\n    if (unittransport\n        && allUnit == undefined\n        && Array.isArray(unittransport)\n        && unittransport.length > 0) {\n        msg.ori = msg.payload;\n        msg.redisKey = `cache:tracking:${unittransport.join(';')}`\n        valid = true;\n    }\n\n    if (\n        allUnit != undefined\n        && unittransport == undefined\n        && typeof allUnit == 'boolean'\n    ) {\n        msg.ori = msg.payload;\n        msg.redisKey = `cache:tracking:all-unit`\n        valid = true;\n    }\n}\nmsg.valid = valid;\nif (!valid) {\n    msg.payload = \"parameter is not valid\"\n}\nreturn msg;",
+        "func": "let valid = false;\nlet { unittransport, date } = msg.payload;\nif (unittransport\n    && Array.isArray(unittransport)\n    && unittransport.length > 0) {\n    msg.ori = msg.payload;\n    valid = true;\n}\n\nif(date && date !== \"\") {\n    valid = true;\n}\nmsg.valid = valid;\nif (!valid) {\n    msg.payload = \"parameter is not valid\"\n}\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 380,
+        "x": 400,
         "y": 4160,
         "wires": [
             [
@@ -21767,7 +21760,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 570,
+        "x": 610,
         "y": 4160,
         "wires": [
             [
@@ -21781,8 +21774,8 @@
         "z": "d13820078197e616",
         "g": "0c3d5d23d5b1c898",
         "name": "",
-        "x": 580,
-        "y": 4220,
+        "x": 600,
+        "y": 4200,
         "wires": [
             [
                 "dd1da4ade411844f"
@@ -21795,15 +21788,15 @@
         "z": "d13820078197e616",
         "g": "0c3d5d23d5b1c898",
         "name": "msg.vinAsset",
-        "func": "msg.vinAsset = msg.sub.rows.filter(x => x.value != \"\").map(x => x.value.vin);\nreturn msg;",
+        "func": "let { date } = msg.ori;\nmsg.vinAsset = msg.sub.rows.map((x) => x.value).filter((x) => {\n    if (x.dtmModifiedDate) {\n        let currentDate = new Date(date);\n        let dtmModifiedDate = new Date(x.dtmModifiedDate.split('T')[0])\n        return currentDate > dtmModifiedDate;\n    }\n    return false\n}).map(x => x.szPhysicalNo2);\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 600,
-        "y": 4280,
+        "x": 580,
+        "y": 4240,
         "wires": [
             [
                 "092b68da1a720736"
@@ -21821,7 +21814,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 160,
-        "y": 4420,
+        "y": 4340,
         "wires": [
             [
                 "55bc919271568e04"
@@ -21841,8 +21834,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 380,
-        "y": 4420,
+        "x": 400,
+        "y": 4340,
         "wires": [
             [
                 "856762dbf818d7f4"
@@ -21862,8 +21855,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 600,
-        "y": 4420,
+        "x": 580,
+        "y": 4340,
         "wires": [
             [
                 "fefa1b57f968b850"
@@ -21876,8 +21869,8 @@
         "z": "d13820078197e616",
         "g": "0c3d5d23d5b1c898",
         "name": "",
-        "x": 580,
-        "y": 4480,
+        "x": 600,
+        "y": 4380,
         "wires": [
             [
                 "58ec3765f3df4628"
@@ -21897,8 +21890,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 610,
-        "y": 4540,
+        "x": 570,
+        "y": 4420,
         "wires": [
             [
                 "fa48c764d736d636"
@@ -21913,8 +21906,8 @@
         "name": "",
         "statusCode": "200",
         "headers": {},
-        "x": 780,
-        "y": 4540,
+        "x": 820,
+        "y": 4420,
         "wires": []
     },
     {
@@ -21925,8 +21918,8 @@
         "name": "",
         "statusCode": "200",
         "headers": {},
-        "x": 780,
-        "y": 4740,
+        "x": 820,
+        "y": 4580,
         "wires": []
     },
     {
@@ -21942,8 +21935,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 610,
-        "y": 4740,
+        "x": 570,
+        "y": 4580,
         "wires": [
             [
                 "4331404839e0c751"
@@ -21956,8 +21949,8 @@
         "z": "d13820078197e616",
         "g": "0c3d5d23d5b1c898",
         "name": "",
-        "x": 580,
-        "y": 4680,
+        "x": 600,
+        "y": 4540,
         "wires": [
             [
                 "d81d2e1546f6f04f"
@@ -21977,8 +21970,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 600,
-        "y": 4620,
+        "x": 580,
+        "y": 4500,
         "wires": [
             [
                 "45e9e96c98036b2d"
@@ -21998,8 +21991,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 380,
-        "y": 4620,
+        "x": 400,
+        "y": 4500,
         "wires": [
             [
                 "f50b9b253937ba13"
@@ -22017,7 +22010,7 @@
         "upload": false,
         "swaggerDoc": "",
         "x": 150,
-        "y": 4620,
+        "y": 4500,
         "wires": [
             [
                 "ee663dfcd8b6b6be"
@@ -27434,7 +27427,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "79f14cb89367b4f4",
         "name": "calc redis-timeseries",
-        "func": "let { date } = msg.payload;\nif (!isValidDate(date)) {\n    _nextError(\"invalid date param\")\n}\n\ntry {\n    const couchdb = global.get('couchdb');\n    const redisTS = global.get('redisTS');\n\n    couchdb.view('smart-libs', 'refs', 'by-topic', {\n        keys: ['wt-devices', 'wt-party-ident']\n    }).then(res => {\n        let devices = res.data.rows[0].value.data;\n        let party = res.data.rows[1].value.data;\n\n        let identities = devices.map(x => {\n            return {\n                device: x.szDeviceID,\n                imei: x.szPhysicalNo1,\n                nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n            }\n        });\n        let rs = [];\n        for (let i = 0; i < identities.length; i++) {\n            let d = new Date(date);\n            let start = d.setHours(0, 0, 0, 0);\n            let end = d.setHours(23, 59, 59, 999);\n            let deviceID = identities[i].device\n\n            redisTS.commands([\n                ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', `deviceID=${deviceID}`, 'topic=event']\n            ]).then(res => {\n                let event = res.data[0].map(x => [x[0].split(':')[1], x[2]]);\n                let mapEvent = new Map(event.map(([device, series]) => [device, series]));\n                let tracking = mapEvent.get(deviceID)?.length;\n                let harvested = mapEvent.get(deviceID)?.map(x => Number(x[1])).reduce((acc, num) => {\n                    return acc + num\n                });\n                rs.push({\n                    ...identities[i],\n                    tracking,\n                    harvested\n                });\n                if (rs.length == identities.length) {\n                    _next(rs.filter(x => x.tracking && x.harvested));\n                }\n            }, err => rs.push(err));\n        }\n    }, err => _nextError(err));\n} catch (err) { _nextError(err) }\n\nfunction isValidDate(dateString) {\n    // Regular expression to match YYYY-MM-DD format\n    const regex = /^\\d{4}-\\d{2}-\\d{2}$/;\n    return regex.test(dateString);\n}\n\nfunction _next(payload) {\n    msg.statusCode = 200;\n    msg.payload = payload;\n    node.send(msg);\n}\n\nfunction _nextError(err) {\n    msg.statusCode = 500;\n    msg.payload = err;\n    node.send(msg);\n}",
+        "func": "let { date } = msg.payload;\nif (!isValidDate(date)) {\n    _nextError(\"invalid date param\")\n}\n\ntry {\n    const couchdb = global.get('couchdb');\n    const redisTS = global.get('redisTS');\n\n    couchdb.view('smart-libs', 'refs', 'by-topic', {\n        keys: ['wt-devices', 'wt-party-ident']\n    }).then(res => {\n        let devices = res.data.rows[0].value.data;\n        let party = res.data.rows[1].value.data;\n\n        let identities = devices.map(x => {\n            return {\n                device: x.szDeviceID,\n                imei: x.szPhysicalNo1,\n                nik: party.find(p => p.ident == x.szPhysicalNo1)?.nik\n            }\n        });\n        let rs = [];\n        for (let i = 0; i < identities.length; i++) {\n            let d = new Date(date);\n            let start = d.setHours(0, 0, 0, 0);\n            let end = d.setHours(23, 59, 59, 999);\n            let deviceID = identities[i].device\n\n            redisTS.commands([\n                ['TS.MRANGE', start.toString(), end.toString(), 'FILTER', `deviceID=${deviceID}`, 'topic=event']\n            ]).then(res => {\n                let event = res.data[0].map(x => [x[0].split(':')[1], x[2]]);\n                let mapEvent = new Map(event.map(([device, series]) => [device, series]));\n                let tracking = mapEvent.get(deviceID)?.length;\n                let harvested = mapEvent.get(deviceID)?.map(x => Number(x[1])).reduce((acc, num) => {\n                    return acc + num\n                });\n                rs.push({\n                    ...identities[i],\n                    tracking,\n                    harvested\n                });\n                // node.warn(rs.length);\n                if (rs.length == identities.length - 2) {\n                    _next(rs.filter(x => x.tracking && x.harvested));\n                }\n            }, err => {\n                node.warn(err);\n                rs.push(err);\n            });\n        }\n    }, err => _nextError(err));\n} catch (err) { _nextError(err) }\n\nfunction isValidDate(dateString) {\n    // Regular expression to match YYYY-MM-DD format\n    const regex = /^\\d{4}-\\d{2}-\\d{2}$/;\n    return regex.test(dateString);\n}\n\nfunction _next(payload) {\n    msg.statusCode = 200;\n    msg.payload = payload;\n    node.send(msg);\n}\n\nfunction _nextError(err) {\n    msg.statusCode = 500;\n    msg.payload = err;\n    node.send(msg);\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27569,7 +27562,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-bucket",
-        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\nlet smartAsset = msg.smartAsset;\ncouchdb.view('smart-bucket','position','hino-date', {\n    key: [date]\n}).then((x) => {\n    let payloads = JSON.parse(x.data.rows[0].value.payload)\n    let vinNotFound = []\n    let notIncludeFrom665 = []\n    payloads = payloads.map((k) => k.vin);\n    vinAsset.forEach((k) => {\n        if (!payloads.includes(k)) {\n            vinNotFound.push(k)\n        }\n    })\n    smartAsset.forEach((k) => {\n        if (!payloads.includes(k)) {\n            notIncludeFrom665.push(k)\n        }\n    })\n\n    let outside633 = []\n    notIncludeFrom665.forEach((k) => {\n        if(!vinNotFound.includes(k)) {\n            outside633.push(k)\n        }\n    })\n\n\n    msg.smartBucket = {\n        totalVinSmartBucket : payloads.length,\n        vinSmartBucket: payloads,\n        vinBucketFilterFromAcceptence : payloads.filter((m) => vinAsset.includes(m)).length,\n        vinAcceptenceNotFoundFromTrackingBucket: vinNotFound,\n        notIncludeFrom665,\n        outside633,\n        docID : x.data.rows[0].value._id\n    }\n    node.send(msg)\n})\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\nlet smartAsset = msg.smartAsset;\ncouchdb.view('smart-bucket','position','hino', {\n    key: [date],\n    limit:1,\n    desceding: true\n}).then((x) => {\n    let payloads = JSON.parse(x.data.rows[0].value.payload)\n    let vinNotFound = []\n    let notIncludeFrom665 = []\n    payloads = payloads.map((k) => k.vin);\n    vinAsset.forEach((k) => {\n        if (!payloads.includes(k)) {\n            vinNotFound.push(k)\n        }\n    })\n    smartAsset.forEach((k) => {\n        if (!payloads.includes(k)) {\n            notIncludeFrom665.push(k)\n        }\n    })\n    let outside633 = []\n    notIncludeFrom665.forEach((k) => {\n        if(!vinNotFound.includes(k)) {\n            outside633.push(k)\n        }\n    })\n    let totalTrackingFe = payloads.filter(k => smartAsset.includes(k))\n\n    msg.smartBucket = {\n        totalVinSmartBucket : payloads.length,\n        totalLastPosition : totalTrackingFe.length,\n        vinSmartBucket: payloads,\n        vinBucketFilterFromAcceptence : payloads.filter((m) => vinAsset.includes(m)).length,\n        vinAcceptenceNotFoundFromTrackingBucket: vinNotFound,\n        notIncludeFrom665,\n        outside633,\n        docID : x.data.rows[0].value._id\n    }\n    node.send(msg)\n})\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27665,7 +27658,7 @@
         "statusCode": "200",
         "headers": {},
         "x": 940,
-        "y": 560,
+        "y": 600,
         "wires": []
     },
     {
@@ -27674,15 +27667,15 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-timeseries",
-        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date', {\n    key : date\n}).then((x) => {\n    // let vinSmartTimeseries = x.data.rows.map((x) => x.value.vin);\n    // msg.smartTimeseries = {\n    //     totalVinSmartTimeseries : vinSmartTimeseries.length,\n    //     vinFilterFromOrigin : vinSmartTimeseries.filter((m) => vinAsset.includes(m)).length,\n    // }\n    msg.payload = x.data.rows.length;\n    // msg.payload = {\n        // smartBucket : msg.smartBucket,\n        // smartTimeseries : msg.smartTimeseries,\n    // }\n    node.send(msg);\n},(error) => {\n    node.warn(error)\n})\n\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date', {\n    key : date\n}).then((x) => {\n    let totalTrackingWithFilterSmartAsset = 0;\n    let vinOnTracking = []\n    x.data.rows.forEach((k) => {\n        if(msg.smartAsset.includes(k.value.vin)) {\n            if(!vinOnTracking.includes(k.value.vin)) {\n                vinOnTracking.push(k.value.vin)\n            }\n            totalTrackingWithFilterSmartAsset++;\n        }\n    })\n    msg.smartTimeseries = [\n        {\n            keterangan: `jumlah tracking ${msg.totalVinOnBucket} x ${msg.smartBucket.totalDocumentId}`,\n            count : x.data.rows.length\n        },\n        {\n            keterangan: `jumlah tracking accepetence ${msg.smartBucket.totalVinAcceptence} x ${msg.smartBucket.totalDocumentId}`,\n            count: msg.smartBucket.totalAssetsAccepted\n        },\n        {\n            keterangan: `jumlah tracking accepetence ${vinOnTracking.length} x ${msg.smartBucket.totalDocumentId}`,\n            count: totalTrackingWithFilterSmartAsset\n        },\n    ]\n    msg.payload = {\n        smartBucket: msg.smartBucket,\n        smartTimeseries: msg.smartTimeseries,\n    }\n    node.send(msg);\n},(error) => {\n    node.warn(error)\n})\n\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 740,
-        "y": 560,
+        "x": 750,
+        "y": 600,
         "wires": [
             [
                 "f755121d8eb0a89b"
@@ -27695,15 +27688,15 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-bucket",
-        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-bucket','position','hino', {\n    key: [date]\n}).then((x) => {\n    let totalAssetsAccepted = 0;\n    let vinNotFound = []\n    let vinFound = []\n    x.data.rows.forEach((m) => {\n        let payloads = JSON.parse(m.value.payload)\n        payloads = payloads.map((k) => k.vin);\n        let asset = 0\n        vinAsset.forEach((k) => {\n            if (payloads.includes(k)) {\n                asset++;\n                if (!vinFound.includes(k)) {\n                    vinFound.push(k)\n                }\n            } else {\n                if(!vinNotFound.includes(k)) {\n                    vinNotFound.push(k)\n                }\n            }\n        })\n        totalAssetsAccepted += asset\n    })\n\n    msg.smartBucket = {\n        totalDocumentId : x.data.rows.length,\n        totalAssetsAccepted : totalAssetsAccepted,\n        totalVinAcceptence : vinFound.length,\n        vinNotFound : vinNotFound,\n    }\n    node.send(msg)\n})\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-bucket','position','hino', {\n    key: [date]\n}).then((x) => {\n    let totalAssetsAccepted = 0;\n    let vinNotFound = []\n    let vinFound = []\n    x.data.rows.forEach((m) => {\n        let payloads = JSON.parse(m.value.payload)\n        payloads = payloads.map((k) => k.vin);\n        let asset = 0\n        vinAsset.forEach((k) => {\n            if (payloads.includes(k)) {\n                asset++;\n                if (!vinFound.includes(k)) {\n                    vinFound.push(k)\n                }\n            } else {\n                if(!vinNotFound.includes(k)) {\n                    vinNotFound.push(k)\n                }\n            }\n        })\n        totalAssetsAccepted += asset\n    })\n    msg.totalVinOnBucket = JSON.parse(x.data.rows[0].value.payload).length;\n    msg.smartBucket = {\n        totalDocumentId : x.data.rows.length,\n        totalAssetsAccepted : totalAssetsAccepted,\n        totalVinAcceptence : vinFound.length,\n        vinNotFound : vinNotFound,\n    }\n    node.send(msg)\n})\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 510,
-        "y": 600,
+        "x": 740,
+        "y": 560,
         "wires": [
             [
                 "4079e2ef49ab3d13"
@@ -27727,7 +27720,7 @@
         "y": 560,
         "wires": [
             [
-                "21c9d64c217aab55"
+                "bf61daaf91691ef8"
             ]
         ]
     },
@@ -27755,7 +27748,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-asset",
-        "func": "const couchdb = global.get('couchdb')\ncouchdb.view('smart-asset','truck','by-vin',{\n    \n}).then((x) => {\n    let smartAsset = x.data.rows.map((m) => m.value.szPhysicalNo2)\n    smartAsset = [...new Set(smartAsset)]\n    let isMatch = smartAsset.filter((k) => msg.originVin.includes(k))\n    msg.isMatchWithCouchDb = isMatch.length;\n    msg.smartAsset = smartAsset;\n    node.send(msg)\n})\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\ncouchdb.view('smart-asset','truck','by-vin',{\n    \n}).then((x) => {\n    let smartAsset = x.data.rows.map((m) => m.value.szPhysicalNo2)\n    smartAsset = [...new Set(smartAsset)]\n    let isMatch = smartAsset.filter((k) => msg.originVin.includes(k))\n    msg.isMatchWithCouchDb = isMatch.length;\n    msg.smartAsset = smartAsset;\n    node.send(msg)\n})\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27788,7 +27781,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-timeseries",
-        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-timeseries','vehicle-tracker','by-date', {\n    key : date\n}).then((x) => {\n    node.warn(x.data.rows.length)\n    // let vinSmartTimeseries = x.data.rows.map((x) => x.value.vin);\n    // msg.smartTimeseries = {\n    //     totalVinSmartTimeseries : vinSmartTimeseries.length,\n    //     vinFilterFromOrigin : vinSmartTimeseries.filter((m) => vinAsset.includes(m)).length,\n    // }\n    // msg.payload = {\n    //     smartBucket : msg.smartBucket,\n    //     smartTimeseries : msg.smartTimeseries,\n    // }\n    // node.send(msg)\n},(error) => {\n    node.warn(error)\n})\n\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet smartBucket  = msg.smartBucket;\nlet vinAsset = msg.originVin;\nlet { date } = msg.payload;\ncouchdb.view('smart-timeseries','vehicle-tracker','by-doc-id', {\n    key : smartBucket.docID\n}).then((x) => {\n    let smartAsset = msg.smartAsset;\n    let payloads = x.data.rows.map((k) => k.value);\n    payloads = payloads.filter((m) => smartAsset.map((c) => c.szPhysicalNo2).includes(m.vin)).map((k) => {\n\n        let asset = smartAsset.find(function (item) {\n            return item.szPhysicalNo2 == k.vin;\n        })\n\n        let isOneMonth = false;\n\n        let currentDate = new Date(date);\n        if (k.printed_timezone) {\n            let printedTimezone = k.printed_timezone.split(\" \")[0]\n\n            currentDate.setDate(currentDate.getDate() - 30);\n            printedTimezone = new Date(printedTimezone)\n\n            if (currentDate > printedTimezone) {\n                isOneMonth = true;\n            }\n        }\n\n        return {\n            ...k,\n            isOneMonth,\n            last30Days: currentDate,\n            unitNoPol: `${asset.szOrgName} - ${asset.szPhysicalNo1}`,\n        }\n\n    })\n    \n\n    msg.payload = {\n        smartBucket : msg.smartBucket,\n        smartTimeseries : {\n            totalVin : x.data.rows.length,\n            tracking : payloads\n        }\n    }\n    node.send(msg)\n},(error) => {\n    node.warn(error)\n})\n\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27809,7 +27802,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-bucket",
-        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-bucket','position','hino-date', {\n    key: [date]\n}).then((x) => {\n    let totalAssetsAccepted = 0;\n    let vinNotFound = []\n    let vinFound = []\n    x.data.rows.forEach((m) => {\n        let payloads = JSON.parse(m.value.payload)\n        payloads = payloads.map((k) => k.vin);\n        let asset = 0\n        vinAsset.forEach((k) => {\n            if (payloads.includes(k)) {\n                asset++;\n                if (!vinFound.includes(k)) {\n                    vinFound.push(k)\n                }\n            } else {\n                if(!vinNotFound.includes(k)) {\n                    vinNotFound.push(k)\n                }\n            }\n        })\n        totalAssetsAccepted += asset\n    })\n\n    msg.smartBucket = {\n        totalDocumentId : x.data.rows.length,\n        totalAssetsAccepted : totalAssetsAccepted,\n        totalVinAcceptence : vinFound.length,\n        vinNotFound : vinNotFound,\n    }\n    node.warn(msg.smartBucket)\n    node.send({\n        ...msg\n    })\n})\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\nlet vinAsset = msg.originVin;\ncouchdb.view('smart-bucket','position','hino', {\n    key: [date],\n    limit: 1,\n    desceding: true\n}).then((x) => {\n    let smartAsset = msg.smartAsset;\n    let payloads = JSON.parse(x.data.rows[0].value.payload);\n    payloads = payloads.filter((m) => smartAsset.map((c) => c.szPhysicalNo2).includes(m.vin)).map((k) =>{\n\n        let asset = smartAsset.find(function(item)  {\n            return item.szPhysicalNo2 == k.vin;\n        })\n\n        let isOneMonth = false;\n\n        let currentDate = new Date(date);\n        if (k.printed_timezone) {\n            let printedTimezone = k.printed_timezone.split(\" \")[0]\n\n            currentDate.setDate(currentDate.getDate() - 30);\n            printedTimezone = new Date(printedTimezone)\n\n            if(currentDate > printedTimezone) {\n                isOneMonth = true;\n            }\n        }\n\n        return {\n            ...k,\n            isOneMonth,\n            last30Days : currentDate,\n            unitNoPol: `${asset.szOrgName} - ${asset.szPhysicalNo1}`,\n        }\n\n    })\n    msg.smartBucket = {\n        docID : x.data.rows[0].value._id,\n        jumlahVin: payloads.length,\n        tracking: payloads,\n    }\n    node.send(msg);\n})\nreturn null;\n\nfunction formatDate(date) {\n    var year = date.getFullYear();\n    var month = ('0' + (date.getMonth() + 1)).slice(-2); // Adding 1 because getMonth returns zero-based index\n    var day = ('0' + date.getDate()).slice(-2);\n    return year + '-' + month + '-' + day;\n}",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -27869,7 +27862,7 @@
         "z": "21fbb7ee1d1dbc43",
         "g": "31635bca54f414f8",
         "name": "smart-asset",
-        "func": "const couchdb = global.get('couchdb')\nlet { vins } = msg.payload;\nnode.warn(vins.map((x) => `[\"${x}\"]`))\ncouchdb.view('smart-asset','truck','by-vin',{\n    keys: vins.map((x) => [x])\n}).then((x) => {\n    let smartAsset = x.data.rows.map((m) => m.value);\n    msg.smartAsset = smartAsset;\n    node.send(msg)\n})\nreturn null;",
+        "func": "const couchdb = global.get('couchdb')\nlet { vins } = msg.payload;\ncouchdb.view('smart-asset','truck','by-vin',{\n    keys: vins.map((x) => [x])\n}).then((x) => {\n    let smartAsset = x.data.rows.map((m) => m.value);\n    msg.smartAsset = smartAsset;\n    node.send(msg)\n})\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -28036,5 +28029,26 @@
         "x": 790,
         "y": 320,
         "wires": []
+    },
+    {
+        "id": "bf61daaf91691ef8",
+        "type": "function",
+        "z": "21fbb7ee1d1dbc43",
+        "g": "31635bca54f414f8",
+        "name": "smart asset",
+        "func": "const couchdb = global.get('couchdb')\nlet { date } = msg.payload;\ncouchdb.view('smart-asset','truck','by-vin',{\n    \n}).then((x) => {\n    let smartAsset = x.data.rows.map((m) => m.value.szPhysicalNo2)\n    smartAsset = [...new Set(smartAsset)]\n    let isMatch = smartAsset.filter((k) => msg.originVin.includes(k))\n    msg.isMatchWithCouchDb = isMatch.length;\n    msg.smartAsset = smartAsset;\n    node.send(msg)\n})\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 600,
+        "wires": [
+            [
+                "21c9d64c217aab55"
+            ]
+        ]
     }
 ]
